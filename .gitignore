@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+
+# Production build
+dist/
+build/
+
+# SSR
+dist-ssr/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Local files
+*.local
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+.DS_Store
+
+# Cache
+.cache/
+.parcel-cache/
+.eslintcache
+.vite/
+.stylelintcache
+*.tsbuildinfo
+
+# Misc
+coverage/
+.vercel/
+.npm
