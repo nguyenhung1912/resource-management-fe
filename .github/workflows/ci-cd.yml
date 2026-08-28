@@ -1,0 +1,151 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # =====================================================
+  # CI
+  # =====================================================
+
+  ci:
+    name: Lint, Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      # - name: Run Tests
+      #   run: npm run test -- --run
+
+      - name: Build production
+        run: npm run build
+
+      # Lưu kết quả build cho job CD
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: dist/
+          retention-days: 1
+
+
+  # =====================================================
+  # CD
+  # =====================================================
+
+  deploy:
+    name: Deploy to Ubuntu Server
+
+    needs: ci
+
+    # Chỉ deploy khi PUSH vào main
+    # Pull Request sẽ chỉ chạy CI
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # =========================
+      # Download build từ CI
+      # =========================
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: web-dist
+          path: dist
+
+
+      # =========================
+      # Connect Tailscale
+      # =========================
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          authkey: ${{ secrets.TAISCALE_AUTH }}
+          ping: ${{ secrets.SERVER_HOST }}
+
+
+      # =========================
+      # Setup SSH
+      # =========================
+
+      - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan -T 10 -H "$SERVER_HOST" >> ~/.ssh/known_hosts
+
+          chmod 600 ~/.ssh/known_hosts
+
+
+      # =========================
+      # Test SSH
+      # =========================
+
+      - name: Test SSH connection
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          ssh "$SERVER_USER@$SERVER_HOST" "echo 'SSH connection successful'"
+
+
+      # =========================
+      # Deploy
+      # =========================
+
+      - name: Deploy application
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          rsync -az --delete \
+            dist/ \
+            "$SERVER_USER@$SERVER_HOST:/var/www/resManagermentFE/"
+
+
+      # =========================
+      # Verify
+      # =========================
+
+      - name: Verify deployment
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          ssh "$SERVER_USER@$SERVER_HOST" \
+            "test -f /var/www/resManagermentFE/index.html && echo 'Deployment successful'"
