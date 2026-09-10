@@ -1,4 +1,4 @@
-﻿---
+---
 name: react-best-practices
 description: React performance optimization guidelines from Vercel Engineering tailored for Vite SPA. This skill should be used when writing, reviewing, or refactoring React code to ensure optimal client-side performance patterns. Triggers on tasks involving React components, state management, client data fetching, bundle optimization, or rendering performance.
 license: MIT
@@ -54,6 +54,7 @@ Reference these guidelines when:
 
 ### 3. Client-Side Data Fetching (MEDIUM-HIGH)
 
+- `client-no-fetch-in-useeffect` - Never fetch remote data in useEffect; use Route Loaders or Event Handlers
 - `client-swr-dedup` - Use deduplicated request patterns
 - `client-event-listeners` - Deduplicate and clean up global event listeners
 - `client-passive-event-listeners` - Use passive listeners for scroll

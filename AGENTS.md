@@ -1,4 +1,4 @@
-﻿# Resource Management Frontend - Agent Guidelines
+# Resource Management Frontend - Agent Guidelines
 
 This document serves as the authoritative guidelines and operational rules for AI Assistants reading, architecting, and generating code within the `resource-management-fe` repository.
 
@@ -80,16 +80,18 @@ src/
 - Base components in `src/components/ui/` should follow the `shadcn/ui` composition pattern with `class-variance-authority` (cva) and the `cn()` utility.
 - Use `lucide-react` exclusively for icons across components and features.
 
-### TypeScript Strictness
+### TypeScript Strictness (Zero `any` Tolerance)
+- **ABSOLUTE PROHIBITION ON `any`**: Never use `any` under any circumstances. Every prop, state variable, function parameter, and API response must have an explicit interface or type.
+- If the incoming data shape is truly dynamic or uncertain, use `unknown` paired with type narrowing or type guards.
 - `tsconfig.app.json` enforces strict compiler flags: `verbatimModuleSyntax`, `erasableSyntaxOnly`, `noUnusedLocals`, `noUnusedParameters`.
-- Always define explicit TypeScript interfaces/types for Props, State, and API responses.
-- Never use `any`. Prefer `unknown` with type narrowing if the type is undetermined.
-- When importing types, use the syntax: `import type { ... } from '...'`.
+- When importing types, strictly use the syntax: `import type { ... } from '...'`.
 
-### State & API Handling
-- Handle server state and fetched data judiciously; avoid duplicating server responses in global stores unnecessarily.
-- Separate Zustand stores by domain and use selectors to prevent redundant re-renders.
+### Data Fetching & API Rules (No Fetching in `useEffect`)
+- **ABSOLUTE PROHIBITION ON API CALLS IN `useEffect`**: Strictly forbidden to call APIs or fetch remote data inside `useEffect` on component mount (eliminates render waterfalls, race conditions, boilerplate state, and React StrictMode double-invocations).
+- **Initial page/route data**: MUST be fetched via **React Router v7 `loader` functions** and read via `useLoaderData()`.
+- **User interactions & mutations**: MUST be initiated directly inside **event handlers** (`onClick`, `onSubmit`, `onChange`, etc.) or React Router actions.
 - Route all network calls through `src/services/` with unified error handling.
+- Separate Zustand stores by domain and use selectors to prevent redundant re-renders.
 
 ---
 
