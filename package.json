@@ -12,6 +12,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@microsoft/signalr": "^10.0.11",
     "@tailwindcss/vite": "^4.3.3",
     "axios": "^1.19.0",
     "class-variance-authority": "^0.7.1",
