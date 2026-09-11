@@ -1,4 +1,4 @@
-﻿@import 'tailwindcss';
+@import 'tailwindcss';
 
 @theme {
   --color-primary: #256eff;
@@ -21,13 +21,6 @@
   --color-badge-danger-text: #c9395c;
   --color-status-away: #256eff;
   --color-status-inactive: #a0a0a0;
-
-  --color-error-navy: #113163;
-  --color-error-blue: #3498db;
-  --color-error-gray: #dddddd;
-  --color-error-white: #ffffff;
-  --color-error-yellow: #eab308;
-  --color-error-red: #dc2626;
 
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
