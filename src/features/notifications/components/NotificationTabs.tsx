@@ -15,7 +15,7 @@ export function NotificationTabs({ activeFilter, onFilterChange, unreadCount = 0
         className={cn(
           'px-2.5 py-1 rounded-md text-xs transition-all cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary',
           activeFilter === 'all'
-            ? 'bg-surface text-text-main font-semibold shadow-2xs border border-border-subtle'
+            ? 'bg-surface text-text-main font-semibold shadow-xs border border-border-subtle'
             : 'text-text-muted hover:text-text-main',
         )}
       >
@@ -28,7 +28,7 @@ export function NotificationTabs({ activeFilter, onFilterChange, unreadCount = 0
         className={cn(
           'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition-all cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary',
           activeFilter === 'unread'
-            ? 'bg-surface text-text-main font-semibold shadow-2xs border border-border-subtle'
+            ? 'bg-surface text-text-main font-semibold shadow-xs border border-border-subtle'
             : 'text-text-muted hover:text-text-main',
         )}
       >
