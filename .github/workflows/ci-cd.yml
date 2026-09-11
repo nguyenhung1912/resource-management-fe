@@ -12,7 +12,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   # =====================================================
   # CI
   # =====================================================
@@ -22,7 +21,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -38,20 +36,19 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
-      # - name: Run Tests
-      #   run: npm run test -- --run
+      - name: Run Tests
+        run: npm run test -- --run
 
       - name: Build production
         run: npm run build
 
       # Lưu kết quả build cho job CD
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: web-dist
           path: dist/
           retention-days: 1
-
 
   # =====================================================
   # CD
@@ -69,7 +66,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
       # =========================
       # Download build từ CI
       # =========================
@@ -80,7 +76,6 @@ jobs:
           name: web-dist
           path: dist
 
-
       # =========================
       # Connect Tailscale
       # =========================
@@ -88,9 +83,8 @@ jobs:
       - name: Connect to Tailscale
         uses: tailscale/github-action@v4
         with:
-          authkey: ${{ secrets.TAISCALE_AUTH }}
+          authkey: ${{ secrets.TAILSCALE_AUTH }}
           ping: ${{ secrets.SERVER_HOST }}
-
 
       # =========================
       # Setup SSH
@@ -111,7 +105,6 @@ jobs:
 
           chmod 600 ~/.ssh/known_hosts
 
-
       # =========================
       # Test SSH
       # =========================
@@ -122,7 +115,6 @@ jobs:
           SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
           ssh "$SERVER_USER@$SERVER_HOST" "echo 'SSH connection successful'"
-
 
       # =========================
       # Deploy
@@ -136,7 +128,6 @@ jobs:
           rsync -az --delete \
             dist/ \
             "$SERVER_USER@$SERVER_HOST:/var/www/resManagermentFE/"
-
 
       # =========================
       # Verify

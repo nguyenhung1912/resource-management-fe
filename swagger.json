@@ -1,0 +1,6846 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Hệ thống Quản lý Tài nguyên Nghiên cứu Khoa học (NCKH Resource Management API)",
+    "version": "1.0.0",
+    "description": "### Tài liệu Swagger / OpenAPI 3.0 chuẩn dành cho Frontend (FE)\nHệ thống Quản lý Tài nguyên & Tài liệu Nghiên cứu Khoa học dành cho Trường Đại học.\n\n---\n\n### 1. Thông tin Máy chủ & Môi trường\n- **Development (HTTP)**: `http://localhost:5023`\n- **Development (HTTPS)**: `https://localhost:7179`\n- **Production Base URL**: Cấu hình theo domain server thực tế.\n- Tất cả API đều có tiền tố chuẩn: `/api/{ControllerName}`.\n\n---\n\n### 2. Xác thực (Authentication) & Phân quyền (Authorization)\n- **Chuẩn xác thực**: Bearer JWT (JSON Web Token).\n- **Header gửi kèm**:\n  ```http\n  Authorization: Bearer <access_token>\n  ```\n- **Thời hạn Token mặc định**: 60 phút.\n- **Phân cấp vai trò (Roles)**:\n  - **Admin**: Quản trị toàn hệ thống (User, Khoa, Ngành, Chuyên ngành, Học phần, Phân quyền Role-Function, Xem AuditLogs).\n  - **Lecturer** (Giảng viên): Kiểm duyệt tài liệu (Duyệt/Từ chối), kích hoạt AI kiểm tra trùng lặp (Đạo văn), xử lý Khiếu nại (Appeals), xử lý Báo cáo vi phạm (Reports).\n  - **Student** (Sinh viên / Người dùng chung): Tải lên tài liệu nghiên cứu, Tìm kiếm, Đọc, Tải file, Đánh giá sao (Rating), Bình luận (Comment), Gửi báo cáo vi phạm, Gửi khiếu nại kiểm duyệt.\n\n---\n\n### 3. Quy ước Dữ liệu Frontend cần lưu ý\n- Định dạng thuộc tính trong JSON phản hồi: **camelCase** (ví dụ: `userCode`, `fullName`, `createdAt`).\n- Định dạng dữ liệu `multipart/form-data` khi Upload tài liệu: Chấp nhận cả PascalCase và camelCase (khuyên dùng tên trường theo tài liệu này).\n- Cấu trúc phản hồi Mutation (Thêm/Sửa/Xóa):\n  ```json\n  {\n    \"message\": \"Thông báo trạng thái thực hiện\",\n    \"data\": { ... } // (nếu có dữ liệu trả về)\n  }\n  ```\n- Cấu trúc phản hồi phân trang chuẩn:\n  ```json\n  {\n    \"items\": [ ... ],\n    \"pageIndex\": 1,\n    \"pageSize\": 10,\n    \"totalCount\": 100,\n    \"totalPages\": 10,\n    \"hasPreviousPage\": false,\n    \"hasNextPage\": true\n  }\n  ```\n\n---\n\n### 4. Realtime SignalR Hub (Thông báo tức thời)\n- **Endpoint**: `/hubs/notifications`\n- **Cách kết nối từ Client**:\n  ```javascript\n  import * as signalR from \"@microsoft/signalr\";\n\n  const connection = new signalR.HubConnectionBuilder()\n    .withUrl(\"http://localhost:5023/hubs/notifications\", {\n      accessTokenFactory: () => localStorage.getItem(\"token\")\n    })\n    .withAutomaticReconnect()\n    .build();\n\n  // Lắng nghe thông báo mới\n  connection.on(\"ReceiveNotification\", (notification) => {\n    console.log(\"Thông báo mới:\", notification);\n  });\n\n  // Lắng nghe cập nhật số lượng thông báo chưa đọc\n  connection.on(\"UnreadCountChanged\", (count) => {\n    console.log(\"Số thông báo chưa đọc mới:\", count);\n  });\n\n  await connection.start();\n  ```\n",
+    "contact": {
+      "name": "Đội ngũ Backend NCKH",
+      "email": "quannguyen240505@gmail.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5023",
+      "description": "Local Development Server (HTTP)"
+    },
+    {
+      "url": "https://localhost:7179",
+      "description": "Local Development Server (HTTPS)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Xác thực, Đăng nhập, Đổi mật khẩu, Quên mật khẩu OTP Email, Google OAuth 2.0"
+    },
+    {
+      "name": "User",
+      "description": "Thông tin hồ sơ cá nhân người dùng"
+    },
+    {
+      "name": "Resources",
+      "description": "Quản lý tài nguyên, tài liệu (Upload FormData, xem chi tiết, tải file, xóa)"
+    },
+    {
+      "name": "ResourcesUpdate",
+      "description": "Cập nhật metadata tài liệu và xóa mềm (Soft Delete)"
+    },
+    {
+      "name": "ResourcesSearch",
+      "description": "Tìm kiếm & lọc tài liệu nâng cao có phân quyền"
+    },
+    {
+      "name": "Search",
+      "description": "Tìm kiếm tài liệu đa năng toàn diện (Full-text search)"
+    },
+    {
+      "name": "ResourceAuthors",
+      "description": "Quản lý đồng tác giả của tài liệu"
+    },
+    {
+      "name": "ResourceKeywords",
+      "description": "Quản lý từ khóa (tags) của tài liệu"
+    },
+    {
+      "name": "Comment",
+      "description": "Bình luận, trả lời (Replies), thích bình luận (Like/Unlike)"
+    },
+    {
+      "name": "Rating",
+      "description": "Đánh giá tài liệu (1 - 5 sao), thống kê rating, đánh giá cá nhân"
+    },
+    {
+      "name": "Recommendation",
+      "description": "Gợi ý tài liệu thông minh theo chuyên ngành và hành vi"
+    },
+    {
+      "name": "History",
+      "description": "Lịch sử xem tài liệu (ghi nhận lượt xem, xem lại, xóa lịch sử)"
+    },
+    {
+      "name": "Notification",
+      "description": "Thông báo người dùng (danh sách, số lượng chưa đọc, đánh dấu đã đọc)"
+    },
+    {
+      "name": "Moderation",
+      "description": "Kiểm duyệt tài liệu (Admin & Lecturer: Queue, AI Check trùng lặp, Duyệt, Từ chối, Lịch sử)"
+    },
+    {
+      "name": "ModerationAppeal",
+      "description": "Khiếu nại kiểm duyệt (Sinh viên gửi giải trình, Giảng viên/Admin xử lý)"
+    },
+    {
+      "name": "Report",
+      "description": "Báo cáo vi phạm (Báo cáo tài liệu, bình luận, người dùng; Quản lý báo cáo)"
+    },
+    {
+      "name": "Lookup",
+      "description": "Tra cứu danh mục hệ thống (Khoa, Ngành, Chuyên ngành, Học phần, Loại tài liệu, Trạng thái)"
+    },
+    {
+      "name": "Admin",
+      "description": "Quản trị hệ thống (Người dùng, Khoa, Ngành, Chuyên ngành, Học phần, Phân quyền Role-Function)"
+    },
+    {
+      "name": "AuditLogs",
+      "description": "Nhật ký kiểm toán hệ thống dành cho Admin"
+    }
+  ],
+  "security": [
+    {
+      "Bearer": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Nhập JWT Bearer Token theo định dạng: Bearer {token}"
+      }
+    },
+    "schemas": {
+      "MessageResponse": {
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Thao tác thành công."
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Đã có lỗi xảy ra hoặc dữ liệu không hợp lệ."
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "userCode",
+          "password"
+        ],
+        "properties": {
+          "userCode": {
+            "type": "string",
+            "example": "SV2026001",
+            "description": "Mã đăng nhập (Mã sinh viên hoặc Mã cán bộ)"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "P@ssword123",
+            "description": "Mật khẩu tài khoản"
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "description": "JWT Bearer Token"
+          },
+          "uid": {
+            "type": "string",
+            "example": "USR_1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+            "description": "Mã UID định danh người dùng"
+          },
+          "userCode": {
+            "type": "string",
+            "example": "SV2026001"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Nguyễn Văn A"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "nguyenvana@gmail.com"
+          },
+          "roleId": {
+            "type": "integer",
+            "example": 3
+          },
+          "role": {
+            "type": "string",
+            "example": "Student"
+          },
+          "expiration": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-10T16:45:00Z"
+          }
+        }
+      },
+      "CurrentUserClaimResponse": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "example": "USR_1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+          },
+          "userCode": {
+            "type": "string",
+            "example": "SV2026001"
+          },
+          "email": {
+            "type": "string",
+            "example": "nguyenvana@gmail.com"
+          },
+          "role": {
+            "type": "string",
+            "example": "Student"
+          },
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_KTPM"
+          }
+        }
+      },
+      "ChangePasswordRequest": {
+        "type": "object",
+        "required": [
+          "currentPassword",
+          "newPassword",
+          "confirmPassword"
+        ],
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "format": "password",
+            "example": "CurrentPassword@123"
+          },
+          "newPassword": {
+            "type": "string",
+            "format": "password",
+            "example": "NewPassword@456"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "format": "password",
+            "example": "NewPassword@456"
+          }
+        }
+      },
+      "ForgotPasswordRequest": {
+        "type": "object",
+        "required": [
+          "userCode",
+          "email"
+        ],
+        "properties": {
+          "userCode": {
+            "type": "string",
+            "example": "SV2026001"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "nguyenvana@gmail.com"
+          }
+        }
+      },
+      "VerifyOtpRequest": {
+        "type": "object",
+        "required": [
+          "userCode",
+          "otp"
+        ],
+        "properties": {
+          "userCode": {
+            "type": "string",
+            "example": "SV2026001"
+          },
+          "otp": {
+            "type": "string",
+            "example": "492817",
+            "description": "Mã OTP 6 số nhận từ email"
+          }
+        }
+      },
+      "ResetPasswordRequest": {
+        "type": "object",
+        "required": [
+          "userCode",
+          "email",
+          "newPassword",
+          "confirmPassword"
+        ],
+        "properties": {
+          "userCode": {
+            "type": "string",
+            "example": "SV2026001"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "nguyenvana@gmail.com"
+          },
+          "newPassword": {
+            "type": "string",
+            "format": "password",
+            "example": "NewPassword@789"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "format": "password",
+            "example": "NewPassword@789"
+          }
+        }
+      },
+      "UserProfileResponse": {
+        "type": "object",
+        "properties": {
+          "userCode": {
+            "type": "string",
+            "example": "SV2026001"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Nguyễn Văn A"
+          },
+          "dob": {
+            "type": "string",
+            "format": "date",
+            "example": "2002-08-15"
+          },
+          "email": {
+            "type": "string",
+            "example": "nguyenvana@gmail.com"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0912345678"
+          },
+          "gender": {
+            "type": "string",
+            "example": "Nam",
+            "description": "Nam | Nữ | Khác"
+          },
+          "role": {
+            "type": "string",
+            "example": "Student"
+          },
+          "department": {
+            "type": "string",
+            "example": "Khoa Công nghệ thông tin"
+          },
+          "major": {
+            "type": "string",
+            "example": "Công nghệ thông tin"
+          },
+          "subMajor": {
+            "type": "string",
+            "example": "Kỹ thuật phần mềm"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "UpdateProfileRequest": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "Văn A"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Nguyễn"
+          },
+          "dob": {
+            "type": "string",
+            "format": "date",
+            "example": "2002-08-15"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0912345678"
+          },
+          "gender": {
+            "type": "integer",
+            "example": 1,
+            "description": "1: Nam, 2: Nữ, 0: Khác"
+          }
+        }
+      },
+      "ResourceResponse": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "Nghiên cứu ứng dụng Học sâu trong Y tế"
+          },
+          "fileDescription": {
+            "type": "string",
+            "example": "Báo cáo đề tài NCKH cấp trường năm 2026"
+          },
+          "fileUrl": {
+            "type": "string",
+            "example": "https://pub-b67e67fba40347e189780610079bdd9e.r2.dev/files/2026/09/research.pdf"
+          },
+          "fileTypeId": {
+            "type": "integer",
+            "example": 1
+          },
+          "fileTypeName": {
+            "type": "string",
+            "example": "Báo cáo NCKH"
+          },
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_KTPM"
+          },
+          "courseCode": {
+            "type": "string",
+            "example": "IT3040"
+          },
+          "yearCompleted": {
+            "type": "integer",
+            "example": 2026
+          },
+          "githubLink": {
+            "type": "string",
+            "example": "https://github.com/myuser/research-repo"
+          },
+          "bannerUrl": {
+            "type": "string",
+            "example": "https://pub-b67e67fba40347e189780610079bdd9e.r2.dev/banners/thumb.jpg"
+          },
+          "fileStatusId": {
+            "type": "integer",
+            "example": 1,
+            "description": "1: Pending, 2: Approved, 3: Rejected"
+          },
+          "fileStatusName": {
+            "type": "string",
+            "example": "Pending"
+          },
+          "uploadUserId": {
+            "type": "string",
+            "example": "USR_1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-10T14:30:00Z"
+          }
+        }
+      },
+      "UploadResourceSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Tải tài liệu thành công."
+          },
+          "data": {
+            "$ref": "#/components/schemas/ResourceResponse"
+          }
+        }
+      },
+      "ResourceDetailResponse": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "Nghiên cứu ứng dụng Học sâu trong Y tế"
+          },
+          "fileDescription": {
+            "type": "string",
+            "example": "Mô tả chi tiết đề tài nghiên cứu..."
+          },
+          "fileUrl": {
+            "type": "string",
+            "example": "https://pub-b67e67fba40347e189780610079bdd9e.r2.dev/files/2026/09/research.pdf"
+          },
+          "fileTypeId": {
+            "type": "integer",
+            "example": 1
+          },
+          "fileTypeName": {
+            "type": "string",
+            "example": "Báo cáo NCKH"
+          },
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_KTPM"
+          },
+          "subMajorName": {
+            "type": "string",
+            "example": "Kỹ thuật phần mềm"
+          },
+          "majorName": {
+            "type": "string",
+            "example": "Công nghệ thông tin"
+          },
+          "departmentName": {
+            "type": "string",
+            "example": "Khoa Công nghệ thông tin"
+          },
+          "courseCode": {
+            "type": "string",
+            "example": "IT3040"
+          },
+          "courseName": {
+            "type": "string",
+            "example": "Thực tập chuyên ngành"
+          },
+          "yearCompleted": {
+            "type": "integer",
+            "example": 2026
+          },
+          "githubLink": {
+            "type": "string",
+            "example": "https://github.com/myuser/research-repo"
+          },
+          "bannerUrl": {
+            "type": "string",
+            "example": "https://pub-b67e67fba40347e189780610079bdd9e.r2.dev/banners/thumb.jpg"
+          },
+          "fileStatusId": {
+            "type": "integer",
+            "example": 2
+          },
+          "fileStatusName": {
+            "type": "string",
+            "example": "Approved"
+          },
+          "uploadUserId": {
+            "type": "string",
+            "example": "USR_1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+          },
+          "uploadUserName": {
+            "type": "string",
+            "example": "Nguyễn Văn A"
+          },
+          "uploadUserEmail": {
+            "type": "string",
+            "example": "nguyenvana@gmail.com"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuthorResponse"
+            }
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KeywordResponse"
+            }
+          },
+          "ratingSummary": {
+            "$ref": "#/components/schemas/RatingSummaryResponse"
+          }
+        }
+      },
+      "MyUploadItemResponse": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "Nghiên cứu ứng dụng Deep Learning"
+          },
+          "fileDescription": {
+            "type": "string",
+            "example": "Mô tả..."
+          },
+          "fileUrl": {
+            "type": "string",
+            "example": "https://..."
+          },
+          "fileTypeId": {
+            "type": "integer",
+            "example": 1
+          },
+          "fileTypeName": {
+            "type": "string",
+            "example": "Báo cáo NCKH"
+          },
+          "fileStatusId": {
+            "type": "integer",
+            "example": 1
+          },
+          "fileStatusName": {
+            "type": "string",
+            "example": "Pending"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "averageRating": {
+            "type": "number",
+            "format": "float",
+            "example": 4.8
+          },
+          "totalRatings": {
+            "type": "integer",
+            "example": 12
+          },
+          "rejectionReason": {
+            "type": "string",
+            "nullable": true,
+            "example": null
+          }
+        }
+      },
+      "MyUploadsPaginatedResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MyUploadItemResponse"
+            }
+          },
+          "pageIndex": {
+            "type": "integer",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalCount": {
+            "type": "integer",
+            "example": 8
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 1
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "example": false
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "UpdateResourceRequest": {
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "type": "string",
+            "example": "Nghiên cứu ứng dụng Deep Learning (Cập nhật)"
+          },
+          "fileDescription": {
+            "type": "string",
+            "example": "Mô tả nội dung cập nhật mới..."
+          },
+          "courseCode": {
+            "type": "string",
+            "example": "IT3040"
+          },
+          "yearCompleted": {
+            "type": "integer",
+            "example": 2026
+          },
+          "githubLink": {
+            "type": "string",
+            "example": "https://github.com/myuser/research-repo"
+          },
+          "bannerUrl": {
+            "type": "string",
+            "example": "https://pub-b67e67fba40347e189780610079bdd9e.r2.dev/banners/thumb2.jpg"
+          }
+        }
+      },
+      "AuthorResponse": {
+        "type": "object",
+        "properties": {
+          "authorId": {
+            "type": "string",
+            "example": "USR_1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Nguyễn Văn A"
+          },
+          "email": {
+            "type": "string",
+            "example": "nguyenvana@gmail.com"
+          }
+        }
+      },
+      "UpdateAuthorsRequest": {
+        "type": "object",
+        "required": [
+          "authorIds"
+        ],
+        "properties": {
+          "authorIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "USR_1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+              "USR_8x9y0z1a-2b3c-4d5e-6f7a-8b9c0d1e2f3a"
+            ]
+          }
+        }
+      },
+      "KeywordResponse": {
+        "type": "object",
+        "properties": {
+          "fileKeywordId": {
+            "type": "string",
+            "example": "FKW_123456"
+          },
+          "keyword": {
+            "type": "string",
+            "example": "Deep Learning"
+          }
+        }
+      },
+      "AddKeywordsRequest": {
+        "type": "object",
+        "required": [
+          "keywords"
+        ],
+        "properties": {
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Deep Learning",
+              "Y tế số",
+              "PyTorch"
+            ]
+          }
+        }
+      },
+      "SearchResultItem": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "Xây dựng hệ thống khuyến nghị tài liệu"
+          },
+          "fileDescription": {
+            "type": "string",
+            "example": "Đề tài tốt nghiệp chuyên sâu..."
+          },
+          "fileUrl": {
+            "type": "string",
+            "example": "https://..."
+          },
+          "fileTypeName": {
+            "type": "string",
+            "example": "Khóa luận tốt nghiệp"
+          },
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_KTPM"
+          },
+          "yearCompleted": {
+            "type": "integer",
+            "example": 2026
+          },
+          "uploadBy": {
+            "type": "string",
+            "example": "Trần Thị B"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Recommendation System",
+              "Machine Learning"
+            ]
+          }
+        }
+      },
+      "SearchPaginatedResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchResultItem"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "example": 35
+          },
+          "page": {
+            "type": "integer",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          }
+        }
+      },
+      "ResourcesSearchPaginatedResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResourceResponse"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "example": 25
+          },
+          "page": {
+            "type": "integer",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          }
+        }
+      },
+      "CommentItemResponse": {
+        "type": "object",
+        "properties": {
+          "commentId": {
+            "type": "string",
+            "example": "CMT_1a2b3c4d"
+          },
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c"
+          },
+          "uid": {
+            "type": "string",
+            "example": "USR_1a2b3c4d"
+          },
+          "authorName": {
+            "type": "string",
+            "example": "Lê Văn C"
+          },
+          "authorRole": {
+            "type": "string",
+            "example": "Student"
+          },
+          "content": {
+            "type": "string",
+            "example": "Tài liệu rất chi tiết và dễ hiểu!"
+          },
+          "parentCommentId": {
+            "type": "string",
+            "nullable": true,
+            "example": null
+          },
+          "likeCount": {
+            "type": "integer",
+            "example": 8
+          },
+          "replyCount": {
+            "type": "integer",
+            "example": 2
+          },
+          "isLiked": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CreateCommentRequest": {
+        "type": "object",
+        "required": [
+          "fileId",
+          "content"
+        ],
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          },
+          "content": {
+            "type": "string",
+            "example": "Cho mình hỏi về phần tiền xử lý dữ liệu ở trang 15 ạ."
+          },
+          "parentCommentId": {
+            "type": "string",
+            "nullable": true,
+            "example": null,
+            "description": "Điền ID của comment cha nếu là reply; để trống nếu là comment gốc"
+          }
+        }
+      },
+      "UpdateCommentRequest": {
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "string",
+            "example": "Nội dung bình luận đã được chỉnh sửa."
+          }
+        }
+      },
+      "CommentMutationResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Tạo bình luận thành công."
+          },
+          "data": {
+            "$ref": "#/components/schemas/CommentItemResponse"
+          }
+        }
+      },
+      "PagedCommentResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommentItemResponse"
+            }
+          },
+          "pageIndex": {
+            "type": "integer",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalCount": {
+            "type": "integer",
+            "example": 25
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 3
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "example": false
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "UpsertRatingRequest": {
+        "type": "object",
+        "required": [
+          "fileId",
+          "ratingScore"
+        ],
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          },
+          "ratingScore": {
+            "type": "number",
+            "format": "decimal",
+            "minimum": 1,
+            "maximum": 5,
+            "example": 5,
+            "description": "Điểm đánh giá từ 1.0 đến 5.0 sao"
+          },
+          "review": {
+            "type": "string",
+            "nullable": true,
+            "example": "Tài liệu rất hay và chuẩn chỉnh."
+          }
+        }
+      },
+      "RatingItemResponse": {
+        "type": "object",
+        "properties": {
+          "ratingId": {
+            "type": "string",
+            "example": "RAT_1a2b3c4d"
+          },
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c"
+          },
+          "uid": {
+            "type": "string",
+            "example": "USR_1a2b3c4d"
+          },
+          "authorName": {
+            "type": "string",
+            "example": "Nguyễn Văn A"
+          },
+          "ratingScore": {
+            "type": "number",
+            "format": "decimal",
+            "example": 5
+          },
+          "review": {
+            "type": "string",
+            "nullable": true,
+            "example": "Rất hay"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "RatingMutationResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Đánh giá tài liệu thành công."
+          },
+          "data": {
+            "$ref": "#/components/schemas/RatingItemResponse"
+          }
+        }
+      },
+      "RatingSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c"
+          },
+          "averageRating": {
+            "type": "number",
+            "format": "float",
+            "example": 4.6
+          },
+          "totalRatings": {
+            "type": "integer",
+            "example": 15
+          },
+          "starDistribution": {
+            "type": "object",
+            "properties": {
+              "star1": {
+                "type": "integer",
+                "example": 0
+              },
+              "star2": {
+                "type": "integer",
+                "example": 1
+              },
+              "star3": {
+                "type": "integer",
+                "example": 1
+              },
+              "star4": {
+                "type": "integer",
+                "example": 4
+              },
+              "star5": {
+                "type": "integer",
+                "example": 9
+              }
+            }
+          },
+          "currentUserRating": {
+            "$ref": "#/components/schemas/RatingItemResponse"
+          }
+        }
+      },
+      "PagedRatingResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RatingItemResponse"
+            }
+          },
+          "pageIndex": {
+            "type": "integer",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalCount": {
+            "type": "integer",
+            "example": 15
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 2
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "example": false
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "RecommendedResourceResponse": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "Ứng dụng Trí tuệ nhân tạo trong xử lý ngôn ngữ tự nhiên"
+          },
+          "fileDescription": {
+            "type": "string",
+            "example": "Nghiên cứu chuyên sâu về Transformers..."
+          },
+          "fileUrl": {
+            "type": "string",
+            "example": "https://..."
+          },
+          "fileTypeName": {
+            "type": "string",
+            "example": "Báo cáo NCKH"
+          },
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_KTPM"
+          },
+          "courseName": {
+            "type": "string",
+            "example": "Trí tuệ nhân tạo"
+          },
+          "bannerUrl": {
+            "type": "string",
+            "example": "https://..."
+          },
+          "averageScore": {
+            "type": "number",
+            "format": "float",
+            "example": 4.9
+          },
+          "totalReviews": {
+            "type": "integer",
+            "example": 28
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateHistoryViewRequest": {
+        "type": "object",
+        "required": [
+          "fileId"
+        ],
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          }
+        }
+      },
+      "HistoryViewItemResponse": {
+        "type": "object",
+        "properties": {
+          "historyViewId": {
+            "type": "string",
+            "example": "HST_1a2b3c4d"
+          },
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "Nghiên cứu ứng dụng Deep Learning"
+          },
+          "fileUrl": {
+            "type": "string",
+            "example": "https://..."
+          },
+          "fileTypeName": {
+            "type": "string",
+            "example": "Báo cáo NCKH"
+          },
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_KTPM"
+          },
+          "viewedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "HistoryMutationResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Ghi nhận lịch sử xem thành công."
+          },
+          "data": {
+            "$ref": "#/components/schemas/HistoryViewItemResponse"
+          }
+        }
+      },
+      "ClearHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Xóa toàn bộ lịch sử xem thành công."
+          },
+          "deletedItems": {
+            "type": "integer",
+            "example": 12
+          }
+        }
+      },
+      "PagedHistoryViewResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryViewItemResponse"
+            }
+          },
+          "pageIndex": {
+            "type": "integer",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalCount": {
+            "type": "integer",
+            "example": 45
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 5
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "example": false
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "NotificationItemResponse": {
+        "type": "object",
+        "properties": {
+          "notificationId": {
+            "type": "string",
+            "example": "NTF_1a2b3c4d"
+          },
+          "title": {
+            "type": "string",
+            "example": "Tài liệu của bạn đã được phê duyệt"
+          },
+          "message": {
+            "type": "string",
+            "example": "Tài liệu 'Nghiên cứu ứng dụng AI' đã được Giảng viên phê duyệt thành công."
+          },
+          "type": {
+            "type": "string",
+            "example": "ResourceApproved"
+          },
+          "targetUrl": {
+            "type": "string",
+            "example": "/resources/FIL_987a6b5c"
+          },
+          "isRead": {
+            "type": "boolean",
+            "example": false
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "NotificationReadAllResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Đã đánh dấu tất cả thông báo là đã đọc."
+          },
+          "updatedItems": {
+            "type": "integer",
+            "example": 5
+          }
+        }
+      },
+      "PagedNotificationResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationItemResponse"
+            }
+          },
+          "pageIndex": {
+            "type": "integer",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalCount": {
+            "type": "integer",
+            "example": 8
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 1
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "example": false
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "ModerationResourceItemResponse": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "Nghiên cứu ứng dụng Học sâu"
+          },
+          "fileDescription": {
+            "type": "string",
+            "example": "Mô tả đề tài..."
+          },
+          "fileUrl": {
+            "type": "string",
+            "example": "https://..."
+          },
+          "fileTypeId": {
+            "type": "integer",
+            "example": 1
+          },
+          "fileTypeName": {
+            "type": "string",
+            "example": "Báo cáo NCKH"
+          },
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_KTPM"
+          },
+          "subMajorName": {
+            "type": "string",
+            "example": "Kỹ thuật phần mềm"
+          },
+          "uploaderName": {
+            "type": "string",
+            "example": "Nguyễn Văn A"
+          },
+          "uploaderEmail": {
+            "type": "string",
+            "example": "nguyenvana@gmail.com"
+          },
+          "fileStatusId": {
+            "type": "integer",
+            "example": 1
+          },
+          "fileStatusName": {
+            "type": "string",
+            "example": "Pending"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "latestPlagiarismScore": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true,
+            "example": 12.5
+          }
+        }
+      },
+      "ModerationQueuePaginatedResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Lấy danh sách hàng đợi kiểm duyệt thành công."
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ModerationResourceItemResponse"
+                }
+              },
+              "pageIndex": {
+                "type": "integer",
+                "example": 1
+              },
+              "pageSize": {
+                "type": "integer",
+                "example": 10
+              },
+              "totalCount": {
+                "type": "integer",
+                "example": 14
+              },
+              "totalPages": {
+                "type": "integer",
+                "example": 2
+              },
+              "hasPreviousPage": {
+                "type": "boolean",
+                "example": false
+              },
+              "hasNextPage": {
+                "type": "boolean",
+                "example": true
+              }
+            }
+          }
+        }
+      },
+      "ModerationResourceDetailResponse": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "Nghiên cứu ứng dụng Học sâu"
+          },
+          "fileDescription": {
+            "type": "string",
+            "example": "Chi tiết báo cáo..."
+          },
+          "fileUrl": {
+            "type": "string",
+            "example": "https://..."
+          },
+          "fileTypeId": {
+            "type": "integer",
+            "example": 1
+          },
+          "fileTypeName": {
+            "type": "string",
+            "example": "Báo cáo NCKH"
+          },
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_KTPM"
+          },
+          "subMajorName": {
+            "type": "string",
+            "example": "Kỹ thuật phần mềm"
+          },
+          "departmentName": {
+            "type": "string",
+            "example": "Khoa Công nghệ thông tin"
+          },
+          "uploader": {
+            "type": "object",
+            "properties": {
+              "uid": {
+                "type": "string",
+                "example": "USR_1a2b3c4d"
+              },
+              "fullName": {
+                "type": "string",
+                "example": "Nguyễn Văn A"
+              },
+              "email": {
+                "type": "string",
+                "example": "nguyenvana@gmail.com"
+              }
+            }
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuthorResponse"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "latestPlagiarismCheck": {
+            "$ref": "#/components/schemas/PlagiarismCheckResponse"
+          }
+        }
+      },
+      "ModerationDetailEnvelopeResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Lấy thông tin chi tiết tài liệu kiểm duyệt thành công."
+          },
+          "data": {
+            "$ref": "#/components/schemas/ModerationResourceDetailResponse"
+          }
+        }
+      },
+      "PlagiarismCheckResponse": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c"
+          },
+          "similarityScore": {
+            "type": "number",
+            "format": "decimal",
+            "example": 14.8,
+            "description": "Tỷ lệ trùng lặp tính theo phần trăm (%)"
+          },
+          "matchedChunks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "chunkIndex": {
+                  "type": "integer",
+                  "example": 2
+                },
+                "sourceFileId": {
+                  "type": "string",
+                  "example": "FIL_old123"
+                },
+                "sourceFileName": {
+                  "type": "string",
+                  "example": "Khóa luận tốt nghiệp K19"
+                },
+                "similarity": {
+                  "type": "number",
+                  "format": "decimal",
+                  "example": 88.5
+                },
+                "contentSnippet": {
+                  "type": "string",
+                  "example": "Đoạn văn bản bị trùng lặp phát hiện bởi AI..."
+                }
+              }
+            }
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PlagiarismCheckEnvelopeResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Kiểm tra trùng lặp thành công."
+          },
+          "data": {
+            "$ref": "#/components/schemas/PlagiarismCheckResponse"
+          }
+        }
+      },
+      "ApproveModerationRequest": {
+        "type": "object",
+        "properties": {
+          "notes": {
+            "type": "string",
+            "example": "Tài liệu đạt yêu cầu, độ trùng lặp 14.8% trong giới hạn cho phép."
+          }
+        }
+      },
+      "RejectModerationRequest": {
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string",
+            "example": "Độ trùng lặp vượt quá 30% quy định của nhà trường."
+          },
+          "notes": {
+            "type": "string",
+            "example": "Vui lòng xem lại chương 2 và chương 3 để trích dẫn lại."
+          },
+          "plagiarismScore": {
+            "type": "number",
+            "format": "decimal",
+            "example": 38.5
+          }
+        }
+      },
+      "ModerationDecisionResponse": {
+        "type": "object",
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c"
+          },
+          "fileStatusId": {
+            "type": "integer",
+            "example": 2
+          },
+          "fileStatusName": {
+            "type": "string",
+            "example": "Approved"
+          },
+          "moderatorUid": {
+            "type": "string",
+            "example": "USR_lecturer01"
+          },
+          "decisionAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Phê duyệt"
+          }
+        }
+      },
+      "ModerationDecisionEnvelopeResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Phê duyệt tài liệu thành công."
+          },
+          "data": {
+            "$ref": "#/components/schemas/ModerationDecisionResponse"
+          }
+        }
+      },
+      "ModerationHistorySummaryDto": {
+        "type": "object",
+        "properties": {
+          "historyId": {
+            "type": "string",
+            "example": "MDH_1a2b3c4d"
+          },
+          "action": {
+            "type": "string",
+            "example": "Reject"
+          },
+          "moderatorName": {
+            "type": "string",
+            "example": "TS. Trần Văn Thầy"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Trùng lặp 35%"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Yêu cầu chỉnh sửa"
+          },
+          "plagiarismScore": {
+            "type": "number",
+            "format": "decimal",
+            "example": 35
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ModerationHistoryEnvelopeResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Lấy lịch sử kiểm duyệt thành công."
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModerationHistorySummaryDto"
+            }
+          }
+        }
+      },
+      "CreateAppealRequest": {
+        "type": "object",
+        "required": [
+          "fileId",
+          "studentExplanation"
+        ],
+        "properties": {
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          },
+          "studentExplanation": {
+            "type": "string",
+            "example": "Em xin giải trình: Các đoạn văn bản trùng lặp là các công thức toán và định nghĩa chuẩn theo sách giáo khoa đã được trích dẫn ở mục Tham khảo 1, 2."
+          },
+          "attachmentUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://pub-b67e67fba40347e189780610079bdd9e.r2.dev/appeals/minh-chung.pdf"
+          }
+        }
+      },
+      "AppealItemResponse": {
+        "type": "object",
+        "properties": {
+          "appealId": {
+            "type": "string",
+            "example": "APL_1a2b3c4d"
+          },
+          "fileId": {
+            "type": "string",
+            "example": "FIL_987a6b5c"
+          },
+          "fileName": {
+            "type": "string",
+            "example": "Nghiên cứu ứng dụng Deep Learning"
+          },
+          "fileUrl": {
+            "type": "string",
+            "example": "https://..."
+          },
+          "studentUid": {
+            "type": "string",
+            "example": "USR_student1"
+          },
+          "studentName": {
+            "type": "string",
+            "example": "Nguyễn Văn A"
+          },
+          "studentEmail": {
+            "type": "string",
+            "example": "nguyenvana@gmail.com"
+          },
+          "assignedLecturerUid": {
+            "type": "string",
+            "example": "USR_lecturer1"
+          },
+          "assignedLecturerName": {
+            "type": "string",
+            "example": "TS. Trần Văn Thầy"
+          },
+          "appealAttempt": {
+            "type": "integer",
+            "example": 1
+          },
+          "studentExplanation": {
+            "type": "string",
+            "example": "Giải trình chi tiết..."
+          },
+          "attachmentUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://..."
+          },
+          "status": {
+            "type": "string",
+            "example": "Pending",
+            "description": "Pending | Approved | Rejected"
+          },
+          "lecturerResponse": {
+            "type": "string",
+            "nullable": true,
+            "example": null
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolvedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "AppealDetailResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AppealItemResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "fileStatusId": {
+                "type": "integer",
+                "example": 3
+              },
+              "fileStatusName": {
+                "type": "string",
+                "example": "Rejected"
+              },
+              "latestRejectionReason": {
+                "type": "string",
+                "example": "Độ trùng lặp 35%"
+              },
+              "latestPlagiarismScore": {
+                "type": "number",
+                "format": "decimal",
+                "example": 35
+              },
+              "latestPlagiarismReportJson": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          }
+        ]
+      },
+      "AppealEnvelopeResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Gửi khiếu nại/giải trình thành công."
+          },
+          "data": {
+            "$ref": "#/components/schemas/AppealItemResponse"
+          }
+        }
+      },
+      "AppealDetailEnvelopeResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Lấy thông tin chi tiết khiếu nại thành công."
+          },
+          "data": {
+            "$ref": "#/components/schemas/AppealDetailResponse"
+          }
+        }
+      },
+      "AppealsPaginatedEnvelopeResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Lấy danh sách khiếu nại thành công."
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/AppealItemResponse"
+                }
+              },
+              "pageIndex": {
+                "type": "integer",
+                "example": 1
+              },
+              "pageSize": {
+                "type": "integer",
+                "example": 10
+              },
+              "totalCount": {
+                "type": "integer",
+                "example": 3
+              },
+              "totalPages": {
+                "type": "integer",
+                "example": 1
+              },
+              "hasPreviousPage": {
+                "type": "boolean",
+                "example": false
+              },
+              "hasNextPage": {
+                "type": "boolean",
+                "example": false
+              }
+            }
+          }
+        }
+      },
+      "ResolveAppealRequest": {
+        "type": "object",
+        "required": [
+          "isApproved",
+          "lecturerResponse"
+        ],
+        "properties": {
+          "isApproved": {
+            "type": "boolean",
+            "example": true,
+            "description": "true: Chấp thuận giải trình (duyệt bài), false: Giữ nguyên từ chối"
+          },
+          "lecturerResponse": {
+            "type": "string",
+            "example": "Giải trình hợp lý. Đồng ý phê duyệt tài liệu."
+          }
+        }
+      },
+      "ReportTypeResponse": {
+        "type": "object",
+        "properties": {
+          "reportTypeId": {
+            "type": "integer",
+            "example": 1
+          },
+          "reportTypeName": {
+            "type": "string",
+            "example": "Vi phạm bản quyền"
+          },
+          "description": {
+            "type": "string",
+            "example": "Sao chép công trình nghiên cứu mà không trích dẫn nguồn"
+          }
+        }
+      },
+      "CreateReportRequest": {
+        "type": "object",
+        "required": [
+          "targetType",
+          "targetId",
+          "reportTypeId",
+          "reason"
+        ],
+        "properties": {
+          "targetType": {
+            "type": "string",
+            "example": "File",
+            "description": "File | Comment | User"
+          },
+          "targetId": {
+            "type": "string",
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          },
+          "reportTypeId": {
+            "type": "integer",
+            "example": 1
+          },
+          "reason": {
+            "type": "string",
+            "example": "Tài liệu này sao chép toàn bộ từ luận văn tốt nghiệp năm 2024 của trường B."
+          }
+        }
+      },
+      "ReportItemResponse": {
+        "type": "object",
+        "properties": {
+          "reportId": {
+            "type": "string",
+            "example": "RPT_1a2b3c4d"
+          },
+          "reporterUid": {
+            "type": "string",
+            "example": "USR_1a2b3c4d"
+          },
+          "reporterName": {
+            "type": "string",
+            "example": "Lê Văn C"
+          },
+          "targetType": {
+            "type": "string",
+            "example": "File"
+          },
+          "targetId": {
+            "type": "string",
+            "example": "FIL_987a6b5c"
+          },
+          "reportTypeId": {
+            "type": "integer",
+            "example": 1
+          },
+          "reportTypeName": {
+            "type": "string",
+            "example": "Vi phạm bản quyền"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Sao chép nguyên văn..."
+          },
+          "status": {
+            "type": "string",
+            "example": "Pending",
+            "description": "Pending | InProgress | Resolved | Rejected"
+          },
+          "handlingNotes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReportDetailResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ReportItemResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "targetTitle": {
+                "type": "string",
+                "example": "Nghiên cứu ứng dụng Deep Learning"
+              },
+              "handledByUid": {
+                "type": "string",
+                "nullable": true
+              },
+              "handledByName": {
+                "type": "string",
+                "nullable": true
+              },
+              "resolvedAt": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              }
+            }
+          }
+        ]
+      },
+      "ReportMutationResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Gửi báo cáo thành công."
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReportItemResponse"
+          }
+        }
+      },
+      "UpdateReportStatusRequest": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "Resolved",
+            "description": "Pending | Approved | Rejected | Resolved"
+          },
+          "handlingNotes": {
+            "type": "string",
+            "example": "Đã kiểm tra và gỡ tài liệu vi phạm."
+          }
+        }
+      },
+      "PagedReportResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportItemResponse"
+            }
+          },
+          "pageIndex": {
+            "type": "integer",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalCount": {
+            "type": "integer",
+            "example": 12
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 2
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "example": false
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "LookupResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "CNTT_KTPM"
+          },
+          "name": {
+            "type": "string",
+            "example": "Kỹ thuật phần mềm"
+          }
+        }
+      },
+      "AdminUserResponse": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "example": "USR_1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+          },
+          "userCode": {
+            "type": "string",
+            "example": "SV2026001"
+          },
+          "email": {
+            "type": "string",
+            "example": "nguyenvana@gmail.com"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Văn A"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Nguyễn"
+          },
+          "fullName": {
+            "type": "string",
+            "example": "Nguyễn Văn A"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "roleId": {
+            "type": "integer",
+            "example": 3
+          },
+          "roleName": {
+            "type": "string",
+            "example": "Student"
+          },
+          "departmentName": {
+            "type": "string",
+            "example": "Khoa Công nghệ thông tin"
+          },
+          "majorName": {
+            "type": "string",
+            "example": "Công nghệ thông tin"
+          },
+          "subMajorName": {
+            "type": "string",
+            "example": "Kỹ thuật phần mềm"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "AdminUserPaginatedResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminUserResponse"
+            }
+          },
+          "pageIndex": {
+            "type": "integer",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalCount": {
+            "type": "integer",
+            "example": 120
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 12
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "example": false
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateAdminUserRequest": {
+        "type": "object",
+        "required": [
+          "userCode",
+          "password",
+          "email",
+          "firstName",
+          "lastName",
+          "roleId"
+        ],
+        "properties": {
+          "userCode": {
+            "type": "string",
+            "example": "GV2026099"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "example": "Lecturer@123"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "tranvanthay@school.edu.vn"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Văn Thầy"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Trần"
+          },
+          "roleId": {
+            "type": "integer",
+            "example": 2,
+            "description": "1: Admin, 2: Lecturer, 3: Student"
+          },
+          "subMajorCode": {
+            "type": "string",
+            "nullable": true,
+            "example": "CNTT_KTPM"
+          },
+          "gender": {
+            "type": "integer",
+            "nullable": true,
+            "example": 1
+          },
+          "dob": {
+            "type": "string",
+            "format": "date",
+            "nullable": true,
+            "example": "1985-11-20"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "0987654321"
+          }
+        }
+      },
+      "UpdateUserStatusRequest": {
+        "type": "object",
+        "required": [
+          "isActive"
+        ],
+        "properties": {
+          "isActive": {
+            "type": "boolean",
+            "example": true,
+            "description": "true: Mở khóa tài khoản, false: Khóa tài khoản"
+          }
+        }
+      },
+      "UpdateUserRoleRequest": {
+        "type": "object",
+        "required": [
+          "roleId"
+        ],
+        "properties": {
+          "roleId": {
+            "type": "integer",
+            "example": 2,
+            "description": "Mã Role mới (1: Admin, 2: Lecturer, 3: Student)"
+          }
+        }
+      },
+      "DepartmentResponse": {
+        "type": "object",
+        "properties": {
+          "departmentId": {
+            "type": "string",
+            "example": "CNTT"
+          },
+          "departmentName": {
+            "type": "string",
+            "example": "Khoa Công nghệ thông tin"
+          }
+        }
+      },
+      "CreateDepartmentRequest": {
+        "type": "object",
+        "required": [
+          "departmentId",
+          "departmentName"
+        ],
+        "properties": {
+          "departmentId": {
+            "type": "string",
+            "example": "DTVT"
+          },
+          "departmentName": {
+            "type": "string",
+            "example": "Khoa Điện tử viễn thông"
+          }
+        }
+      },
+      "UpdateDepartmentRequest": {
+        "type": "object",
+        "required": [
+          "departmentId",
+          "departmentName"
+        ],
+        "properties": {
+          "departmentId": {
+            "type": "string",
+            "example": "DTVT"
+          },
+          "departmentName": {
+            "type": "string",
+            "example": "Khoa Điện tử viễn thông (Cập nhật)"
+          }
+        }
+      },
+      "MajorResponse": {
+        "type": "object",
+        "properties": {
+          "majorId": {
+            "type": "string",
+            "example": "7480201"
+          },
+          "majorName": {
+            "type": "string",
+            "example": "Công nghệ thông tin"
+          },
+          "departmentId": {
+            "type": "string",
+            "example": "CNTT"
+          }
+        }
+      },
+      "CreateMajorRequest": {
+        "type": "object",
+        "required": [
+          "majorId",
+          "majorName",
+          "departmentId"
+        ],
+        "properties": {
+          "majorId": {
+            "type": "string",
+            "example": "7480101"
+          },
+          "majorName": {
+            "type": "string",
+            "example": "Khoa học máy tính"
+          },
+          "departmentId": {
+            "type": "string",
+            "example": "CNTT"
+          }
+        }
+      },
+      "UpdateMajorRequest": {
+        "type": "object",
+        "required": [
+          "majorId",
+          "majorName",
+          "departmentId"
+        ],
+        "properties": {
+          "majorId": {
+            "type": "string",
+            "example": "7480101"
+          },
+          "majorName": {
+            "type": "string",
+            "example": "Khoa học máy tính ứng dụng"
+          },
+          "departmentId": {
+            "type": "string",
+            "example": "CNTT"
+          }
+        }
+      },
+      "SubMajorResponse": {
+        "type": "object",
+        "properties": {
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_KTPM"
+          },
+          "subMajorName": {
+            "type": "string",
+            "example": "Kỹ thuật phần mềm"
+          },
+          "majorId": {
+            "type": "string",
+            "example": "7480201"
+          }
+        }
+      },
+      "CreateSubMajorRequest": {
+        "type": "object",
+        "required": [
+          "subMajorCode",
+          "subMajorName",
+          "majorId"
+        ],
+        "properties": {
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_HTTT"
+          },
+          "subMajorName": {
+            "type": "string",
+            "example": "Hệ thống thông tin quản lý"
+          },
+          "majorId": {
+            "type": "string",
+            "example": "7480201"
+          }
+        }
+      },
+      "UpdateSubMajorRequest": {
+        "type": "object",
+        "required": [
+          "subMajorCode",
+          "subMajorName",
+          "majorId"
+        ],
+        "properties": {
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_HTTT"
+          },
+          "subMajorName": {
+            "type": "string",
+            "example": "Hệ thống thông tin và Chuyển đổi số"
+          },
+          "majorId": {
+            "type": "string",
+            "example": "7480201"
+          }
+        }
+      },
+      "CourseResponse": {
+        "type": "object",
+        "properties": {
+          "courseCode": {
+            "type": "string",
+            "example": "IT3040"
+          },
+          "courseName": {
+            "type": "string",
+            "example": "Kỹ thuật lập trình nâng cao"
+          },
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_KTPM"
+          }
+        }
+      },
+      "CreateCourseRequest": {
+        "type": "object",
+        "required": [
+          "courseCode",
+          "courseName",
+          "subMajorCode"
+        ],
+        "properties": {
+          "courseCode": {
+            "type": "string",
+            "example": "IT4080"
+          },
+          "courseName": {
+            "type": "string",
+            "example": "Kiến trúc phần mềm phân tán"
+          },
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_KTPM"
+          }
+        }
+      },
+      "UpdateCourseRequest": {
+        "type": "object",
+        "required": [
+          "courseCode",
+          "courseName",
+          "subMajorCode"
+        ],
+        "properties": {
+          "courseCode": {
+            "type": "string",
+            "example": "IT4080"
+          },
+          "courseName": {
+            "type": "string",
+            "example": "Kiến trúc Microservices & Cloud"
+          },
+          "subMajorCode": {
+            "type": "string",
+            "example": "CNTT_KTPM"
+          }
+        }
+      },
+      "RoleWithFunctionsResponse": {
+        "type": "object",
+        "properties": {
+          "roleId": {
+            "type": "integer",
+            "example": 2
+          },
+          "roleName": {
+            "type": "string",
+            "example": "Lecturer"
+          },
+          "roleDescription": {
+            "type": "string",
+            "example": "Giảng viên - Quyền kiểm duyệt tài nguyên"
+          },
+          "functions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "functionId": {
+                  "type": "integer",
+                  "example": 101
+                },
+                "functionName": {
+                  "type": "string",
+                  "example": "MODERATION_APPROVE"
+                },
+                "functionUrl": {
+                  "type": "string",
+                  "example": "/api/Moderation/{fileId}/approve"
+                },
+                "functionDescription": {
+                  "type": "string",
+                  "example": "Quyền phê duyệt tài liệu nghiên cứu"
+                }
+              }
+            }
+          }
+        }
+      },
+      "AssignFunctionsRequest": {
+        "type": "object",
+        "required": [
+          "functionIds"
+        ],
+        "properties": {
+          "functionIds": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              101,
+              102,
+              103,
+              104
+            ]
+          }
+        }
+      },
+      "AuditLogItemResponse": {
+        "type": "object",
+        "properties": {
+          "logId": {
+            "type": "string",
+            "example": "LOG_1a2b3c4d"
+          },
+          "userId": {
+            "type": "string",
+            "example": "USR_1a2b3c4d"
+          },
+          "userName": {
+            "type": "string",
+            "example": "admin"
+          },
+          "action": {
+            "type": "string",
+            "example": "UPDATE_STATUS"
+          },
+          "entityName": {
+            "type": "string",
+            "example": "File"
+          },
+          "entityId": {
+            "type": "string",
+            "example": "FIL_987a6b5c"
+          },
+          "ipAddress": {
+            "type": "string",
+            "example": "127.0.0.1"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AuditLogDetailResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AuditLogItemResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "oldValuesJson": {
+                "type": "string",
+                "example": "{\"FileStatusId\": 1}"
+              },
+              "newValuesJson": {
+                "type": "string",
+                "example": "{\"FileStatusId\": 2}"
+              },
+              "userAgent": {
+                "type": "string",
+                "example": "Mozilla/5.0..."
+              }
+            }
+          }
+        ]
+      },
+      "PagedAuditLogResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditLogItemResponse"
+            }
+          },
+          "pageIndex": {
+            "type": "integer",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "example": 10
+          },
+          "totalCount": {
+            "type": "integer",
+            "example": 250
+          },
+          "totalPages": {
+            "type": "integer",
+            "example": 25
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "example": false
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/Auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Đăng nhập hệ thống",
+        "description": "Xác thực người dùng bằng UserCode và Password. Trả về Bearer JWT token cùng thông tin người dùng và vai trò.",
+        "operationId": "Auth_Login",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Đăng nhập thành công, trả về JWT Token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Sai mã đăng nhập, sai mật khẩu hoặc tài khoản đã bị khóa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Sai mã đăng nhập hoặc mật khẩu."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Auth/me": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Lấy thông tin tài khoản từ Token",
+        "description": "Giải mã các Claims từ Bearer JWT hiện tại để lấy Uid, UserCode, Email, Role và SubMajorCode.",
+        "operationId": "Auth_GetCurrentUserClaims",
+        "responses": {
+          "200": {
+            "description": "Thông tin claims từ Token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUserClaimResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc Token không hợp lệ"
+          }
+        }
+      }
+    },
+    "/api/Auth/change-password": {
+      "put": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Đổi mật khẩu người dùng",
+        "description": "Yêu cầu nhập mật khẩu hiện tại, mật khẩu mới và xác nhận mật khẩu mới. Mật khẩu mới phải khác mật khẩu hiện tại.",
+        "operationId": "Auth_ChangePassword",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Đổi mật khẩu thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Đổi mật khẩu thành công."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Mật khẩu hiện tại sai hoặc mật khẩu mới không hợp lệ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Mật khẩu hiện tại không chính xác."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa xác thực"
+          }
+        }
+      }
+    },
+    "/api/Auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Yêu cầu gửi mã OTP khôi phục mật khẩu qua Email",
+        "description": "Kiểm tra sự tồn tại của UserCode và Email. Tạo mã OTP 6 số ngẫu nhiên, lưu hash và gửi mã qua email người dùng. OTP có hiệu lực 5 phút.",
+        "operationId": "Auth_ForgotPassword",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mã OTP đã được gửi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Mã OTP đã được gửi tới email của bạn."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Mã đăng nhập hoặc email không chính xác / Tài khoản bị khóa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Mã đăng nhập hoặc email không chính xác."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Auth/verify-otp": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Xác thực mã OTP",
+        "description": "Xác thực mã OTP 6 số người dùng nhập. Nếu hợp lệ, hệ thống đánh dấu OTP đã được xác nhận (isVerified = true).",
+        "operationId": "Auth_VerifyOtp",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyOtpRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Xác thực OTP thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Xác thực OTP thành công."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Mã OTP không hợp lệ hoặc đã hết hạn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Mã OTP không chính xác."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Auth/reset-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Đặt lại mật khẩu mới",
+        "description": "Sau khi verify-otp thành công, người dùng gửi mật khẩu mới để cập nhật.",
+        "operationId": "Auth_ResetPassword",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Đổi mật khẩu thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Đổi mật khẩu thành công. Vui lòng đăng nhập lại."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Chưa xác thực OTP hoặc phiên làm việc đã hết hạn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Bạn chưa xác thực OTP."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Auth/google-login": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Đăng nhập bằng tài khoản Google",
+        "description": "Chuyển hướng trình duyệt người dùng đến màn hình đăng nhập Google OAuth 2.0.",
+        "operationId": "Auth_GoogleLogin",
+        "security": [],
+        "responses": {
+          "302": {
+            "description": "Redirect to Google Accounts"
+          }
+        }
+      }
+    },
+    "/api/Auth/google-callback": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Callback tiếp nhận kết quả từ Google OAuth",
+        "description": "Backend xác thực token từ Google, đối chiếu email trong cơ sở dữ liệu và redirect về Frontend với URL: `http://localhost:5173/google-callback?token=...&expiration=...`.",
+        "operationId": "Auth_GoogleCallback",
+        "security": [],
+        "responses": {
+          "302": {
+            "description": "Redirect về URL Frontend kèm Token hoặc mã lỗi"
+          }
+        }
+      }
+    },
+    "/api/Auth/admin-test": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Kiểm tra quyền Admin",
+        "description": "Endpoint kiểm tra xem Bearer Token hiện tại có vai trò Admin hay không.",
+        "operationId": "Auth_AdminTest",
+        "responses": {
+          "200": {
+            "description": "Bạn có quyền Admin."
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          },
+          "403": {
+            "description": "Không có quyền Admin"
+          }
+        }
+      }
+    },
+    "/api/Auth/lecturer-test": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Kiểm tra quyền Lecturer",
+        "description": "Endpoint kiểm tra xem Bearer Token hiện tại có vai trò Lecturer hay không.",
+        "operationId": "Auth_LecturerTest",
+        "responses": {
+          "200": {
+            "description": "Bạn có quyền Lecturer."
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          },
+          "403": {
+            "description": "Không có quyền Lecturer"
+          }
+        }
+      }
+    },
+    "/api/User/me": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Xem thông tin hồ sơ cá nhân",
+        "description": "Lấy đầy đủ thông tin cá nhân: Họ tên, Ngày sinh, Email, SĐT, Giới tính, Vai trò, Khoa, Ngành, Chuyên ngành.",
+        "operationId": "User_GetProfile",
+        "responses": {
+          "200": {
+            "description": "Thông tin chi tiết hồ sơ cá nhân",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          },
+          "404": {
+            "description": "Không tìm thấy người dùng"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Cập nhật hồ sơ cá nhân",
+        "description": "Cho phép cập nhật: firstName, lastName, dob, phone, gender.",
+        "operationId": "User_UpdateProfile",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cập nhật thành công, trả về hồ sơ mới",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ"
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          }
+        }
+      }
+    },
+    "/api/User/test-pagination": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "API thử nghiệm phân trang người dùng",
+        "description": "Thử nghiệm cơ chế phân trang chung của hệ thống.",
+        "operationId": "User_TestPagination",
+        "parameters": [
+          {
+            "name": "PageIndex",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách phân trang"
+          }
+        }
+      }
+    },
+    "/api/Resources": {
+      "post": {
+        "tags": [
+          "Resources"
+        ],
+        "summary": "Tải lên tài liệu mới (Upload Resource)",
+        "description": "Tải lên file tài liệu (PDF/DOCX/ZIP, ...), banner ảnh và metadata liên quan. Dữ liệu gửi dạng multipart/form-data. Sau khi upload, tài liệu chuyển sang trạng thái Pending để chờ giảng viên kiểm duyệt.",
+        "operationId": "Resources_Upload",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "File",
+                  "FileName",
+                  "FileTypeId",
+                  "SubMajorCode",
+                  "AuthorIds"
+                ],
+                "properties": {
+                  "File": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "File tài liệu đính kèm chính"
+                  },
+                  "FileName": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "example": "Nghiên cứu ứng dụng Học sâu trong Y tế"
+                  },
+                  "FileDescription": {
+                    "type": "string",
+                    "example": "Báo cáo nghiên cứu khoa học sinh viên năm 2026..."
+                  },
+                  "FileTypeId": {
+                    "type": "integer",
+                    "example": 1,
+                    "description": "ID loại tài liệu (1: Báo cáo NCKH, 2: Khóa luận tốt nghiệp,...)"
+                  },
+                  "SubMajorCode": {
+                    "type": "string",
+                    "example": "CNTT_KTPM",
+                    "description": "Mã chuyên ngành"
+                  },
+                  "CourseCode": {
+                    "type": "string",
+                    "example": "IT3040",
+                    "description": "Mã học phần liên quan"
+                  },
+                  "YearCompleted": {
+                    "type": "integer",
+                    "example": 2026,
+                    "description": "Năm hoàn thành đề tài"
+                  },
+                  "AuthorIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Danh sách UID các tác giả/đồng tác giả (User UID)",
+                    "example": [
+                      "USR_1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+                    ]
+                  },
+                  "GithubLink": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "https://github.com/myuser/research-repo"
+                  },
+                  "BannerImage": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Ảnh thumbnail/banner bìa của tài liệu"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tải tài liệu thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResourceSuccessResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ hoặc thiếu thông tin bắt buộc",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Dữ liệu tài liệu không hợp lệ hoặc bạn không có quyền upload loại tài liệu này."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          }
+        }
+      }
+    },
+    "/api/Resources/{fileId}": {
+      "get": {
+        "tags": [
+          "Resources"
+        ],
+        "summary": "Lấy chi tiết tài liệu",
+        "description": "Xem chi tiết metadata tài liệu kèm danh sách đồng tác giả (authors), từ khóa (keywords) và thông tin tóm tắt đánh giá sao (ratingSummary).",
+        "operationId": "Resources_GetDetail",
+        "security": [],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chi tiết tài liệu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceDetailResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài nguyên",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Không tìm thấy tài nguyên."
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Resources"
+        ],
+        "summary": "Xóa tài liệu (Soft Delete)",
+        "description": "Đánh dấu xóa mềm tài liệu. Chỉ chủ sở hữu (người tải lên) hoặc Admin mới có quyền xóa.",
+        "operationId": "Resources_Delete",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Xóa tài liệu thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Xóa tài liệu thành công."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu hoặc không có quyền xóa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Không tìm thấy tài liệu hoặc bạn không có quyền xóa."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Resources/{fileId}/download": {
+      "get": {
+        "tags": [
+          "Resources"
+        ],
+        "summary": "Tải xuống file tài nguyên gốc",
+        "description": "Tải về file đính kèm dưới dạng stream nhị phân (hỗ trợ HTTP Range Processing phục vụ xem trước PDF/nghe/xem).",
+        "operationId": "Resources_Download",
+        "security": [],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File stream nhị phân của tài liệu",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu hoặc tài liệu chưa sẵn sàng để tải",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Không tìm thấy tài nguyên hoặc tài liệu chưa sẵn sàng để tải."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Resources/my-uploads": {
+      "get": {
+        "tags": [
+          "Resources"
+        ],
+        "summary": "Lấy danh sách tài liệu do bản thân tải lên",
+        "description": "Danh sách tất cả tài liệu của người dùng hiện tại kèm theo trạng thái kiểm duyệt (Pending, Approved, Rejected) và lý do từ chối (nếu có). Có hỗ trợ lọc và phân trang.",
+        "operationId": "Resources_GetMyUploads",
+        "parameters": [
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Tìm kiếm theo tên tài liệu"
+          },
+          {
+            "name": "StatusId",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Lọc theo ID trạng thái (1: Pending, 2: Approved, 3: Rejected)"
+          },
+          {
+            "name": "FileTypeId",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Lọc theo loại tài liệu"
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "CreatedAt"
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách tài liệu đã tải lên",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyUploadsPaginatedResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          }
+        }
+      }
+    },
+    "/api/ResourcesUpdate/{fileId}": {
+      "put": {
+        "tags": [
+          "ResourcesUpdate"
+        ],
+        "summary": "Cập nhật metadata thông tin tài liệu",
+        "description": "Chỉ chủ sở hữu (Owner) của tài liệu mới có quyền sửa thông tin.",
+        "operationId": "ResourcesUpdate_UpdateResource",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateResourceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cập nhật thông tin tài liệu thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Cập nhật thông tin tài liệu thành công."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Không phải chủ sở hữu tài liệu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Bạn không có quyền chỉnh sửa tài liệu này."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu hoặc đã bị xóa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "message": "Không tìm thấy tài liệu hoặc tài liệu đã bị xóa."
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ResourcesUpdate"
+        ],
+        "summary": "Đưa tài liệu vào thùng rác (Soft Delete)",
+        "description": "Yêu cầu quyền chủ sở hữu (Owner) hoặc Admin.",
+        "operationId": "ResourcesUpdate_SoftDelete",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Đã xóa mềm thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Đã đưa tài liệu vào thùng rác (Soft Delete)."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Từ chối truy cập (Không có quyền xóa)"
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu"
+          }
+        }
+      }
+    },
+    "/api/ResourcesSearch": {
+      "get": {
+        "tags": [
+          "ResourcesSearch"
+        ],
+        "summary": "Tìm kiếm & lọc tài liệu theo phân quyền",
+        "description": "Tìm kiếm danh sách tài liệu. Người dùng thông thường chỉ thấy các tài liệu đã Approved hoặc tài liệu do chính họ tải lên. Admin thấy toàn bộ.",
+        "operationId": "ResourcesSearch_Search",
+        "parameters": [
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Tìm kiếm theo tên tài liệu"
+          },
+          {
+            "name": "FileTypeId",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "SubMajorId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "CourseId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "StatusId",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kết quả tìm kiếm phân trang",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourcesSearchPaginatedResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          }
+        }
+      }
+    },
+    "/api/Search": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Tìm kiếm tài liệu toàn diện (Full-text search)",
+        "description": "Tìm kiếm đa năng: từ khóa 'q' sẽ tìm tương đối trong Tên tài liệu, Mô tả và toàn bộ Từ khóa (tags). Có thể kết hợp lọc theo Loại tài liệu, Chuyên ngành, Học phần, Người đăng, Năm hoàn thành và sắp xếp.",
+        "operationId": "Search_GlobalSearch",
+        "security": [],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Từ khóa tìm kiếm (Tên, Mô tả, Tags)"
+          },
+          {
+            "name": "FileTypeId",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "ID loại tài liệu"
+          },
+          {
+            "name": "SubMajorCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Mã chuyên ngành"
+          },
+          {
+            "name": "CourseCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Mã học phần"
+          },
+          {
+            "name": "UploadUserId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "UID người tải lên"
+          },
+          {
+            "name": "YearCompleted",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Năm hoàn thành"
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "date",
+                "name",
+                "year"
+              ],
+              "default": "date"
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kết quả tìm kiếm",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchPaginatedResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Resources/{fileId}/authors": {
+      "get": {
+        "tags": [
+          "ResourceAuthors"
+        ],
+        "summary": "Lấy danh sách đồng tác giả của tài liệu",
+        "operationId": "ResourceAuthors_GetAuthors",
+        "security": [],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách tác giả",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuthorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ResourceAuthors"
+        ],
+        "summary": "Cập nhật danh sách đồng tác giả",
+        "description": "Ghi đè toàn bộ danh sách tác giả cho tài liệu. Yêu cầu quyền chủ sở hữu tài liệu.",
+        "operationId": "ResourceAuthors_UpdateAuthors",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAuthorsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cập nhật danh sách tác giả thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Cập nhật danh sách tác giả thành công."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Từ chối truy cập (Không phải chủ sở hữu)"
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu"
+          }
+        }
+      }
+    },
+    "/api/Resources/{fileId}/keywords": {
+      "get": {
+        "tags": [
+          "ResourceKeywords"
+        ],
+        "summary": "Lấy danh sách từ khóa của tài liệu",
+        "operationId": "ResourceKeywords_GetKeywords",
+        "security": [],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách từ khóa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KeywordResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ResourceKeywords"
+        ],
+        "summary": "Thêm từ khóa cho tài liệu",
+        "description": "Gửi mảng các chuỗi từ khóa mới để bổ sung cho tài liệu: `[\"C#\", \".NET\", \"AI\"]`.",
+        "operationId": "ResourceKeywords_AddKeywords",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "FIL_987a6b5c-4d3e-2f1a-0b9c-8d7e6f5a4b3c"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddKeywordsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cập nhật từ khóa thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Cập nhật từ khóa thành công."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          }
+        }
+      }
+    },
+    "/api/Resources/{fileId}/keywords/{keywordId}": {
+      "delete": {
+        "tags": [
+          "ResourceKeywords"
+        ],
+        "summary": "Xóa một từ khóa khỏi tài liệu",
+        "operationId": "ResourceKeywords_DeleteKeyword",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keywordId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Đã xóa từ khóa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Đã tiêu diệt từ khóa."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy từ khóa hoặc không thuộc về tài liệu này"
+          }
+        }
+      }
+    },
+    "/api/Comment/file/{fileId}": {
+      "get": {
+        "tags": [
+          "Comment"
+        ],
+        "summary": "Lấy danh sách bình luận gốc của tài liệu",
+        "description": "Trả về danh sách bình luận kèm số lượng phản hồi (replyCount), lượt thích (likeCount) và trạng thái isLiked của user hiện tại (nếu gửi Token).",
+        "operationId": "Comment_GetCommentsByFile",
+        "security": [],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PageIndex",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách bình luận phân trang",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedCommentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu"
+          }
+        }
+      }
+    },
+    "/api/Comment/{commentId}": {
+      "get": {
+        "tags": [
+          "Comment"
+        ],
+        "summary": "Lấy chi tiết 1 bình luận",
+        "operationId": "Comment_GetById",
+        "security": [],
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chi tiết bình luận",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentItemResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy bình luận"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Comment"
+        ],
+        "summary": "Chỉnh sửa nội dung bình luận",
+        "description": "Chỉ người viết bình luận mới có quyền sửa.",
+        "operationId": "Comment_Update",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCommentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cập nhật thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentMutationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          },
+          "403": {
+            "description": "Không có quyền sửa bình luận này"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Comment"
+        ],
+        "summary": "Xóa bình luận",
+        "description": "Chủ sở hữu bình luận hoặc Quản trị viên (Admin) có quyền xóa.",
+        "operationId": "Comment_Delete",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Xóa bình luận thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Xóa bình luận thành công."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Không có quyền xóa"
+          },
+          "404": {
+            "description": "Không tìm thấy bình luận"
+          }
+        }
+      }
+    },
+    "/api/Comment/{commentId}/replies": {
+      "get": {
+        "tags": [
+          "Comment"
+        ],
+        "summary": "Lấy danh sách câu trả lời của 1 bình luận cha",
+        "operationId": "Comment_GetReplies",
+        "security": [],
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PageIndex",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách câu trả lời phân trang",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedCommentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy bình luận cha"
+          }
+        }
+      }
+    },
+    "/api/Comment": {
+      "post": {
+        "tags": [
+          "Comment"
+        ],
+        "summary": "Gửi bình luận mới hoặc trả lời bình luận",
+        "description": "Để tạo bình luận gốc: truyền fileId và content. Để trả lời bình luận khác: truyền thêm parentCommentId.",
+        "operationId": "Comment_Create",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCommentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tạo bình luận thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentMutationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nội dung trống hoặc quá 4000 ký tự / Bình luận cha không hợp lệ"
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu"
+          }
+        }
+      }
+    },
+    "/api/Comment/{commentId}/like": {
+      "post": {
+        "tags": [
+          "Comment"
+        ],
+        "summary": "Thích (Like) bình luận",
+        "operationId": "Comment_Like",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Đã thích bình luận",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentMutationResponse"
+                },
+                "example": {
+                  "message": "Đã thích bình luận."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Comment"
+        ],
+        "summary": "Bỏ thích (Unlike) bình luận",
+        "operationId": "Comment_Unlike",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Đã bỏ thích bình luận",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentMutationResponse"
+                },
+                "example": {
+                  "message": "Đã bỏ thích bình luận."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          }
+        }
+      }
+    },
+    "/api/Rating": {
+      "post": {
+        "tags": [
+          "Rating"
+        ],
+        "summary": "Đánh giá hoặc cập nhật đánh giá tài liệu (Upsert Rating)",
+        "description": "Người dùng đánh giá tài liệu với số sao từ 1.0 đến 5.0 và nhận xét (tùy chọn). Nếu đã đánh giá trước đó, hệ thống sẽ tự động cập nhật.",
+        "operationId": "Rating_Upsert",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertRatingRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Đánh giá tài liệu thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RatingMutationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Điểm đánh giá phải từ 1.0 đến 5.0 sao"
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu"
+          }
+        }
+      }
+    },
+    "/api/Rating/file/{fileId}/summary": {
+      "get": {
+        "tags": [
+          "Rating"
+        ],
+        "summary": "Xem thống kê đánh giá sao của tài liệu",
+        "description": "Trả về điểm sao trung bình, tổng lượt đánh giá, phân bố số lượng từ 1 sao đến 5 sao và đánh giá của bản thân (nếu có).",
+        "operationId": "Rating_GetSummary",
+        "security": [],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thống kê rating",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RatingSummaryResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu"
+          }
+        }
+      }
+    },
+    "/api/Rating/file/{fileId}/my-rating": {
+      "get": {
+        "tags": [
+          "Rating"
+        ],
+        "summary": "Lấy đánh giá của chính người dùng hiện tại trên tài liệu",
+        "operationId": "Rating_GetMyRating",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Đánh giá của bạn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RatingItemResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          },
+          "404": {
+            "description": "Bạn chưa đánh giá tài liệu này"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Rating"
+        ],
+        "summary": "Xóa đánh giá của bản thân trên tài liệu",
+        "operationId": "Rating_DeleteMyRating",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Đã xóa đánh giá thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Đã xóa đánh giá thành công."
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          },
+          "404": {
+            "description": "Không tìm thấy đánh giá của bạn trên tài liệu này"
+          }
+        }
+      }
+    },
+    "/api/Rating/file/{fileId}/list": {
+      "get": {
+        "tags": [
+          "Rating"
+        ],
+        "summary": "Lấy danh sách các bài đánh giá của tài liệu",
+        "operationId": "Rating_GetList",
+        "security": [],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "RatingScore",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "decimal"
+            },
+            "description": "Lọc theo số sao cụ thể (1-5)"
+          },
+          {
+            "name": "PageIndex",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách đánh giá phân trang",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedRatingResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Recommendation": {
+      "get": {
+        "tags": [
+          "Recommendation"
+        ],
+        "summary": "Gợi ý tài liệu thông minh theo chuyên ngành",
+        "description": "Gợi ý tài liệu cùng chuyên ngành (SubMajorCode) lấy từ JWT user, loại trừ các tài liệu đã xem trong Lịch sử xem (HistoryView), sắp xếp theo điểm rating cao nhất và ngày tạo mới nhất (top 10-20).",
+        "operationId": "Recommendation_GetList",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 20,
+              "default": 10
+            },
+            "description": "Số lượng tài liệu gợi ý trả về (từ 10 đến 20)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách tài liệu gợi ý",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecommendedResourceResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          }
+        }
+      }
+    },
+    "/api/History/views": {
+      "post": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Ghi nhận lịch sử xem tài liệu",
+        "description": "Gọi khi người dùng mở tài liệu để ghi nhận lịch sử xem và phục vụ thuật toán gợi ý.",
+        "operationId": "History_AddView",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHistoryViewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ghi nhận lịch sử xem thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryMutationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Thiếu FileId"
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu"
+          }
+        }
+      }
+    },
+    "/api/History/me": {
+      "get": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Lấy danh sách lịch sử xem tài liệu của tôi",
+        "operationId": "History_GetMyHistory",
+        "parameters": [
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Tìm kiếm theo tên tài liệu"
+          },
+          {
+            "name": "FileTypeId",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "FromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "ToDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "PageIndex",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lịch sử xem phân trang",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedHistoryViewResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Xóa toàn bộ lịch sử xem của tôi",
+        "operationId": "History_ClearAll",
+        "responses": {
+          "200": {
+            "description": "Đã xóa toàn bộ lịch sử xem",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClearHistoryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          }
+        }
+      }
+    },
+    "/api/History/{historyViewId}": {
+      "delete": {
+        "tags": [
+          "History"
+        ],
+        "summary": "Xóa 1 mục trong lịch sử xem",
+        "operationId": "History_DeleteItem",
+        "parameters": [
+          {
+            "name": "historyViewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Xóa thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Xóa lịch sử xem thành công."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy mục lịch sử này"
+          }
+        }
+      }
+    },
+    "/api/Notification/me": {
+      "get": {
+        "tags": [
+          "Notification"
+        ],
+        "summary": "Lấy danh sách thông báo của tôi",
+        "operationId": "Notification_GetMyNotifications",
+        "parameters": [
+          {
+            "name": "IsRead",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "true: đã đọc, false: chưa đọc"
+          },
+          {
+            "name": "PageIndex",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách thông báo phân trang",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedNotificationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          }
+        }
+      }
+    },
+    "/api/Notification/me/unread-count": {
+      "get": {
+        "tags": [
+          "Notification"
+        ],
+        "summary": "Lấy số lượng thông báo chưa đọc",
+        "description": "Dùng để hiển thị badge số lượng thông báo chưa đọc trên chuông icon thanh điều hướng.",
+        "operationId": "Notification_GetUnreadCount",
+        "responses": {
+          "200": {
+            "description": "Số lượng chưa đọc",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "unreadCount": {
+                      "type": "integer",
+                      "example": 5
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          }
+        }
+      }
+    },
+    "/api/Notification/{notificationId}/read": {
+      "put": {
+        "tags": [
+          "Notification"
+        ],
+        "summary": "Đánh dấu 1 thông báo là đã đọc",
+        "operationId": "Notification_MarkAsRead",
+        "parameters": [
+          {
+            "name": "notificationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Đã đánh dấu thông báo là đã đọc",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Đã đánh dấu thông báo là đã đọc."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy thông báo"
+          }
+        }
+      }
+    },
+    "/api/Notification/me/read-all": {
+      "put": {
+        "tags": [
+          "Notification"
+        ],
+        "summary": "Đánh dấu tất cả thông báo là đã đọc",
+        "operationId": "Notification_MarkAllAsRead",
+        "responses": {
+          "200": {
+            "description": "Đã đánh dấu tất cả là đã đọc",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationReadAllResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập"
+          }
+        }
+      }
+    },
+    "/api/Notification/{notificationId}": {
+      "delete": {
+        "tags": [
+          "Notification"
+        ],
+        "summary": "Xóa 1 thông báo",
+        "operationId": "Notification_Delete",
+        "parameters": [
+          {
+            "name": "notificationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Xóa thông báo thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Xóa thông báo thành công."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy thông báo"
+          }
+        }
+      }
+    },
+    "/api/Moderation/queue": {
+      "get": {
+        "tags": [
+          "Moderation"
+        ],
+        "summary": "[Lecturer/Admin] Hàng đợi tài liệu chờ kiểm duyệt",
+        "description": "Danh sách các tài liệu ở trạng thái Pending đang chờ giảng viên duyệt.",
+        "operationId": "Moderation_GetQueue",
+        "parameters": [
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Tìm theo tên tài liệu"
+          },
+          {
+            "name": "SubMajorCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Lọc theo chuyên ngành"
+          },
+          {
+            "name": "FileTypeId",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách hàng đợi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModerationQueuePaginatedResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Chỉ dành cho Lecturer hoặc Admin"
+          }
+        }
+      }
+    },
+    "/api/Moderation/{fileId}/details": {
+      "get": {
+        "tags": [
+          "Moderation"
+        ],
+        "summary": "[Lecturer/Admin] Xem chi tiết tài liệu cần duyệt",
+        "description": "Bao gồm thông tin tác giả, người upload, file đính kèm và kết quả kiểm tra trùng lặp gần nhất (nếu có).",
+        "operationId": "Moderation_GetDetails",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chi tiết tài liệu kiểm duyệt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModerationDetailEnvelopeResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu"
+          }
+        }
+      }
+    },
+    "/api/Moderation/{fileId}/check-plagiarism": {
+      "post": {
+        "tags": [
+          "Moderation"
+        ],
+        "summary": "[Lecturer/Admin] Kích hoạt kiểm tra trùng lặp AI",
+        "description": "Gửi tài liệu sang AI Worker để phân tích độ tương đồng nội dung văn bản với các tài liệu đã có trong hệ thống.",
+        "operationId": "Moderation_CheckPlagiarism",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Kết quả phân tích trùng lặp",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlagiarismCheckEnvelopeResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu"
+          }
+        }
+      }
+    },
+    "/api/Moderation/{fileId}/approve": {
+      "post": {
+        "tags": [
+          "Moderation"
+        ],
+        "summary": "[Lecturer/Admin] Phê duyệt tài liệu",
+        "description": "Chuyển trạng thái tài liệu sang Approved. Tài liệu sẽ được công khai cho sinh viên tìm kiếm và tải.",
+        "operationId": "Moderation_Approve",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveModerationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Phê duyệt tài liệu thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModerationDecisionEnvelopeResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu"
+          }
+        }
+      }
+    },
+    "/api/Moderation/{fileId}/reject": {
+      "post": {
+        "tags": [
+          "Moderation"
+        ],
+        "summary": "[Lecturer/Admin] Từ chối tài liệu",
+        "description": "Từ chối tài liệu kèm lý do cụ thể và điểm trùng lặp. Sinh viên nhận được thông báo và có quyền gửi khiếu nại (Appeal).",
+        "operationId": "Moderation_Reject",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectModerationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Từ chối tài liệu thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModerationDecisionEnvelopeResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài liệu"
+          }
+        }
+      }
+    },
+    "/api/Moderation/{fileId}/history": {
+      "get": {
+        "tags": [
+          "Moderation"
+        ],
+        "summary": "[Lecturer/Admin] Xem lịch sử các lần kiểm duyệt của tài liệu",
+        "operationId": "Moderation_GetHistory",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lịch sử kiểm duyệt",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModerationHistoryEnvelopeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/moderation/appeals": {
+      "post": {
+        "tags": [
+          "ModerationAppeal"
+        ],
+        "summary": "Gửi khiếu nại / giải trình kết quả kiểm duyệt",
+        "description": "Sinh viên có tài liệu bị từ chối gửi đơn giải trình và đính kèm link minh chứng.",
+        "operationId": "ModerationAppeal_Create",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppealRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Gửi khiếu nại thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppealEnvelopeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Tài liệu không bị từ chối hoặc đã hết số lượt khiếu nại"
+          }
+        }
+      }
+    },
+    "/api/moderation/appeals/me": {
+      "get": {
+        "tags": [
+          "ModerationAppeal"
+        ],
+        "summary": "Danh sách khiếu nại của sinh viên hiện tại",
+        "operationId": "ModerationAppeal_GetMyAppeals",
+        "parameters": [
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Pending",
+                "Approved",
+                "Rejected"
+              ]
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách khiếu nại của tôi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppealsPaginatedEnvelopeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/moderation/appeals/assigned": {
+      "get": {
+        "tags": [
+          "ModerationAppeal"
+        ],
+        "summary": "[Lecturer/Admin] Danh sách khiếu nại được chỉ định xử lý",
+        "operationId": "ModerationAppeal_GetAssignedAppeals",
+        "parameters": [
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "Pending",
+                "Approved",
+                "Rejected"
+              ]
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách khiếu nại được chỉ định",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppealsPaginatedEnvelopeResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Chỉ dành cho Giảng viên hoặc Quản trị viên"
+          }
+        }
+      }
+    },
+    "/api/moderation/appeals/{appealId}": {
+      "get": {
+        "tags": [
+          "ModerationAppeal"
+        ],
+        "summary": "Xem chi tiết một đơn khiếu nại",
+        "operationId": "ModerationAppeal_GetDetail",
+        "parameters": [
+          {
+            "name": "appealId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chi tiết khiếu nại",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppealDetailEnvelopeResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy khiếu nại"
+          }
+        }
+      }
+    },
+    "/api/moderation/appeals/{appealId}/resolve": {
+      "put": {
+        "tags": [
+          "ModerationAppeal"
+        ],
+        "summary": "[Lecturer/Admin] Giải quyết đơn khiếu nại",
+        "description": "Chấp thuận giải trình (duyệt tài liệu) hoặc bác bỏ giải trình.",
+        "operationId": "ModerationAppeal_Resolve",
+        "parameters": [
+          {
+            "name": "appealId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveAppealRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Giải quyết khiếu nại thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppealEnvelopeResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Không có quyền xử lý đơn này"
+          }
+        }
+      }
+    },
+    "/api/Report/types": {
+      "get": {
+        "tags": [
+          "Report"
+        ],
+        "summary": "Lấy danh mục các loại vi phạm báo cáo",
+        "operationId": "Report_GetTypes",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Danh mục loại vi phạm",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReportTypeResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Report": {
+      "get": {
+        "tags": [
+          "Report"
+        ],
+        "summary": "[Admin/Lecturer] Quản lý tất cả báo cáo vi phạm",
+        "operationId": "Report_GetAllReports",
+        "parameters": [
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách báo cáo phân trang",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedReportResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Chỉ dành cho Admin hoặc Giảng viên"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Report"
+        ],
+        "summary": "Gửi báo cáo vi phạm (Tài liệu, Bình luận, Người dùng)",
+        "operationId": "Report_Create",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Gửi báo cáo thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportMutationResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Bạn đã gửi báo cáo cho đối tượng này và đang chờ xử lý"
+          }
+        }
+      }
+    },
+    "/api/Report/me": {
+      "get": {
+        "tags": [
+          "Report"
+        ],
+        "summary": "Danh sách báo cáo do bản thân đã gửi",
+        "operationId": "Report_GetMyReports",
+        "parameters": [
+          {
+            "name": "Status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách báo cáo của tôi",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Report/{reportId}": {
+      "get": {
+        "tags": [
+          "Report"
+        ],
+        "summary": "Xem chi tiết một báo cáo vi phạm",
+        "operationId": "Report_GetById",
+        "parameters": [
+          {
+            "name": "reportId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chi tiết báo cáo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportDetailResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy báo cáo"
+          }
+        }
+      }
+    },
+    "/api/Report/{reportId}/status": {
+      "put": {
+        "tags": [
+          "Report"
+        ],
+        "summary": "[Admin/Lecturer] Xử lý và cập nhật trạng thái báo cáo",
+        "operationId": "Report_UpdateStatus",
+        "parameters": [
+          {
+            "name": "reportId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReportStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cập nhật thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportMutationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Lookup/departments": {
+      "get": {
+        "tags": [
+          "Lookup"
+        ],
+        "summary": "Tra cứu danh sách tất cả Khoa",
+        "operationId": "Lookup_GetDepartments",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Danh sách khoa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LookupResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Lookup/majors": {
+      "get": {
+        "tags": [
+          "Lookup"
+        ],
+        "summary": "Tra cứu danh sách Ngành theo Khoa",
+        "operationId": "Lookup_GetMajors",
+        "security": [],
+        "parameters": [
+          {
+            "name": "departmentId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "CNTT"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách ngành",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LookupResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Thiếu mã Khoa"
+          }
+        }
+      }
+    },
+    "/api/Lookup/submajors": {
+      "get": {
+        "tags": [
+          "Lookup"
+        ],
+        "summary": "Tra cứu danh sách Chuyên ngành theo Ngành",
+        "operationId": "Lookup_GetSubMajors",
+        "security": [],
+        "parameters": [
+          {
+            "name": "majorId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "7480201"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách chuyên ngành",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LookupResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Thiếu mã Ngành"
+          }
+        }
+      }
+    },
+    "/api/Lookup/courses": {
+      "get": {
+        "tags": [
+          "Lookup"
+        ],
+        "summary": "Tra cứu danh sách Học phần theo Chuyên ngành",
+        "operationId": "Lookup_GetCourses",
+        "security": [],
+        "parameters": [
+          {
+            "name": "submajorCode",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "CNTT_KTPM"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách học phần",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LookupResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Thiếu mã Chuyên ngành"
+          }
+        }
+      }
+    },
+    "/api/Lookup/file-types": {
+      "get": {
+        "tags": [
+          "Lookup"
+        ],
+        "summary": "Tra cứu danh sách Loại tài liệu",
+        "operationId": "Lookup_GetFileTypes",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Danh sách loại tài liệu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LookupResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Lookup/file-statuses": {
+      "get": {
+        "tags": [
+          "Lookup"
+        ],
+        "summary": "Tra cứu danh sách Trạng thái tài liệu",
+        "operationId": "Lookup_GetFileStatuses",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Danh sách trạng thái tài liệu",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LookupResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Admin/users": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Lấy danh sách tất cả người dùng (Phân trang & Lọc)",
+        "operationId": "Admin_GetUsers",
+        "parameters": [
+          {
+            "name": "Search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Tìm kiếm theo tên, userCode, email"
+          },
+          {
+            "name": "RoleId",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "IsActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "MajorId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "SubMajorCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "CreatedAt"
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách người dùng",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserPaginatedResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Tạo tài khoản người dùng mới",
+        "operationId": "Admin_CreateUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAdminUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tạo tài khoản thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Admin/users/{uid}": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Xem chi tiết 1 người dùng theo UID",
+        "operationId": "Admin_GetUserById",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chi tiết người dùng",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy người dùng"
+          }
+        }
+      }
+    },
+    "/api/Admin/users/{uid}/status": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Khóa / Mở khóa tài khoản người dùng",
+        "operationId": "Admin_UpdateUserStatus",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cập nhật trạng thái thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Mở khóa tài khoản thành công."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Admin/users/{uid}/role": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Đổi Role vai trò của người dùng",
+        "operationId": "Admin_UpdateUserRole",
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRoleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cập nhật Role thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Cập nhật Role thành công."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Admin/departments": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Lấy danh sách tất cả Khoa",
+        "operationId": "Admin_GetDepartments",
+        "responses": {
+          "200": {
+            "description": "Danh sách khoa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DepartmentResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Tạo Khoa mới",
+        "operationId": "Admin_CreateDepartment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDepartmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tạo khoa thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Cập nhật thông tin Khoa",
+        "operationId": "Admin_UpdateDepartment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDepartmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cập nhật khoa thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Admin/departments/{id}": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Lấy thông tin 1 Khoa",
+        "operationId": "Admin_GetDepartmentById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Thông tin khoa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy khoa"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Xóa Khoa",
+        "operationId": "Admin_DeleteDepartment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Xóa thành công"
+          },
+          "409": {
+            "description": "Không thể xóa khoa vì vẫn còn ngành liên quan"
+          }
+        }
+      }
+    },
+    "/api/Admin/majors": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Lấy danh sách Ngành theo Khoa",
+        "operationId": "Admin_GetMajors",
+        "parameters": [
+          {
+            "name": "departmentId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách ngành",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MajorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Tạo Ngành mới",
+        "operationId": "Admin_CreateMajor",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMajorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tạo ngành thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MajorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Cập nhật thông tin Ngành",
+        "operationId": "Admin_UpdateMajor",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMajorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cập nhật ngành thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MajorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Admin/majors/{majorId}": {
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Xóa Ngành",
+        "operationId": "Admin_DeleteMajor",
+        "parameters": [
+          {
+            "name": "majorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Xóa thành công"
+          },
+          "409": {
+            "description": "Không thể xóa ngành vì vẫn còn chuyên ngành liên quan"
+          }
+        }
+      }
+    },
+    "/api/Admin/submajors": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Lấy danh sách Chuyên ngành theo Ngành",
+        "operationId": "Admin_GetSubMajors",
+        "parameters": [
+          {
+            "name": "majorId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách chuyên ngành",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SubMajorResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Tạo Chuyên ngành mới",
+        "operationId": "Admin_CreateSubMajor",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubMajorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tạo chuyên ngành thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubMajorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Cập nhật thông tin Chuyên ngành",
+        "operationId": "Admin_UpdateSubMajor",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSubMajorRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cập nhật chuyên ngành thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubMajorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Admin/submajors/{subMajorCode}": {
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Xóa Chuyên ngành",
+        "operationId": "Admin_DeleteSubMajor",
+        "parameters": [
+          {
+            "name": "subMajorCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Xóa thành công"
+          },
+          "409": {
+            "description": "Không thể xóa chuyên ngành vì vẫn còn người dùng hoặc tài liệu liên quan"
+          }
+        }
+      }
+    },
+    "/api/Admin/courses": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Lấy danh sách Học phần theo Chuyên ngành",
+        "operationId": "Admin_GetCourses",
+        "parameters": [
+          {
+            "name": "subMajorCode",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách học phần",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Tạo Học phần mới",
+        "operationId": "Admin_CreateCourse",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCourseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tạo học phần thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Cập nhật thông tin Học phần",
+        "operationId": "Admin_UpdateCourse",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCourseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cập nhật học phần thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Admin/courses/{courseCode}": {
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Xóa Học phần",
+        "operationId": "Admin_DeleteCourse",
+        "parameters": [
+          {
+            "name": "courseCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Xóa thành công"
+          },
+          "409": {
+            "description": "Không thể xóa học phần vì vẫn còn tài liệu liên quan"
+          }
+        }
+      }
+    },
+    "/api/Admin/roles/{roleId}/functions": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Lấy danh sách chức năng (Permissions) của Role",
+        "operationId": "Admin_GetRoleFunctions",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách chức năng của Role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleWithFunctionsResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "[Admin] Phân quyền gán chức năng cho Role",
+        "operationId": "Admin_AssignRoleFunctions",
+        "parameters": [
+          {
+            "name": "roleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignFunctionsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Gán chức năng thành công",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponse"
+                },
+                "example": {
+                  "message": "Gán chức năng cho Role thành công."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/AuditLogs": {
+      "get": {
+        "tags": [
+          "AuditLogs"
+        ],
+        "summary": "[Admin] Lấy danh sách nhật ký kiểm toán hệ thống",
+        "description": "Xem lịch sử các thao tác thay đổi dữ liệu, hành động của người dùng trên toàn hệ thống.",
+        "operationId": "AuditLogs_GetLogs",
+        "parameters": [
+          {
+            "name": "UserId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Action",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "EntityName",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "EntityId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "FromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "ToDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "SortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "Timestamp"
+            }
+          },
+          {
+            "name": "SortDirection",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nhật ký hệ thống",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedAuditLogResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/AuditLogs/{logId}": {
+      "get": {
+        "tags": [
+          "AuditLogs"
+        ],
+        "summary": "[Admin] Xem chi tiết một nhật ký kiểm toán",
+        "description": "Bao gồm IP Address, User Agent và sự thay đổi dữ liệu cũ - mới (OldValuesJson, NewValuesJson).",
+        "operationId": "AuditLogs_GetDetail",
+        "parameters": [
+          {
+            "name": "logId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chi tiết nhật ký",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditLogDetailResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy nhật ký"
+          }
+        }
+      }
+    }
+  }
+}
