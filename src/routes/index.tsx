@@ -4,6 +4,7 @@ import { notificationsLoader } from '@/features/notifications/pages/notification
 import { MainLayout } from '@/layouts/MainLayout';
 import { NotificationCenterPage } from '@/features/notifications/pages/NotificationCenterPage';
 import App from '@/App';
+import { errorRoutes } from './errorRoutes';
 
 export const router = createBrowserRouter([
   {
@@ -19,6 +20,7 @@ export const router = createBrowserRouter([
         element: <NotificationCenterPage />,
         loader: notificationsLoader,
       },
+      ...errorRoutes,
     ],
   },
 ]);
