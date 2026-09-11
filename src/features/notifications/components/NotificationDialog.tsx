@@ -73,7 +73,7 @@ export function NotificationDialog({ onViewAll, onNavigateToTarget }: Notificati
       role="dialog"
       aria-label="Hộp thoại thông báo"
       aria-modal="true"
-      className="absolute right-0 top-full mt-2 w-[380px] sm:w-[400px] bg-surface rounded-xl border border-border-subtle shadow-xl z-50 overflow-hidden flex flex-col animate-in fade-in-0 zoom-in-95 duration-150"
+      className="absolute right-0 top-full mt-2 w-95 sm:w-100 bg-surface rounded-xl border border-border-subtle shadow-xl z-50 overflow-hidden flex flex-col transition-all duration-150 ease-out"
     >
       {/* Header */}
       <NotificationHeader
@@ -87,7 +87,7 @@ export function NotificationDialog({ onViewAll, onNavigateToTarget }: Notificati
       <NotificationTabs activeFilter={activeFilter} onFilterChange={setFilter} unreadCount={unreadCount} />
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto max-h-[380px] divide-y divide-border-subtle">
+      <div className="flex-1 overflow-y-auto max-h-95 divide-y divide-border-subtle">
         {isLoading ? (
           <NotificationSkeleton count={6} />
         ) : dialogItems.length === 0 ? (

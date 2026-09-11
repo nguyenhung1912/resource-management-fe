@@ -20,35 +20,35 @@ function getTypeVisualConfig(type: NotificationType): TypeVisualConfig {
   switch (type) {
     case 'ResourceApproved':
       return {
-        icon: <CheckCircle2 className="h-4 w-4" aria-hidden="true" />,
+        icon: <CheckCircle2 className="size-4" aria-hidden="true" />,
         wrapperClass: 'bg-badge-success-bg text-badge-success-text',
       };
     case 'ResourceRejected':
       return {
-        icon: <XCircle className="h-4 w-4" aria-hidden="true" />,
+        icon: <XCircle className="size-4" aria-hidden="true" />,
         wrapperClass: 'bg-badge-danger-bg text-badge-danger-text',
       };
     case 'Moderation':
     case 'ModerationAppeal':
       return {
-        icon: <ShieldAlert className="h-4 w-4" aria-hidden="true" />,
+        icon: <ShieldAlert className="size-4" aria-hidden="true" />,
         wrapperClass: 'bg-blue-50 text-primary',
       };
     case 'Comment':
     case 'CommentReply':
       return {
-        icon: <MessageSquare className="h-4 w-4" aria-hidden="true" />,
+        icon: <MessageSquare className="size-4" aria-hidden="true" />,
         wrapperClass: 'bg-orange-50 text-warning',
       };
     case 'Report':
       return {
-        icon: <AlertTriangle className="h-4 w-4" aria-hidden="true" />,
+        icon: <AlertTriangle className="size-4" aria-hidden="true" />,
         wrapperClass: 'bg-badge-danger-bg text-danger',
       };
     case 'SystemAlert':
     default:
       return {
-        icon: <Bell className="h-4 w-4" aria-hidden="true" />,
+        icon: <Bell className="size-4" aria-hidden="true" />,
         wrapperClass: 'bg-gray-100 text-text-muted',
       };
   }
@@ -87,14 +87,14 @@ export const NotificationItem = memo(function NotificationItem({
         }
       }}
       className={cn(
-        'group relative flex items-start gap-3 p-3.5 text-left transition-colors cursor-pointer w-full select-none outline-none focus-visible:bg-gray-50 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset',
+        'group relative flex items-start gap-3 p-3.5 text-left transition-colors cursor-pointer w-full select-none outline-none focus-visible:bg-gray-50 focus-visible:ring-2 focus-visible:ring-primary/40',
         notification.isRead ? 'bg-surface hover:bg-gray-50/70' : 'bg-blue-50/30 hover:bg-blue-50/50',
       )}
     >
       {/* Icon Avatar */}
       <div
         className={cn(
-          'h-9 w-9 rounded-lg flex items-center justify-center shrink-0 border border-transparent shadow-2xs',
+          'size-9 rounded-lg flex items-center justify-center shrink-0 border border-transparent shadow-xs',
           wrapperClass,
         )}
       >
@@ -114,19 +114,19 @@ export const NotificationItem = memo(function NotificationItem({
           </h4>
           {!notification.isRead && (
             <span
-              className="h-1.5 w-1.5 rounded-full bg-primary shrink-0"
+              className="size-1.5 rounded-full bg-primary shrink-0"
               title="Chưa đọc"
               aria-label="Thông báo chưa đọc"
             />
           )}
         </div>
 
-        <p className="text-xs text-text-muted line-clamp-2 mt-0.5 leading-relaxed break-words">
+        <p className="text-xs text-text-muted line-clamp-2 mt-0.5 leading-relaxed wrap-break-word">
           {notification.message}
         </p>
 
-        <div className="flex items-center gap-1.5 text-[11px] text-text-muted mt-1.5">
-          <Clock className="h-3 w-3 shrink-0" aria-hidden="true" />
+        <div className="flex items-center gap-1.5 text-xs text-text-muted mt-1.5">
+          <Clock className="size-3 shrink-0" aria-hidden="true" />
           <span>{relativeTime}</span>
         </div>
       </div>
@@ -140,7 +140,7 @@ export const NotificationItem = memo(function NotificationItem({
           title="Xóa thông báo"
           aria-label={`Xóa thông báo: ${notification.title}`}
         >
-          <Trash2 className="h-3.5 w-3.5" />
+          <Trash2 className="size-3.5" />
         </button>
       </div>
     </div>
