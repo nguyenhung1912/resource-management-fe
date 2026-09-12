@@ -12,6 +12,7 @@ vi.mock('../axiosClient', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
+    put: vi.fn(),
   },
 }));
 
@@ -85,6 +86,40 @@ describe('appealService', () => {
     });
   });
 
+  describe('getAssignedAppeals', () => {
+    it('gọi GET /api/moderation/appeals/assigned với query params chuẩn', async () => {
+      const mockResponse: AppealsPaginatedEnvelopeResponse = {
+        message: 'Lấy danh sách khiếu nại được chỉ định thành công.',
+        data: {
+          items: [],
+          pageIndex: 1,
+          pageSize: 10,
+          totalCount: 5,
+          totalPages: 1,
+          hasPreviousPage: false,
+          hasNextPage: false,
+        },
+      };
+
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await appealService.getAssignedAppeals({
+        status: 'Approved',
+        pageNumber: 1,
+        pageSize: 10,
+      });
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/moderation/appeals/assigned', {
+        params: {
+          Status: 'Approved',
+          PageNumber: 1,
+          PageSize: 10,
+        },
+      });
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
   describe('getAppealDetail', () => {
     it('gọi GET /api/moderation/appeals/{appealId} với appealId được encode', async () => {
       const mockResponse: AppealDetailEnvelopeResponse = {
@@ -107,6 +142,37 @@ describe('appealService', () => {
       const result = await appealService.getAppealDetail('APL/123');
 
       expect(axiosClient.get).toHaveBeenCalledWith('/api/moderation/appeals/APL%2F123');
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('resolveAppeal', () => {
+    it('gửi PUT /api/moderation/appeals/{appealId}/resolve với payload phân xử chuẩn', async () => {
+      const mockPayload = {
+        isApproved: true,
+        lecturerResponse: 'Giải trình hợp lý. Đồng ý phê duyệt tài liệu.',
+      };
+
+      const mockResponse: AppealEnvelopeResponse = {
+        message: 'Giải quyết khiếu nại thành công',
+        data: {
+          appealId: 'APL_001',
+          fileId: 'FIL_123',
+          fileName: 'Nghiên cứu Deep Learning',
+          appealAttempt: 1,
+          studentExplanation: 'Giải trình',
+          status: 'Approved',
+          lecturerResponse: 'Giải trình hợp lý. Đồng ý phê duyệt tài liệu.',
+          createdAt: '2026-09-11T12:00:00Z',
+          resolvedAt: '2026-09-13T01:00:00Z',
+        },
+      };
+
+      vi.mocked(axiosClient.put).mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await appealService.resolveAppeal('APL_001', mockPayload);
+
+      expect(axiosClient.put).toHaveBeenCalledWith('/api/moderation/appeals/APL_001/resolve', mockPayload);
       expect(result).toEqual(mockResponse);
     });
   });
