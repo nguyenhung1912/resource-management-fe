@@ -55,6 +55,14 @@ export function Header() {
           >
             Khiếu nại của tôi
           </NavLink>
+          <NavLink
+            to={APP_PATHS.ASSIGNED_APPEALS}
+            className={({ isActive }) =>
+              cn('hover:text-text-main transition-colors', isActive ? 'text-primary font-semibold' : 'text-text-muted')
+            }
+          >
+            Tiếp nhận khiếu nại
+          </NavLink>
         </nav>
 
         {/* Right actions: Notification & Avatar */}
