@@ -2,9 +2,11 @@ import { createBrowserRouter } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
 import { notificationsLoader } from '@/features/notifications/pages/notificationLoader';
 import { myAppealsLoader } from '@/features/appeals/pages/myAppealsLoader';
+import { assignedAppealsLoader } from '@/features/appeals/pages/assignedAppealsLoader';
 import { MainLayout } from '@/layouts/MainLayout';
 import { NotificationCenterPage } from '@/features/notifications/pages/NotificationCenterPage';
 import { MyAppealsPage } from '@/features/appeals/pages/MyAppealsPage';
+import { AssignedAppealsPage } from '@/features/appeals/pages/AssignedAppealsPage';
 import App from '@/App';
 import { errorRoutes } from './errorRoutes';
 
@@ -26,6 +28,11 @@ export const router = createBrowserRouter([
         path: 'appeals',
         element: <MyAppealsPage />,
         loader: myAppealsLoader,
+      },
+      {
+        path: 'appeals/assigned',
+        element: <AssignedAppealsPage />,
+        loader: assignedAppealsLoader,
       },
       ...errorRoutes,
     ],
