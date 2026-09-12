@@ -1,9 +1,10 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Layers } from 'lucide-react';
 import { APP_PATHS } from '@/constants/path';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { NotificationDialog } from '@/features/notifications/components/NotificationDialog';
 import { useNotificationSignalR } from '@/features/notifications/hooks/useNotificationSignalR';
+import { cn } from '@/utils/cn';
 
 export function Header() {
   const navigate = useNavigate();
@@ -38,9 +39,22 @@ export function Header() {
 
         {/* Center Nav Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-text-muted">
-          <Link to={APP_PATHS.HOME} className="hover:text-text-main transition-colors">
+          <NavLink
+            to={APP_PATHS.HOME}
+            className={({ isActive }) =>
+              cn('hover:text-text-main transition-colors', isActive ? 'text-primary font-semibold' : 'text-text-muted')
+            }
+          >
             Trang chủ
-          </Link>
+          </NavLink>
+          <NavLink
+            to={APP_PATHS.APPEALS}
+            className={({ isActive }) =>
+              cn('hover:text-text-main transition-colors', isActive ? 'text-primary font-semibold' : 'text-text-muted')
+            }
+          >
+            Khiếu nại của tôi
+          </NavLink>
         </nav>
 
         {/* Right actions: Notification & Avatar */}
