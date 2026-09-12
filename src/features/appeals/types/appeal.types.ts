@@ -72,3 +72,19 @@ export interface RejectedResourceContext {
   fileStatusName?: string;
   createdAt?: string;
 }
+
+export interface AppealOverviewStats {
+  total: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+}
+
+export interface MyAppealsLoaderResult {
+  appeals: AppealsPaginatedData;
+  stats: AppealOverviewStats;
+  currentStatus?: AppealStatus;
+  searchQuery: string;
+  currentPage: number;
+  pageSize: number;
+}
