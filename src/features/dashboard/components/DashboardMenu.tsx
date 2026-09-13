@@ -41,7 +41,6 @@ export function DashboardMenu({ menuData, user, logoUrl, onNavigate, className }
   const [expandedGroupIds, setExpandedGroupIds] = useState(
     () => new Set(menuData.groups.map((group) => group.groupId)),
   );
-  const [activeTooltipId, setActiveTooltipId] = useState<string | null>(null);
 
   const toggleGroup = (groupId: string) => {
     setExpandedGroupIds((currentGroupIds) => {
@@ -117,20 +116,14 @@ export function DashboardMenu({ menuData, user, logoUrl, onNavigate, className }
                   {group.functions.map((menuFunction) => {
                     const FunctionIcon = getFunctionIcon(menuFunction.functionUrl);
                     const tooltipId = `dashboard-function-tooltip-${menuFunction.functionId}`;
-                    const isTooltipVisible =
-                      activeTooltipId === menuFunction.functionId && Boolean(menuFunction.functionDescription);
 
                     return (
-                      <li key={menuFunction.functionId} className="relative">
+                      <li key={menuFunction.functionId}>
                         <NavLink
                           to={menuFunction.functionUrl}
                           end
                           aria-describedby={menuFunction.functionDescription ? tooltipId : undefined}
                           onClick={onNavigate}
-                          onMouseEnter={() => setActiveTooltipId(menuFunction.functionId)}
-                          onMouseLeave={() => setActiveTooltipId(null)}
-                          onFocus={() => setActiveTooltipId(menuFunction.functionId)}
-                          onBlur={() => setActiveTooltipId(null)}
                           className={({ isActive }) =>
                             cn(
                               'flex min-h-9 items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
@@ -144,14 +137,10 @@ export function DashboardMenu({ menuData, user, logoUrl, onNavigate, className }
                           <span className="truncate">{menuFunction.functionName}</span>
                         </NavLink>
 
-                        {isTooltipVisible ? (
-                          <div
-                            id={tooltipId}
-                            role="tooltip"
-                            className="absolute left-full top-1/2 z-50 ml-2 w-max max-w-64 -translate-y-1/2 rounded-lg border border-border-subtle bg-surface px-3 py-2 text-xs normal-case text-text-main shadow-lg"
-                          >
+                        {menuFunction.functionDescription ? (
+                          <span id={tooltipId} className="sr-only">
                             {menuFunction.functionDescription}
-                          </div>
+                          </span>
                         ) : null}
                       </li>
                     );

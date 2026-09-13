@@ -54,17 +54,17 @@ describe('DashboardMenu', () => {
     expect(screen.getByRole('link', { name: 'Tài nguyên của tôi' })).toHaveAttribute('aria-current', 'page');
   });
 
-  it('hiển thị FunctionDescription khi hover hoặc focus vào chức năng', () => {
+  it('không hiển thị tooltip khi hover nhưng vẫn cung cấp mô tả cho trình đọc màn hình', () => {
     renderMenu();
     const uploadLink = screen.getByRole('link', { name: 'Upload tài nguyên' });
 
-    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+    expect(uploadLink).toHaveAccessibleDescription('Tải tài liệu mới lên hệ thống');
     fireEvent.mouseEnter(uploadLink);
-    expect(screen.getByRole('tooltip')).toHaveTextContent('Tải tài liệu mới lên hệ thống');
+    expect(screen.queryByRole('tooltip', { hidden: true })).not.toBeInTheDocument();
     fireEvent.mouseLeave(uploadLink);
-    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
     fireEvent.focus(uploadLink);
-    expect(screen.getByRole('tooltip')).toHaveTextContent('Tải tài liệu mới lên hệ thống');
+    expect(screen.queryByRole('tooltip', { hidden: true })).not.toBeInTheDocument();
+    expect(uploadLink).toHaveAccessibleDescription('Tải tài liệu mới lên hệ thống');
   });
 
   it('đóng nhóm và ẩn các chức năng khi nhấn tiêu đề nhóm', () => {
