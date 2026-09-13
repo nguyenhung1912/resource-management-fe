@@ -14,6 +14,7 @@
   --color-border: #e4e4e4;
   --color-border-subtle: #e4e4e4;
   --color-neutral: #ffffff;
+  --color-dashboard-shell: #113163;
 
   --color-badge-success-bg: #ecfdf3;
   --color-badge-success-text: #29ab59;
@@ -47,5 +48,33 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  .dashboard-menu-scrollbar {
+    scrollbar-color: transparent transparent;
+    scrollbar-width: thin;
+  }
+
+  .dashboard-menu-scrollbar:is(:hover, :focus-within) {
+    scrollbar-color: var(--color-secondary) transparent;
+  }
+
+  .dashboard-menu-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .dashboard-menu-scrollbar::-webkit-scrollbar-track,
+  .dashboard-menu-scrollbar::-webkit-scrollbar-thumb {
+    background-color: transparent;
+  }
+
+  .dashboard-menu-scrollbar::-webkit-scrollbar-thumb {
+    border-radius: var(--radius-full);
+  }
+
+  .dashboard-menu-scrollbar:is(:hover, :focus-within)::-webkit-scrollbar-thumb {
+    background-color: var(--color-secondary);
   }
 }

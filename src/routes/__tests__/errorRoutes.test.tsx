@@ -23,12 +23,14 @@ describe('error routes', () => {
     { path: '/500', code: '500', title: 'Đã xảy ra lỗi hệ thống' },
   ] as const;
 
-  it.each(errorCases)('hiển thị trang lỗi $code trong MainLayout', async ({ path, code, title }) => {
+  it.each(errorCases)('hiển thị trang lỗi $code trong ErrorLayout', async ({ path, code, title }) => {
     await router.navigate(path);
 
     render(<RouterProvider router={router} />);
 
-    expect(screen.getByRole('banner')).toBeInTheDocument();
+    expect(screen.getByRole('main', { name: 'Nội dung lỗi' })).toBeInTheDocument();
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument();
+    expect(screen.queryByText('Resource Management')).not.toBeInTheDocument();
     expect(screen.getByText(`LỖI ${code}`)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /về trang chủ/i })).toHaveAttribute('href', '/');
@@ -39,6 +41,7 @@ describe('error routes', () => {
 
     render(<RouterProvider router={router} />);
 
+    expect(screen.getByRole('main', { name: 'Nội dung lỗi' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Không tìm thấy trang' })).toBeInTheDocument();
   });
 });

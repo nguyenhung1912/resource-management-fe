@@ -1,12 +1,14 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy, Suspense } from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, type RouteObject } from 'react-router-dom';
+
 import { APP_PATHS } from '@/constants/path';
 import { notificationsLoader } from '@/features/notifications/pages/notificationLoader';
 import { myAppealsLoader } from '@/features/appeals/pages/myAppealsLoader';
 import { assignedAppealsLoader } from '@/features/appeals/pages/assignedAppealsLoader';
 import { MainLayout } from '@/layouts/MainLayout';
 import App from '@/App';
+import { dashboardRoutes } from './dashboard';
 import { errorRoutes } from './errorRoutes';
 
 const NotificationCenterPage = lazy(() => import('@/features/notifications/pages/NotificationCenterPage'));
@@ -21,7 +23,7 @@ function PageLoadingFallback() {
   );
 }
 
-export const router = createBrowserRouter([
+export const appRoutes: RouteObject[] = [
   {
     path: APP_PATHS.HOME,
     element: <MainLayout />,
@@ -57,9 +59,12 @@ export const router = createBrowserRouter([
         ),
         loader: assignedAppealsLoader,
       },
-      ...errorRoutes,
     ],
   },
-]);
+  ...dashboardRoutes,
+  ...errorRoutes,
+];
+
+export const router = createBrowserRouter(appRoutes);
 
 export default router;

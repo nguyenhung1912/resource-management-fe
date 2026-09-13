@@ -12,6 +12,7 @@ colors:
   textMuted: "#71717A"
   border: "#E4E4E4"
   neutral: "#FFFFFF"
+  dashboardShell: "#113163"
   badgeSuccessBg: "#ECFDF3"
   badgeSuccessText: "#29AB59"
   badgeDangerBg: "#FFF1F2"
@@ -50,6 +51,10 @@ spacing:
 
 Modern, data-dense SaaS dashboard aesthetic for Essential featuring vibrant electric blue accents (#256EFF), crisp neutral surfaces (#FFFFFF), light gray canvas (#F7F7F7), subtle borders (#E4E4E4), and pill badges.
 
+## Management Page Layout
+
+Context cho các chức năng quản lý: thứ tự phân cấp `page header → statistics → manager table`.
+
 ## Style Foundations
 
 - **Visual style:** modern SaaS dashboard
@@ -72,3 +77,4 @@ Modern, data-dense SaaS dashboard aesthetic for Essential featuring vibrant elec
 - **Text Muted (#71717A):** Subtitles, meta info, table column headers, and email addresses.
 - **Border (#E4E4E4):** Card outlines, table dividers, button strokes, and search inputs.
 - **Neutral (#FFFFFF):** Derived from the surface token for official format compatibility.
+- **Dashboard Shell (#113163):** Navigation header and sidebar background for the authenticated dashboard shell.
