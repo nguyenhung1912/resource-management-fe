@@ -1,11 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
+import { APP_PATHS } from '@/constants/path';
 import { appRoutes } from '@/routes';
 
 describe('resources manager routes', () => {
   it('hiển thị danh sách tài nguyên mẫu và các công cụ quản lý', async () => {
-    const router = createMemoryRouter(appRoutes, { initialEntries: ['/dashboard/resources-manager'] });
+    const router = createMemoryRouter(appRoutes, { initialEntries: [APP_PATHS.RESOURCES_MANAGER] });
 
     render(<RouterProvider router={router} />);
 
@@ -29,14 +30,14 @@ describe('resources manager routes', () => {
   });
 
   it('mở popup tại route upload và quay về trang cha khi hủy', async () => {
-    const router = createMemoryRouter(appRoutes, { initialEntries: ['/dashboard/resources-manager/upload'] });
+    const router = createMemoryRouter(appRoutes, { initialEntries: [APP_PATHS.RESOURCE_UPLOAD] });
 
     render(<RouterProvider router={router} />);
 
     expect(await screen.findByRole('dialog', { name: 'Tải lên tài nguyên mới' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Hủy' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe('/dashboard/resources-manager'));
+    await waitFor(() => expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCES_MANAGER));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Quản lý tài nguyên' })).toBeInTheDocument();
   });

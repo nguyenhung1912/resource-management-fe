@@ -1,5 +1,5 @@
 import { createBrowserRouter, type RouteObject } from 'react-router-dom';
-import { dashboardRoutes } from './dashboard';
+import { dashboardRoutes } from './dashboardRoutes';
 import { errorRoutes } from './errorRoutes';
 import { mainRoutes } from './mainRoutes';
 

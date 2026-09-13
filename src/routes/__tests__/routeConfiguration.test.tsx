@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { createMemoryRouter, matchRoutes, RouterProvider, type RouteObject } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { APP_PATHS, ROUTE_SEGMENTS } from '@/constants/path';
+import { dashboardRoutes } from '@/routes/dashboardRoutes';
 import { mainRoutes } from '@/routes/mainRoutes';
 
 vi.mock('@/services/signalRService', () => ({
@@ -48,5 +49,11 @@ describe('main route configuration', () => {
     render(<RouterProvider router={router} />);
 
     expect(await screen.findByRole('heading', { name: 'Đã xảy ra lỗi hệ thống' })).toBeInTheDocument();
+  });
+});
+
+describe('dashboard route configuration', () => {
+  it.each([APP_PATHS.DASHBOARD, APP_PATHS.RESOURCES_MANAGER, APP_PATHS.RESOURCE_UPLOAD])('matches %s', (path) => {
+    expect(matchRoutes(dashboardRoutes, path)).not.toBeNull();
   });
 });
