@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, type RouteObject } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
 import { notificationsLoader } from '@/features/notifications/pages/notificationLoader';
 import { myAppealsLoader } from '@/features/appeals/pages/myAppealsLoader';
@@ -8,9 +8,10 @@ import { NotificationCenterPage } from '@/features/notifications/pages/Notificat
 import { MyAppealsPage } from '@/features/appeals/pages/MyAppealsPage';
 import { AssignedAppealsPage } from '@/features/appeals/pages/AssignedAppealsPage';
 import App from '@/App';
+import { dashboardRoutes } from './dashboard';
 import { errorRoutes } from './errorRoutes';
 
-export const router = createBrowserRouter([
+export const appRoutes: RouteObject[] = [
   {
     path: APP_PATHS.HOME,
     element: <MainLayout />,
@@ -34,9 +35,12 @@ export const router = createBrowserRouter([
         element: <AssignedAppealsPage />,
         loader: assignedAppealsLoader,
       },
+      ...dashboardRoutes,
       ...errorRoutes,
     ],
   },
-]);
+];
+
+export const router = createBrowserRouter(appRoutes);
 
 export default router;
