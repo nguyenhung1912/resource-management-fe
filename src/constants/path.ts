@@ -1,15 +1,37 @@
+export const ROUTE_SEGMENTS = {
+  LOGIN: 'login',
+  NOTIFICATIONS: 'notifications',
+  APPEALS: 'appeals',
+  ASSIGNED_APPEALS: 'assigned',
+  DASHBOARD: 'dashboard',
+  RESOURCES_MANAGER: 'resources-manager',
+  RESOURCE_UPLOAD: 'upload',
+  UNAUTHORIZED: '401',
+  FORBIDDEN: '403',
+  NOT_FOUND: '404',
+  SERVER_ERROR: '500',
+} as const;
+
+export const ROUTE_PARAMS = {
+  RESOURCE_ID: ':resourceId',
+  APPEAL_ID: ':appealId',
+} as const;
+
 export const APP_PATHS = {
   HOME: '/',
-  LOGIN: '/login',
-  NOTIFICATIONS: '/notifications',
-  APPEALS: '/appeals',
-  ASSIGNED_APPEALS: '/appeals/assigned',
-  RESOURCES: '/resources',
-  DASHBOARD: '/dashboard',
-  RESOURCES_MANAGER: '/dashboard/resources-manager',
-  RESOURCE_UPLOAD: '/dashboard/resources-manager/upload',
-  UNAUTHORIZED: '/401',
-  FORBIDDEN: '/403',
-  NOT_FOUND: '/404',
-  SERVER_ERROR: '/500',
+  LOGIN: `/${ROUTE_SEGMENTS.LOGIN}`,
+  LOGIN_WITH_REDIRECT: (redirect: string) => `/${ROUTE_SEGMENTS.LOGIN}?redirect=${encodeURIComponent(redirect)}`,
+  NOTIFICATIONS: `/${ROUTE_SEGMENTS.NOTIFICATIONS}`,
+  APPEALS: `/${ROUTE_SEGMENTS.APPEALS}`,
+  ASSIGNED_APPEALS: `/${ROUTE_SEGMENTS.APPEALS}/${ROUTE_SEGMENTS.ASSIGNED_APPEALS}`,
+  APPEAL_DETAIL: (appealId: string | number) => `/${ROUTE_SEGMENTS.APPEALS}/${appealId}`,
+  DASHBOARD: `/${ROUTE_SEGMENTS.DASHBOARD}`,
+  RESOURCES_MANAGER: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.RESOURCES_MANAGER}`,
+  RESOURCE_UPLOAD: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.RESOURCES_MANAGER}/${ROUTE_SEGMENTS.RESOURCE_UPLOAD}`,
+  RESOURCE_DETAIL: (resourceId: string | number) =>
+    `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.RESOURCES_MANAGER}/${resourceId}`,
+  UNAUTHORIZED: `/${ROUTE_SEGMENTS.UNAUTHORIZED}`,
+  FORBIDDEN: `/${ROUTE_SEGMENTS.FORBIDDEN}`,
+  NOT_FOUND: `/${ROUTE_SEGMENTS.NOT_FOUND}`,
+  SERVER_ERROR: `/${ROUTE_SEGMENTS.SERVER_ERROR}`,
 } as const;

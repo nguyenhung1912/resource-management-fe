@@ -57,7 +57,12 @@ src/
 │       ├── pages/      # Route pages for the feature
 │       └── types/      # Type definitions for the feature
 ├── layouts/            # Layout shells (MainLayout, AuthLayout, DashboardLayout)
-├── routes/             # Route definitions with React Router v7 (lazy loading)
+├── routes/             # React Router v7 configuration
+│   ├── index.tsx       # Route composition hub and browser router creation
+│   ├── mainRoutes.tsx  # MainLayout routes (Home, Notifications, Appeals)
+│   ├── dashboardRoutes.tsx # DashboardLayout routes (Resources)
+│   ├── errorRoutes.tsx # ErrorLayout routes and wildcard fallback
+│   └── RouteSuspense.tsx # Shared Suspense boundary with PageLoadingState
 ├── services/           # Axios instance configuration, interceptors, API service functions
 ├── store/              # Domain-specific Zustand stores (useAuthStore, useResourceStore)
 ├── constants/          # Global constants, app route paths, status enums
@@ -95,7 +100,42 @@ src/
 
 ---
 
-## 5. Verification & Quality Gates
+## 5. Route Architecture & Navigation Rules
+
+The application uses **React Router v7 in Data Mode** (`createBrowserRouter`) with client-side code splitting. All route definitions must adhere strictly to the following architectural patterns:
+
+### Path Centralization (`src/constants/path.ts`)
+- **Single Source of Truth**: All URL paths and path segments must be centralized in `src/constants/path.ts`.
+- **`ROUTE_SEGMENTS`**: Defines relative, unslashed path segments (e.g. `LOGIN: 'login'`, `RESOURCES_MANAGER: 'resources-manager'`). Used exclusively for nested route definitions in route modules.
+- **`APP_PATHS`**: Defines absolute URLs composed from `ROUTE_SEGMENTS` (e.g. `RESOURCES_MANAGER: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.RESOURCES_MANAGER}``). Used for navigation (`Link`, `NavLink`, `navigate()`), redirects, API interceptors, and tests.
+- **No Hardcoded Path Literals**: Never hardcode route strings in route definitions, components, or tests. The only permissible path literal is the wildcard catch-all (`path: '*'`).
+
+### Modular Route Tree (`src/routes/`)
+- **Domain-based Route Modules**: Route definitions are organized into focused modules grouped by layout shell:
+  - `src/routes/mainRoutes.tsx`: Routes rendered inside `MainLayout` (Home, Notifications, Appeals).
+  - `src/routes/dashboardRoutes.tsx`: Routes rendered inside `DashboardLayout` (Resource Management, Upload).
+  - `src/routes/errorRoutes.tsx`: Explicit error pages (`/401`, `/403`, `/404`, `/500`) and the wildcard catch-all rendered inside `ErrorLayout`.
+- **Composition Hub (`src/routes/index.tsx`)**:
+  - Responsible solely for aggregating domain route arrays (`appRoutes = [...mainRoutes, ...dashboardRoutes, ...errorRoutes]`) and instantiating the browser router (`createBrowserRouter(appRoutes)`).
+  - Must NOT declare page components, loaders, or inline JSX elements.
+
+### Code Splitting & Suspense Boundaries
+- **Page-Level Lazy Loading**: Every page-level component must be lazy-loaded at module scope using `React.lazy()` (e.g. `const HomePage = lazy(() => import('@/App'))`).
+- **Shared Suspense Boundary**: Wrap all lazy-loaded page elements in `<RouteSuspense>` (`src/routes/RouteSuspense.tsx`), which renders the standardized `PageLoadingState` fallback.
+- **Eager Layout Shells**: Layout components (`MainLayout`, `DashboardLayout`, `ErrorLayout`) must remain **eagerly loaded** (direct static imports). This ensures the application shell (header, sidebar, navigation) remains mounted without full-page loading flickers during child page transitions.
+- **Named Exports**: For modules exporting multiple named page components (such as `ErrorPages.tsx`), use `.then((m) => ({ default: m.PageName }))` within `React.lazy()`.
+
+### Route Data Loading & Error Handling
+- **Loaders on Route Objects**: Attach data loaders directly to route objects (e.g. `loader: notificationsLoader`). Never fetch initial page data inside `useEffect`.
+- **Loader Error Boundaries**: Every route declaring a data loader must provide an `errorElement` (rendering `<ServerErrorPage />` wrapped in `<RouteSuspense>`) to gracefully catch loader errors and prevent React Router's default error stack from exposing to users.
+
+### Route Testing Standards
+- **Isolated Memory Routers**: Route tests must never mutate or share a singleton browser router. Each test must instantiate its own isolated router using `createMemoryRouter(appRoutes, { initialEntries: [targetPath] })`.
+- **Public URL Assertions**: Use `APP_PATHS` constants for navigation targets and URL assertions in tests rather than mirror values or duplicate strings.
+
+---
+
+## 6. Verification & Quality Gates
 
 Before finalizing any changes or feature additions, the AI Assistant must verify:
 1. `npm run lint` passes with zero ESLint errors or warnings.
