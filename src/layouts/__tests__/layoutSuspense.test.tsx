@@ -34,6 +34,29 @@ describe('Layout Suspense Boundaries', () => {
     expect(await screen.findByRole('heading', { name: 'Main child loaded' })).toBeInTheDocument();
   });
 
+  it('keeps dashboard content scrolling independent from the menu', () => {
+    const router = createMemoryRouter(
+      [
+        {
+          path: '/dashboard',
+          element: <DashboardLayout />,
+          children: [{ index: true, element: <div>Dashboard content</div> }],
+        },
+      ],
+      { initialEntries: ['/dashboard'] },
+    );
+
+    render(<RouterProvider router={router} />);
+
+    const content = screen.getByRole('main');
+    const dashboardBody = content.parentElement;
+    const dashboardShell = dashboardBody?.parentElement;
+
+    expect(content).toHaveClass('min-h-0', 'overflow-y-auto');
+    expect(dashboardBody).toHaveClass('min-h-0', 'flex-1');
+    expect(dashboardShell).toHaveClass('h-dvh', 'overflow-hidden');
+  });
+
   it('DashboardLayout renders PageLoadingState while lazy child resolves', async () => {
     let resolvePage: ((module: { default: ComponentType }) => void) | undefined;
     const LazyPage = lazy(
