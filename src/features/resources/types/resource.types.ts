@@ -14,3 +14,27 @@ export interface UploadResourceFormValues {
   authorIds: string[];
   bannerImage: File | null;
 }
+
+export interface ResourceAuthorResponse {
+  id: string;
+  fullName: string;
+}
+
+export interface ResourceResponse {
+  id: string;
+  fileName: string;
+  fileTypeName: string;
+  fileSizeBytes: number | null;
+  uploadedAt: string;
+}
+
+export interface MyUploadItemResponse extends ResourceResponse {
+  fileStatusId: number;
+  fileStatusName: string | null;
+  majorId: string;
+  majorName: string | null;
+  subMajorName: string | null;
+  courseName: string | null;
+  keywords: string[];
+  authors: ResourceAuthorResponse[];
+}

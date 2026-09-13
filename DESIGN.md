@@ -51,6 +51,10 @@ spacing:
 
 Modern, data-dense SaaS dashboard aesthetic for Essential featuring vibrant electric blue accents (#256EFF), crisp neutral surfaces (#FFFFFF), light gray canvas (#F7F7F7), subtle borders (#E4E4E4), and pill badges.
 
+## Management Page Layout
+
+Context cho các chức năng quản lý: thứ tự phân cấp `page header → statistics → manager table`.
+
 ## Style Foundations
 
 - **Visual style:** modern SaaS dashboard
