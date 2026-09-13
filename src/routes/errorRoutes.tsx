@@ -1,9 +1,8 @@
 /* eslint-disable react-refresh/only-export-components */
-import { lazy, type ReactNode } from 'react';
+import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { ROUTE_SEGMENTS } from '@/constants/path';
 import { ErrorLayout } from '@/layouts/ErrorLayout';
-import { RouteSuspense } from './RouteSuspense';
 
 const UnauthorizedPage = lazy(() =>
   import('@/features/errors/pages/ErrorPages').then((module) => ({ default: module.UnauthorizedPage })),
@@ -18,33 +17,34 @@ const ServerErrorPage = lazy(() =>
   import('@/features/errors/pages/ErrorPages').then((module) => ({ default: module.ServerErrorPage })),
 );
 
-function suspense(page: ReactNode) {
-  return <RouteSuspense>{page}</RouteSuspense>;
-}
-
 export const errorRoutes: RouteObject[] = [
   {
     element: <ErrorLayout />,
     children: [
       {
         path: ROUTE_SEGMENTS.UNAUTHORIZED,
-        element: suspense(<UnauthorizedPage />),
+        element: <UnauthorizedPage />,
+        handle: { meta: { title: 'Lỗi 401 - Chưa xác thực' } },
       },
       {
         path: ROUTE_SEGMENTS.FORBIDDEN,
-        element: suspense(<ForbiddenPage />),
+        element: <ForbiddenPage />,
+        handle: { meta: { title: 'Lỗi 403 - Không có quyền truy cập' } },
       },
       {
         path: ROUTE_SEGMENTS.NOT_FOUND,
-        element: suspense(<NotFoundPage />),
+        element: <NotFoundPage />,
+        handle: { meta: { title: 'Lỗi 404 - Không tìm thấy trang' } },
       },
       {
         path: ROUTE_SEGMENTS.SERVER_ERROR,
-        element: suspense(<ServerErrorPage />),
+        element: <ServerErrorPage />,
+        handle: { meta: { title: 'Lỗi 500 - Lỗi hệ thống' } },
       },
       {
         path: '*',
-        element: suspense(<NotFoundPage />),
+        element: <NotFoundPage />,
+        handle: { meta: { title: 'Lỗi 404 - Không tìm thấy trang' } },
       },
     ],
   },

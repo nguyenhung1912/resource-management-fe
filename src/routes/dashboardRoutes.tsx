@@ -1,36 +1,39 @@
 /* eslint-disable react-refresh/only-export-components */
-import { lazy } from 'react';
-import type { RouteObject } from 'react-router-dom';
-import { ROUTE_SEGMENTS } from '@/constants/path';
+import { lazy, Suspense } from 'react';
+import { Navigate, type RouteObject } from 'react-router-dom';
+import { PageLoadingState } from '@/components/common/PageLoadingState';
+import { APP_PATHS, ROUTE_SEGMENTS } from '@/constants/path';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
-import { RouteSuspense } from './RouteSuspense';
+import { resourceRoutes } from './domains';
+import { ProtectedRoute } from './guards/ProtectedRoute';
 
-const ResourcesManagerPage = lazy(() => import('@/features/resources/pages/ResourcesManagerPage'));
-const UploadResourcePage = lazy(() => import('@/features/resources/pages/UploadResourcePage'));
+const ServerErrorPage = lazy(() =>
+  import('@/features/errors/pages/ErrorPages').then((module) => ({ default: module.ServerErrorPage })),
+);
+
+const serverErrorElement = (
+  <Suspense fallback={<PageLoadingState />}>
+    <ServerErrorPage />
+  </Suspense>
+);
 
 export const dashboardRoutes: RouteObject[] = [
   {
     path: ROUTE_SEGMENTS.DASHBOARD,
-    element: <DashboardLayout />,
+    element: (
+      <ProtectedRoute>
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
+    errorElement: serverErrorElement,
     children: [
       {
-        path: ROUTE_SEGMENTS.RESOURCES_MANAGER,
-        element: (
-          <RouteSuspense>
-            <ResourcesManagerPage />
-          </RouteSuspense>
-        ),
-        children: [
-          {
-            path: ROUTE_SEGMENTS.RESOURCE_UPLOAD,
-            element: (
-              <RouteSuspense>
-                <UploadResourcePage />
-              </RouteSuspense>
-            ),
-          },
-        ],
+        index: true,
+        element: <Navigate to={APP_PATHS.RESOURCES_MANAGER} replace />,
       },
+      ...resourceRoutes,
     ],
   },
 ];
+
+export default dashboardRoutes;
