@@ -52,7 +52,7 @@ export function ErrorStatePage({ code, title, description, icon: Icon, primaryAc
   return (
     <section
       aria-labelledby={titleId}
-      className="min-h-[calc(100vh-129px)] bg-background px-4 py-12 sm:px-6 flex items-center justify-center"
+      className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6"
     >
       <div className="w-full max-w-2xl rounded-xl border border-border-subtle bg-surface px-6 py-10 text-center shadow-xs sm:px-12 sm:py-14">
         <div
