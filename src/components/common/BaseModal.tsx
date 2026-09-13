@@ -85,7 +85,7 @@ export function BaseModal({
     <div
       role="presentation"
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-hidden animate-in fade-in duration-150"
     >
       <div
         ref={modalRef}
@@ -133,7 +133,7 @@ export function BaseModal({
         )}
 
         {/* Body Content */}
-        <div className="px-6 py-5 overflow-y-auto max-h-[calc(85vh-130px)]">{children}</div>
+        <div className="px-6 py-5 overflow-y-auto overscroll-contain max-h-[calc(85vh-130px)]">{children}</div>
 
         {/* Footer */}
         {footer && (

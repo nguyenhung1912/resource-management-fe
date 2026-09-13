@@ -28,6 +28,21 @@ function chooseMainFile(file: File) {
 }
 
 describe('UploadResourceModal', () => {
+  it('chỉ cho phép cuộn bên trong dialog upload', () => {
+    renderModal();
+    const backdrop = screen.getByRole('presentation');
+    const form = document.getElementById('upload-resource-form');
+    const modalBody = form?.parentElement;
+
+    if (!modalBody) {
+      throw new Error('Không tìm thấy body của dialog upload');
+    }
+
+    expect(backdrop).toHaveClass('overflow-hidden');
+    expect(backdrop).not.toHaveClass('overflow-y-auto');
+    expect(modalBody).toHaveClass('max-h-[calc(85vh-130px)]', 'overflow-y-auto', 'overscroll-contain');
+  });
+
   it('hiển thị đầy đủ các trường tương ứng với yêu cầu upload của backend', () => {
     renderModal();
 
