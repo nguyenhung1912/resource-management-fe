@@ -5,6 +5,7 @@ import type {
   ApproveModerationRequest,
   ModerationDecisionEnvelopeResponse,
   ModerationDetailEnvelopeResponse,
+  ModerationHistoryEnvelopeResponse,
   ModerationQueuePaginatedResponse,
   PlagiarismCheckEnvelopeResponse,
   RejectModerationRequest,
@@ -200,6 +201,42 @@ describe('moderationService', () => {
 
       expect(axiosClient.post).toHaveBeenCalledWith('/api/Moderation/FIL_check_01/check-plagiarism');
       expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('getModerationHistory', () => {
+    it('gọi GET tới /api/Moderation/{fileId}/history', async () => {
+      const fileId = 'FIL_history_01';
+      const mockResponse: ModerationHistoryEnvelopeResponse = {
+        message: 'Lấy lịch sử kiểm duyệt thành công.',
+        data: [
+          {
+            historyId: 'MDH_1',
+            action: 'Reject',
+            moderatorName: 'TS. Nguyễn Văn A',
+            reason: 'Độ trùng lặp 35%',
+            notes: 'Yêu cầu trích dẫn lại',
+            plagiarismScore: 35,
+            createdAt: '2026-09-12T10:00:00Z',
+          },
+        ],
+      };
+
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await moderationService.getModerationHistory(fileId);
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/Moderation/FIL_history_01/history');
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('encodeURIComponent fileId trong URL history', async () => {
+      const fileId = 'FIL/#special-id';
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: { message: 'OK', data: [] } });
+
+      await moderationService.getModerationHistory(fileId);
+
+      expect(axiosClient.get).toHaveBeenCalledWith(`/api/Moderation/${encodeURIComponent(fileId)}/history`);
     });
   });
 });

@@ -3,6 +3,7 @@ import type {
   ApproveModerationRequest,
   ModerationDecisionEnvelopeResponse,
   ModerationDetailEnvelopeResponse,
+  ModerationHistoryEnvelopeResponse,
   ModerationQueuePaginatedResponse,
   ModerationQueueParams,
   PlagiarismCheckEnvelopeResponse,
@@ -69,6 +70,14 @@ export const moderationService = {
   async checkPlagiarism(fileId: string): Promise<PlagiarismCheckEnvelopeResponse> {
     const response = await axiosClient.post<PlagiarismCheckEnvelopeResponse>(
       `/api/Moderation/${encodeURIComponent(fileId)}/check-plagiarism`,
+    );
+    return response.data;
+  },
+
+  // GET /api/Moderation/{fileId}/history
+  async getModerationHistory(fileId: string): Promise<ModerationHistoryEnvelopeResponse> {
+    const response = await axiosClient.get<ModerationHistoryEnvelopeResponse>(
+      `/api/Moderation/${encodeURIComponent(fileId)}/history`,
     );
     return response.data;
   },
