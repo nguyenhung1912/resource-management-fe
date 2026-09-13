@@ -13,14 +13,14 @@ export function DashboardLayout() {
   useDocumentTitle();
 
   return (
-    <div className="min-h-screen bg-background text-text-main">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background text-text-main">
       <DashboardHeader
         isMenuOpen={isMenuOpen}
         onToggleMenu={() => setIsMenuOpen((currentValue) => !currentValue)}
         user={{ displayName: 'Username_tx', role: 'Role_tx' }}
       />
 
-      <div className="flex min-h-[calc(100vh-4rem)]">
+      <div className="flex min-h-0 flex-1">
         {isMenuOpen ? (
           <button
             type="button"
@@ -35,7 +35,7 @@ export function DashboardLayout() {
           aria-hidden={!isMenuOpen}
           inert={!isMenuOpen}
           className={cn(
-            'fixed bottom-0 left-0 top-16 z-40 w-64 shrink-0 transform overflow-visible transition-[transform,width] duration-200 lg:static lg:h-[calc(100vh-4rem)]',
+            'fixed bottom-0 left-0 top-16 z-40 w-64 shrink-0 transform overflow-visible transition-[transform,width] duration-200 lg:static lg:h-full',
             isMenuOpen ? 'translate-x-0 lg:w-64' : '-translate-x-full lg:w-0 lg:-translate-x-full',
           )}
         >
@@ -46,7 +46,7 @@ export function DashboardLayout() {
           />
         </aside>
 
-        <main className="min-w-0 flex-1">
+        <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">
           <div className="px-4 pt-4 sm:px-6 lg:px-8">
             <Breadcrumbs />
           </div>

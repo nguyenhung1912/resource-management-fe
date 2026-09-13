@@ -202,8 +202,8 @@ export function UploadResourceModal({
       maxWidth="2xl"
       closeOnBackdropClick={!isSubmitting}
       closeOnEscape={!isSubmitting}
+      fullScreenOnMobile
       footer={footer}
-      className="max-h-[calc(100vh-2rem)]"
     >
       <form id="upload-resource-form" noValidate className="space-y-5" onSubmit={handleSubmit}>
         {apiError ? (
