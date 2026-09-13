@@ -14,6 +14,7 @@ export interface BaseModalProps {
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   closeOnEscape?: boolean;
   closeOnBackdropClick?: boolean;
+  fullScreenOnMobile?: boolean;
   showCloseButton?: boolean;
   className?: string;
 }
@@ -37,6 +38,7 @@ export function BaseModal({
   maxWidth = 'lg',
   closeOnEscape = true,
   closeOnBackdropClick = true,
+  fullScreenOnMobile = false,
   showCloseButton = true,
   className,
 }: BaseModalProps) {
@@ -85,7 +87,10 @@ export function BaseModal({
     <div
       role="presentation"
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-hidden animate-in fade-in duration-150"
+      className={cn(
+        'fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/40 backdrop-blur-xs animate-in fade-in duration-150 sm:p-6',
+        fullScreenOnMobile ? 'p-0' : 'p-4',
+      )}
     >
       <div
         ref={modalRef}
@@ -94,14 +99,17 @@ export function BaseModal({
         aria-labelledby={title ? titleId : undefined}
         aria-describedby={description ? descriptionId : undefined}
         className={cn(
-          'w-full bg-surface text-text-main rounded-xl border border-border-subtle shadow-xl flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-150',
+          'flex w-full flex-col overflow-hidden bg-surface text-text-main shadow-xl animate-in zoom-in-95 duration-150',
+          fullScreenOnMobile
+            ? 'm-0 h-dvh max-h-dvh rounded-none border-0 sm:my-auto sm:h-auto sm:max-h-[calc(100dvh-3rem)] sm:rounded-xl sm:border sm:border-border-subtle'
+            : 'my-auto rounded-xl border border-border-subtle',
           maxWidthMap[maxWidth],
           className,
         )}
       >
         {/* Header */}
         {(title || showCloseButton) && (
-          <div className="flex items-start justify-between px-6 py-4 border-b border-border-subtle gap-4">
+          <div className="flex shrink-0 items-start justify-between px-6 py-4 border-b border-border-subtle gap-4">
             <div className="flex items-start gap-3 min-w-0">
               {icon && <div className="shrink-0 mt-0.5">{icon}</div>}
               <div className="min-w-0">
@@ -133,11 +141,20 @@ export function BaseModal({
         )}
 
         {/* Body Content */}
-        <div className="px-6 py-5 overflow-y-auto overscroll-contain max-h-[calc(85vh-130px)]">{children}</div>
+        <div
+          className={cn(
+            'overflow-y-auto overscroll-contain px-6 py-5',
+            fullScreenOnMobile
+              ? 'min-h-0 max-h-none flex-1 sm:max-h-[calc(85vh-130px)] sm:flex-none'
+              : 'max-h-[calc(85vh-130px)]',
+          )}
+        >
+          {children}
+        </div>
 
         {/* Footer */}
         {footer && (
-          <div className="px-6 py-4 border-t border-border-subtle bg-gray-50/50 flex items-center justify-end gap-3">
+          <div className="flex shrink-0 items-center justify-end gap-3 border-t border-border-subtle bg-gray-50/50 px-6 py-4">
             {footer}
           </div>
         )}

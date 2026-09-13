@@ -40,7 +40,34 @@ describe('UploadResourceModal', () => {
 
     expect(backdrop).toHaveClass('overflow-hidden');
     expect(backdrop).not.toHaveClass('overflow-y-auto');
-    expect(modalBody).toHaveClass('max-h-[calc(85vh-130px)]', 'overflow-y-auto', 'overscroll-contain');
+    expect(modalBody).toHaveClass('overflow-y-auto', 'overscroll-contain');
+  });
+
+  it('hiển thị dialog upload toàn màn hình trên màn hình nhỏ', () => {
+    renderModal();
+    const backdrop = screen.getByRole('presentation');
+    const dialog = screen.getByRole('dialog');
+    const form = document.getElementById('upload-resource-form');
+    const modalBody = form?.parentElement;
+
+    if (!modalBody) {
+      throw new Error('Không tìm thấy body của dialog upload');
+    }
+
+    expect(backdrop).toHaveClass('p-0', 'sm:p-6');
+    expect(dialog).toHaveClass(
+      'm-0',
+      'h-dvh',
+      'max-h-dvh',
+      'rounded-none',
+      'border-0',
+      'sm:my-auto',
+      'sm:h-auto',
+      'sm:max-h-[calc(100dvh-3rem)]',
+      'sm:rounded-xl',
+      'sm:border',
+    );
+    expect(modalBody).toHaveClass('min-h-0', 'max-h-none', 'flex-1', 'sm:max-h-[calc(85vh-130px)]', 'sm:flex-none');
   });
 
   it('hiển thị đầy đủ các trường tương ứng với yêu cầu upload của backend', () => {
