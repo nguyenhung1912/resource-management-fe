@@ -3,6 +3,7 @@ export const APP_PATHS = {
   LOGIN: '/login',
   NOTIFICATIONS: '/notifications',
   APPEALS: '/appeals',
+  ASSIGNED_APPEALS: '/appeals/assigned',
   RESOURCES: '/resources',
   UNAUTHORIZED: '/401',
   FORBIDDEN: '/403',

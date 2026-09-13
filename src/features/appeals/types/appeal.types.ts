@@ -64,6 +64,17 @@ export interface GetMyAppealsParams {
   pageSize?: number;
 }
 
+export interface GetAssignedAppealsParams {
+  status?: AppealStatus;
+  pageNumber?: number;
+  pageSize?: number;
+}
+
+export interface ResolveAppealRequest {
+  isApproved: boolean;
+  lecturerResponse: string;
+}
+
 export interface RejectedResourceContext {
   fileId: string;
   fileName: string;
@@ -81,6 +92,15 @@ export interface AppealOverviewStats {
 }
 
 export interface MyAppealsLoaderResult {
+  appeals: AppealsPaginatedData;
+  stats: AppealOverviewStats;
+  currentStatus?: AppealStatus;
+  searchQuery: string;
+  currentPage: number;
+  pageSize: number;
+}
+
+export interface AssignedAppealsLoaderResult {
   appeals: AppealsPaginatedData;
   stats: AppealOverviewStats;
   currentStatus?: AppealStatus;
