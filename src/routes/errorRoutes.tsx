@@ -1,31 +1,50 @@
+/* eslint-disable react-refresh/only-export-components */
+import { lazy, type ReactNode } from 'react';
 import type { RouteObject } from 'react-router-dom';
-import { APP_PATHS } from '@/constants/path';
-import { ForbiddenPage, NotFoundPage, ServerErrorPage, UnauthorizedPage } from '@/features/errors/pages/ErrorPages';
+import { ROUTE_SEGMENTS } from '@/constants/path';
 import { ErrorLayout } from '@/layouts/ErrorLayout';
+import { RouteSuspense } from './RouteSuspense';
+
+const UnauthorizedPage = lazy(() =>
+  import('@/features/errors/pages/ErrorPages').then((module) => ({ default: module.UnauthorizedPage })),
+);
+const ForbiddenPage = lazy(() =>
+  import('@/features/errors/pages/ErrorPages').then((module) => ({ default: module.ForbiddenPage })),
+);
+const NotFoundPage = lazy(() =>
+  import('@/features/errors/pages/ErrorPages').then((module) => ({ default: module.NotFoundPage })),
+);
+const ServerErrorPage = lazy(() =>
+  import('@/features/errors/pages/ErrorPages').then((module) => ({ default: module.ServerErrorPage })),
+);
+
+function suspense(page: ReactNode) {
+  return <RouteSuspense>{page}</RouteSuspense>;
+}
 
 export const errorRoutes: RouteObject[] = [
   {
     element: <ErrorLayout />,
     children: [
       {
-        path: APP_PATHS.UNAUTHORIZED,
-        element: <UnauthorizedPage />,
+        path: ROUTE_SEGMENTS.UNAUTHORIZED,
+        element: suspense(<UnauthorizedPage />),
       },
       {
-        path: APP_PATHS.FORBIDDEN,
-        element: <ForbiddenPage />,
+        path: ROUTE_SEGMENTS.FORBIDDEN,
+        element: suspense(<ForbiddenPage />),
       },
       {
-        path: APP_PATHS.NOT_FOUND,
-        element: <NotFoundPage />,
+        path: ROUTE_SEGMENTS.NOT_FOUND,
+        element: suspense(<NotFoundPage />),
       },
       {
-        path: APP_PATHS.SERVER_ERROR,
-        element: <ServerErrorPage />,
+        path: ROUTE_SEGMENTS.SERVER_ERROR,
+        element: suspense(<ServerErrorPage />),
       },
       {
         path: '*',
-        element: <NotFoundPage />,
+        element: suspense(<NotFoundPage />),
       },
     ],
   },

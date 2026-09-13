@@ -1,7 +1,8 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { RouterProvider } from 'react-router-dom';
-import { router } from '@/routes';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+import { APP_PATHS } from '@/constants/path';
+import { appRoutes } from '@/routes';
 
 vi.mock('@/services/signalRService', () => ({
   default: {
@@ -15,33 +16,35 @@ afterEach(() => {
   cleanup();
 });
 
+function renderRoute(path: string) {
+  const router = createMemoryRouter(appRoutes, { initialEntries: [path] });
+  render(<RouterProvider router={router} />);
+  return router;
+}
+
 describe('error routes', () => {
   const errorCases = [
-    { path: '/401', code: '401', title: 'Không có quyền truy cập' },
-    { path: '/403', code: '403', title: 'Bạn không có quyền truy cập' },
-    { path: '/404', code: '404', title: 'Không tìm thấy trang' },
-    { path: '/500', code: '500', title: 'Đã xảy ra lỗi hệ thống' },
+    { path: APP_PATHS.UNAUTHORIZED, code: '401', title: 'Không có quyền truy cập' },
+    { path: APP_PATHS.FORBIDDEN, code: '403', title: 'Bạn không có quyền truy cập' },
+    { path: APP_PATHS.NOT_FOUND, code: '404', title: 'Không tìm thấy trang' },
+    { path: APP_PATHS.SERVER_ERROR, code: '500', title: 'Đã xảy ra lỗi hệ thống' },
   ] as const;
 
   it.each(errorCases)('hiển thị trang lỗi $code trong ErrorLayout', async ({ path, code, title }) => {
-    await router.navigate(path);
+    renderRoute(path);
 
-    render(<RouterProvider router={router} />);
-
+    expect(await screen.findByText(`LỖI ${code}`)).toBeInTheDocument();
     expect(screen.getByRole('main', { name: 'Nội dung lỗi' })).toBeInTheDocument();
     expect(screen.queryByRole('banner')).not.toBeInTheDocument();
     expect(screen.queryByText('Resource Management')).not.toBeInTheDocument();
-    expect(screen.getByText(`LỖI ${code}`)).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /về trang chủ/i })).toHaveAttribute('href', '/');
   });
 
   it('dùng trang 404 cho URL không được khai báo', async () => {
-    await router.navigate('/duong-dan-khong-ton-tai');
-
-    render(<RouterProvider router={router} />);
+    renderRoute('/duong-dan-khong-ton-tai');
 
     expect(screen.getByRole('main', { name: 'Nội dung lỗi' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Không tìm thấy trang' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Không tìm thấy trang' })).toBeInTheDocument();
   });
 });
