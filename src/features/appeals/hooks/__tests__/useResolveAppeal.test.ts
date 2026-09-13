@@ -67,7 +67,7 @@ describe('useResolveAppeal hook', () => {
     expect(result.current.apiError).toBeNull();
   });
 
-  it('xử lý khi backend trả về lỗi HTTP 403 (không có quyền phân xử)', async () => {
+  it('xử lý khi backend trả về lỗi HTTP 403 (không có quyền giải quyết)', async () => {
     const mockPayload: ResolveAppealRequest = {
       isApproved: false,
       lecturerResponse: 'Minh chứng chưa đạt yêu cầu.',
@@ -104,9 +104,9 @@ describe('useResolveAppeal hook', () => {
 
     expect(resolveResult).toBeNull();
     expect(handleSuccess).not.toHaveBeenCalled();
-    expect(handleError).toHaveBeenCalledWith('Bạn không có quyền phân xử đơn khiếu nại này.');
+    expect(handleError).toHaveBeenCalledWith('Bạn không có quyền giải quyết đơn khiếu nại này.');
     expect(result.current.isResolving).toBe(false);
-    expect(result.current.apiError).toBe('Bạn không có quyền phân xử đơn khiếu nại này.');
+    expect(result.current.apiError).toBe('Bạn không có quyền giải quyết đơn khiếu nại này.');
   });
 
   it('xóa lỗi API khi gọi clearApiError', async () => {
@@ -115,7 +115,7 @@ describe('useResolveAppeal hook', () => {
       statusText: 'Bad Request',
       headers: {},
       config: {} as unknown as InternalAxiosRequestConfig,
-      data: { message: 'Lỗi kiểm thử phân xử' },
+      data: { message: 'Lỗi kiểm thử giải quyết' },
     });
 
     vi.mocked(appealService.resolveAppeal).mockRejectedValueOnce(axiosError);
@@ -129,7 +129,7 @@ describe('useResolveAppeal hook', () => {
       });
     });
 
-    expect(result.current.apiError).toBe('Lỗi kiểm thử phân xử');
+    expect(result.current.apiError).toBe('Lỗi kiểm thử giải quyết');
 
     act(() => {
       result.current.clearApiError();

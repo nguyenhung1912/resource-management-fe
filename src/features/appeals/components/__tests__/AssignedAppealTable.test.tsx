@@ -46,11 +46,11 @@ describe('AssignedAppealTable', () => {
     expect(screen.getByText('linh@example.com')).toBeInTheDocument();
   });
 
-  it('hiển thị nút Phân xử đối với đơn Pending và gọi callback onResolve khi nhấn', () => {
+  it('hiển thị nút Giải quyết đối với đơn Pending và gọi callback onResolve khi nhấn', () => {
     const handleResolve = vi.fn();
     render(<AssignedAppealTable items={mockItems} onViewDetail={vi.fn()} onResolve={handleResolve} />);
 
-    const resolveBtn = screen.getByRole('button', { name: /Phân xử/i });
+    const resolveBtn = screen.getByRole('button', { name: /Giải quyết/i });
     expect(resolveBtn).toBeInTheDocument();
 
     fireEvent.click(resolveBtn);

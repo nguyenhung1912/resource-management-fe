@@ -34,7 +34,7 @@ export function AssignedAppealFilterBar({
     {
       id: 'Pending',
       status: 'Pending',
-      label: 'Cần phân xử',
+      label: 'Cần giải quyết',
       count: stats?.pending,
     },
     {

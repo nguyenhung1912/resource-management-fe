@@ -180,7 +180,7 @@ function AppealResolutionDialogContent({ isOpen, onClose, appeal, detail, onSucc
               )}
               {typeof detail.latestPlagiarismScore === 'number' && (
                 <p className="text-text-muted text-[11px]">
-                  Độ trùng lặp ghi nhận: <strong className="text-warning">{detail.latestPlagiarismScore}%</strong>
+                  Độ trùng lặp AI ghi nhận: <strong className="text-warning">{detail.latestPlagiarismScore}%</strong>
                 </p>
               )}
             </div>
@@ -324,7 +324,7 @@ function AppealResolutionDialogContent({ isOpen, onClose, appeal, detail, onSucc
             showCount
             currentLength={lecturerResponse.length}
             rows={3}
-            error={showValidationError ? 'Vui lòng nhập nhận xét phân xử với ít nhất 10 ký tự.' : undefined}
+            error={showValidationError ? 'Vui lòng nhập nhận xét giải quyết với ít nhất 10 ký tự.' : undefined}
           />
 
           {/* Quick Suggestions Chips */}

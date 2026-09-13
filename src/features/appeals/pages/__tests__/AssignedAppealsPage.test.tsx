@@ -82,7 +82,7 @@ describe('AssignedAppealsPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: /Tiếp nhận & Xử lý Khiếu nại/i })).toBeInTheDocument();
     expect(screen.getByText(/Giảng viên \/ Ban kiểm duyệt/i)).toBeInTheDocument();
     expect(screen.getByText('Tổng đơn được giao')).toBeInTheDocument();
-    expect(screen.getAllByText('Cần phân xử').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Cần giải quyết').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Nghiên cứu Thị giác Máy tính').length).toBeGreaterThan(0);
     expect(screen.getAllByText('APL_001').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Lê Văn Nam').length).toBeGreaterThan(0);
@@ -93,7 +93,7 @@ describe('AssignedAppealsPage', () => {
 
     render(<AssignedAppealsPage />);
 
-    const pendingTab = screen.getByRole('button', { name: 'Cần phân xử (1)' });
+    const pendingTab = screen.getByRole('button', { name: 'Cần giải quyết (1)' });
     fireEvent.click(pendingTab);
 
     expect(mockSetSearchParams).toHaveBeenCalledTimes(1);
@@ -116,16 +116,16 @@ describe('AssignedAppealsPage', () => {
     expect(calledParams.get('page')).toBe('1');
   });
 
-  it('mở AppealResolutionDialog khi nhấn nút Phân xử trên đơn Pending', () => {
+  it('mở AppealResolutionDialog khi nhấn nút Giải quyết trên đơn Pending', () => {
     vi.mocked(useLoaderData).mockReturnValue(mockLoaderData);
 
     render(<AssignedAppealsPage />);
 
-    const resolveBtn = screen.getAllByRole('button', { name: /^Phân xử$/i })[0];
+    const resolveBtn = screen.getAllByRole('button', { name: /^Giải quyết$/i })[0];
     fireEvent.click(resolveBtn);
 
     expect(mockLoadDetail).toHaveBeenCalledWith('APL_001');
-    expect(screen.getByText(/Phân xử khiếu nại #APL_001/i)).toBeInTheDocument();
+    expect(screen.getByText(/Giải quyết khiếu nại #APL_001/i)).toBeInTheDocument();
   });
 
   it('mở modal chi tiết khi nhấn nút Chi tiết', () => {

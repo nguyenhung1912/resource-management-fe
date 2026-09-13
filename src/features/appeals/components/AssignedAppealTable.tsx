@@ -120,7 +120,7 @@ export function AssignedAppealTable({ items, onViewDetail, onResolve, className 
                           iconLeft={<Gavel className="h-3.5 w-3.5" />}
                           className="h-7 text-xs px-2.5 rounded-lg shadow-2xs font-semibold"
                         >
-                          Phân xử
+                          Giải quyết
                         </Button>
                       )}
                       <Button

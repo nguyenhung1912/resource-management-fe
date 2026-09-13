@@ -28,7 +28,7 @@ export function AssignedAppealStatsCards({
     {
       id: 'Pending',
       status: 'Pending' as AppealStatus,
-      label: 'Cần phân xử',
+      label: 'Cần giải quyết',
       value: stats.pending,
       icon: Clock,
       colorClass: 'text-warning bg-orange-50',

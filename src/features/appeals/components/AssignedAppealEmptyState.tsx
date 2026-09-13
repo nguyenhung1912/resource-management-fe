@@ -25,7 +25,7 @@ export function AssignedAppealEmptyState({
     title = 'Không tìm thấy kết quả phù hợp';
     description = `Không có khiếu nại nào khớp với từ khóa "${searchQuery}". Vui lòng thử lại với từ khóa khác.`;
   } else if (currentStatus === 'Pending') {
-    title = 'Không có đơn chờ phân xử';
+    title = 'Không có đơn chờ giải quyết';
     description = 'Tất cả các đơn khiếu nại được chỉ định cho bạn đã được xử lý xong. Không còn đơn nào tồn đọng.';
   } else if (currentStatus === 'Approved') {
     title = 'Chưa có đơn duyệt lại';

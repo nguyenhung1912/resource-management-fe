@@ -56,7 +56,7 @@ export function useResolveAppeal(): UseResolveAppealReturn {
           if (error.response?.data?.message) {
             errorMessage = error.response.data.message;
           } else if (error.response?.status === 400) {
-            errorMessage = 'Dữ liệu phân xử không hợp lệ hoặc khiếu nại đã được giải quyết.';
+            errorMessage = 'Dữ liệu giải quyết không hợp lệ hoặc khiếu nại đã được giải quyết.';
           } else if (error.response?.status === 401) {
             errorMessage = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
           } else if (error.response?.status === 403) {

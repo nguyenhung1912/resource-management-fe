@@ -147,7 +147,7 @@ describe('appealService', () => {
   });
 
   describe('resolveAppeal', () => {
-    it('gửi PUT /api/moderation/appeals/{appealId}/resolve với payload phân xử chuẩn', async () => {
+    it('gửi PUT /api/moderation/appeals/{appealId}/resolve với payload giải quyết chuẩn', async () => {
       const mockPayload = {
         isApproved: true,
         lecturerResponse: 'Giải trình hợp lý. Đồng ý phê duyệt tài liệu.',

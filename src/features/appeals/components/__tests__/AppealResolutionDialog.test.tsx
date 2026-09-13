@@ -40,16 +40,16 @@ describe('AppealResolutionDialog', () => {
 
   it('không render nội dung khi isOpen = false hoặc appeal = null', () => {
     const { rerender } = render(<AppealResolutionDialog isOpen={false} onClose={vi.fn()} appeal={mockAppeal} />);
-    expect(screen.queryByText(/Phân xử khiếu nại/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Giải quyết khiếu nại/i)).not.toBeInTheDocument();
 
     rerender(<AppealResolutionDialog isOpen={true} onClose={vi.fn()} appeal={null} />);
-    expect(screen.queryByText(/Phân xử khiếu nại/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Giải quyết khiếu nại/i)).not.toBeInTheDocument();
   });
 
   it('hiển thị đầy đủ thông tin khiếu nại và kết quả kiểm duyệt ban đầu khi mở dialog', () => {
     render(<AppealResolutionDialog isOpen={true} onClose={vi.fn()} appeal={mockAppeal} detail={mockDetail} />);
 
-    expect(screen.getByText(/Phân xử khiếu nại #APL_TEST_101/i)).toBeInTheDocument();
+    expect(screen.getByText(/Giải quyết khiếu nại #APL_TEST_101/i)).toBeInTheDocument();
     expect(screen.getByText(/Phạm Hồng Nhung/i)).toBeInTheDocument();
     expect(screen.getByText(/\(nhung@example.com\)/i)).toBeInTheDocument();
     expect(screen.getByText(/Lần giải trình: 1/i)).toBeInTheDocument();
@@ -101,11 +101,11 @@ describe('AppealResolutionDialog', () => {
     const submitBtn = screen.getByRole('button', { name: /Xác nhận Duyệt lại/i });
     fireEvent.click(submitBtn);
 
-    expect(await screen.findByText(/Vui lòng nhập nhận xét phân xử với ít nhất 10 ký tự/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Vui lòng nhập nhận xét giải quyết với ít nhất 10 ký tự/i)).toBeInTheDocument();
     expect(appealService.resolveAppeal).not.toHaveBeenCalled();
   });
 
-  it('gửi phân xử thành công và kích hoạt callbacks onSuccess, onClose', async () => {
+  it('gửi giải quyết thành công và kích hoạt callbacks onSuccess, onClose', async () => {
     const handleSuccess = vi.fn();
     const handleClose = vi.fn();
 

@@ -87,7 +87,7 @@ export function AssignedAppealCard({ item, onViewDetail, onResolve, className }:
             iconLeft={<Gavel className="h-3.5 w-3.5" />}
             className="flex-1 text-xs h-8 font-semibold"
           >
-            Phân xử
+            Giải quyết
           </Button>
         )}
         <Button
