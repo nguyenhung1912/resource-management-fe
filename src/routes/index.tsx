@@ -35,10 +35,10 @@ export const appRoutes: RouteObject[] = [
         element: <AssignedAppealsPage />,
         loader: assignedAppealsLoader,
       },
-      ...dashboardRoutes,
       ...errorRoutes,
     ],
   },
+  ...dashboardRoutes,
 ];
 
 export const router = createBrowserRouter(appRoutes);

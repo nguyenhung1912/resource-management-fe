@@ -10,6 +10,13 @@ describe('resources manager routes', () => {
     render(<RouterProvider router={router} />);
 
     expect(await screen.findByRole('heading', { name: 'Tài nguyên của tôi' })).toBeInTheDocument();
+    expect(await screen.findByRole('banner', { name: 'Thanh điều hướng dashboard' })).toBeInTheDocument();
+    const menuButton = screen.getByRole('button', { name: 'Mở menu dashboard' });
+    expect(menuButton).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(menuButton);
+    expect(screen.getByRole('button', { name: 'Đóng menu dashboard' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.queryByText('Resource Management')).not.toBeInTheDocument();
+    expect(screen.getByRole('navigation', { name: 'Menu dashboard' })).toBeInTheDocument();
     expect(screen.getByText('Bạn chưa tải lên tài nguyên nào.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Tải lên tài nguyên' })).toHaveAttribute(
       'href',
