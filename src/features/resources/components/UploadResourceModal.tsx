@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
 import { cn } from '@/utils/cn';
 import type { SelectOption, UploadResourceFormValues } from '@/features/resources/types/resource.types';
-import { AuthorMultiSelect } from './AuthorMultiSelect';
+import { AuthorInput } from './AuthorInput';
 import { ResourceFileDropzone } from './ResourceFileDropzone';
 
 const MAX_RESOURCE_FILE_SIZE = 50 * 1024 * 1024;
@@ -23,7 +23,6 @@ export interface UploadResourceModalProps {
   fileTypes: SelectOption<number>[];
   subMajors: SelectOption<string>[];
   courses: SelectOption<string>[];
-  authors: SelectOption<string>[];
   onClose: () => void;
   onSubmit: (values: UploadResourceFormValues) => void | Promise<void>;
 }
@@ -36,7 +35,7 @@ interface FormState {
   subMajorCode: string;
   courseCode: string;
   yearCompleted: string;
-  authorIds: string[];
+  authorNames: string[];
   bannerImage: File | null;
 }
 
@@ -53,7 +52,7 @@ const initialFormState: FormState = {
   subMajorCode: '',
   courseCode: '',
   yearCompleted: '',
-  authorIds: [],
+  authorNames: [],
   bannerImage: null,
 };
 
@@ -91,7 +90,6 @@ export function UploadResourceModal({
   fileTypes,
   subMajors,
   courses,
-  authors,
   onClose,
   onSubmit,
 }: UploadResourceModalProps) {
@@ -109,7 +107,7 @@ export function UploadResourceModal({
         : undefined;
   const fileTypeError = isSubmitted && !form.fileTypeId ? 'Vui lòng chọn loại tài nguyên.' : undefined;
   const subMajorError = isSubmitted && !form.subMajorCode ? 'Vui lòng chọn chuyên ngành.' : undefined;
-  const authorsError = isSubmitted && form.authorIds.length === 0 ? 'Vui lòng chọn ít nhất một tác giả.' : undefined;
+  const authorsError = isSubmitted && form.authorNames.length === 0 ? 'Vui lòng nhập ít nhất một tác giả.' : undefined;
   const numericYear = form.yearCompleted ? Number(form.yearCompleted) : null;
   const yearError =
     form.yearCompleted &&
@@ -159,7 +157,7 @@ export function UploadResourceModal({
       form.fileName.length > 255 ||
       !form.fileTypeId ||
       !form.subMajorCode ||
-      form.authorIds.length === 0 ||
+      form.authorNames.length === 0 ||
       Boolean(resourceFileError) ||
       Boolean(fileErrors.banner) ||
       Boolean(yearError);
@@ -174,7 +172,7 @@ export function UploadResourceModal({
       subMajorCode: form.subMajorCode,
       courseCode: form.courseCode || null,
       yearCompleted: numericYear,
-      authorIds: form.authorIds,
+      authorNames: form.authorNames,
       bannerImage: form.bannerImage,
     });
   };
@@ -363,13 +361,12 @@ export function UploadResourceModal({
           <Label htmlFor="resource-authors" requiredBadge error={Boolean(authorsError)}>
             Tác giả
           </Label>
-          <AuthorMultiSelect
+          <AuthorInput
             id="resource-authors"
-            options={authors}
-            selectedIds={form.authorIds}
+            authorNames={form.authorNames}
             error={authorsError}
             disabled={isSubmitting}
-            onChange={(authorIds) => updateField('authorIds', authorIds)}
+            onChange={(authorNames) => updateField('authorNames', authorNames)}
           />
         </div>
 

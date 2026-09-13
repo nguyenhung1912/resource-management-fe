@@ -20,12 +20,6 @@ const previewCourses: SelectOption<string>[] = [
   { value: 'SWR302', label: 'Kiến trúc và thiết kế phần mềm' },
 ];
 
-const previewAuthors: SelectOption<string>[] = [
-  { value: 'author-1', label: 'Nguyễn Văn An' },
-  { value: 'author-2', label: 'Trần Minh Bình' },
-  { value: 'author-3', label: 'Lê Hoàng Anh' },
-];
-
 export function UploadResourcePage() {
   const navigate = useNavigate();
 
@@ -43,7 +37,6 @@ export function UploadResourcePage() {
       fileTypes={previewFileTypes}
       subMajors={previewSubMajors}
       courses={previewCourses}
-      authors={previewAuthors}
       onClose={closeUpload}
       onSubmit={handlePreviewSubmit}
     />

@@ -13,10 +13,6 @@ const defaultProps = {
     { value: 'AI', label: 'Trí tuệ nhân tạo' },
   ],
   courses: [{ value: 'PRN222', label: 'Lập trình .NET' }],
-  authors: [
-    { value: 'author-1', label: 'Nguyễn Văn An' },
-    { value: 'author-2', label: 'Trần Minh Bình' },
-  ],
   onClose: vi.fn(),
   onSubmit: vi.fn(),
 };
@@ -42,7 +38,7 @@ describe('UploadResourceModal', () => {
     expect(screen.getByLabelText(/chuyên ngành/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/học phần/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/năm hoàn thành/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /chọn tác giả/i })).toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: /nhập tác giả/i })).toBeInTheDocument();
     expect(screen.getByLabelText('Chọn ảnh banner')).toBeInTheDocument();
     expect(screen.queryByLabelText(/github/i)).not.toBeInTheDocument();
   });
@@ -85,6 +81,22 @@ describe('UploadResourceModal', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Dung lượng tệp không được vượt quá 50 MB.');
   });
 
+  it('thêm nhiều tên tác giả bằng phím Enter và bỏ qua tên trùng', () => {
+    renderModal();
+    const authorInput = screen.getByRole('textbox', { name: /nhập tác giả/i });
+
+    fireEvent.change(authorInput, { target: { value: '  Nguyễn Văn An  ' } });
+    fireEvent.keyDown(authorInput, { key: 'Enter' });
+    fireEvent.change(authorInput, { target: { value: 'Trần Minh Bình' } });
+    fireEvent.keyDown(authorInput, { key: 'Enter' });
+    fireEvent.change(authorInput, { target: { value: 'nguyễn văn an' } });
+    fireEvent.keyDown(authorInput, { key: 'Enter' });
+
+    expect(screen.getByRole('button', { name: 'Xóa tác giả Nguyễn Văn An' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Xóa tác giả Trần Minh Bình' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /xóa tác giả/i })).toHaveLength(2);
+  });
+
   it('không submit và hiển thị lỗi cho các trường bắt buộc', () => {
     const handleSubmit = vi.fn();
     renderModal({ onSubmit: handleSubmit });
@@ -95,7 +107,7 @@ describe('UploadResourceModal', () => {
     expect(screen.getByText('Vui lòng nhập tên tài nguyên.')).toBeInTheDocument();
     expect(screen.getByText('Vui lòng chọn loại tài nguyên.')).toBeInTheDocument();
     expect(screen.getByText('Vui lòng chọn chuyên ngành.')).toBeInTheDocument();
-    expect(screen.getByText('Vui lòng chọn ít nhất một tác giả.')).toBeInTheDocument();
+    expect(screen.getByText('Vui lòng nhập ít nhất một tác giả.')).toBeInTheDocument();
     expect(handleSubmit).not.toHaveBeenCalled();
   });
 
@@ -112,8 +124,11 @@ describe('UploadResourceModal', () => {
     fireEvent.change(screen.getByLabelText(/chuyên ngành/i), { target: { value: 'AI' } });
     fireEvent.change(screen.getByLabelText(/học phần/i), { target: { value: 'PRN222' } });
     fireEvent.change(screen.getByLabelText(/năm hoàn thành/i), { target: { value: '2025' } });
-    fireEvent.click(screen.getByRole('button', { name: /chọn tác giả/i }));
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Nguyễn Văn An' }));
+    const authorInput = screen.getByRole('textbox', { name: /nhập tác giả/i });
+    fireEvent.change(authorInput, { target: { value: 'Nguyễn Văn An' } });
+    fireEvent.keyDown(authorInput, { key: 'Enter' });
+    fireEvent.change(authorInput, { target: { value: 'Trần Minh Bình' } });
+    fireEvent.keyDown(authorInput, { key: 'Enter' });
     fireEvent.change(screen.getByLabelText('Chọn ảnh banner'), { target: { files: [bannerImage] } });
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
 
@@ -125,7 +140,7 @@ describe('UploadResourceModal', () => {
       subMajorCode: 'AI',
       courseCode: 'PRN222',
       yearCompleted: 2025,
-      authorIds: ['author-1'],
+      authorNames: ['Nguyễn Văn An', 'Trần Minh Bình'],
       bannerImage,
     });
   });

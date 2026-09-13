@@ -11,7 +11,7 @@ export interface UploadResourceFormValues {
   subMajorCode: string;
   courseCode: string | null;
   yearCompleted: number | null;
-  authorIds: string[];
+  authorNames: string[];
   bannerImage: File | null;
 }
 
