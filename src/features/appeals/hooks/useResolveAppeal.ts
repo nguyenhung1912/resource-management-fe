@@ -60,7 +60,7 @@ export function useResolveAppeal(): UseResolveAppealReturn {
           } else if (error.response?.status === 401) {
             errorMessage = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
           } else if (error.response?.status === 403) {
-            errorMessage = 'Bạn không có quyền phân xử đơn khiếu nại này.';
+            errorMessage = 'Bạn không có quyền giải quyết đơn khiếu nại này.';
           } else if (error.response?.status === 404) {
             errorMessage = 'Không tìm thấy thông tin đơn khiếu nại.';
           }
