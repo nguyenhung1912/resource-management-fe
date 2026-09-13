@@ -3,6 +3,19 @@ import { describe, expect, it, vi } from 'vitest';
 import { DashboardHeader } from '../DashboardHeader';
 
 describe('DashboardHeader', () => {
+  it('uses the Essential light shell and hover color for the dashboard header', () => {
+    render(
+      <DashboardHeader
+        isMenuOpen={false}
+        onToggleMenu={vi.fn()}
+        user={{ displayName: 'Username_tx', role: 'Role_tx' }}
+      />,
+    );
+
+    expect(screen.getByRole('banner')).toHaveClass('bg-surface', 'text-text');
+    expect(screen.getByRole('button')).toHaveClass('hover:bg-background');
+  });
+
   it('hiển thị nhận diện trường và thông tin người dùng', () => {
     render(
       <DashboardHeader

@@ -59,14 +59,14 @@ export function DashboardMenu({ menuData, user, logoUrl, onNavigate, className }
   return (
     <nav
       aria-label="Menu dashboard"
-      className={cn('flex h-full flex-col overflow-y-auto bg-dashboard-shell text-white', className)}
+      className={cn('dashboard-menu-scrollbar flex h-full flex-col overflow-y-auto bg-surface text-text', className)}
     >
-      <div className="flex min-h-24 items-center justify-center border-b border-white/10 px-5 py-4">
+      <div className="flex min-h-24 items-center justify-center border-b border-border px-5 py-4">
         {logoUrl ? (
           <img
             src={logoUrl}
             alt="Logo hệ thống"
-            className="size-16 rounded-full border-2 border-white/80 bg-surface object-contain"
+            className="size-16 rounded-full border-2 border-border bg-surface object-contain"
           />
         ) : (
           <div className="flex size-16 items-center justify-center rounded-full bg-surface text-primary shadow-sm">
@@ -76,15 +76,17 @@ export function DashboardMenu({ menuData, user, logoUrl, onNavigate, className }
       </div>
 
       <div className="p-3">
-        <div className="flex items-center gap-3 rounded-xl bg-primary/70 px-3 py-3 shadow-sm">
+        <div className="flex items-center gap-3 rounded-xl bg-background px-3 py-3 shadow-sm">
           {user.avatarUrl ? (
             <img src={user.avatarUrl} alt="" className="size-10 shrink-0 rounded-full bg-surface object-cover" />
           ) : (
-            <CircleUserRound aria-hidden="true" className="size-10 shrink-0" />
+            <CircleUserRound aria-hidden="true" className="size-10 shrink-0 text-secondary" />
           )}
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{user.displayName}</p>
-            {user.secondaryText ? <p className="mt-0.5 truncate text-xs text-white/70">{user.secondaryText}</p> : null}
+            {user.secondaryText ? (
+              <p className="mt-0.5 truncate text-xs text-text-muted">{user.secondaryText}</p>
+            ) : null}
           </div>
         </div>
       </div>
@@ -102,7 +104,7 @@ export function DashboardMenu({ menuData, user, logoUrl, onNavigate, className }
                 aria-expanded={isExpanded}
                 aria-controls={panelId}
                 onClick={() => toggleGroup(group.groupId)}
-                className="flex w-full items-center justify-between bg-white/10 px-3 py-2 text-left text-xs font-medium uppercase tracking-wide transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
+                className="flex w-full items-center justify-between bg-primary px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
               >
                 <span className="truncate">{group.groupName}</span>
                 <ChevronDown
@@ -126,10 +128,10 @@ export function DashboardMenu({ menuData, user, logoUrl, onNavigate, className }
                           onClick={onNavigate}
                           className={({ isActive }) =>
                             cn(
-                              'flex min-h-9 items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
+                              'flex min-h-9 items-center gap-2 rounded-lg px-2.5 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                               isActive
-                                ? 'bg-primary font-semibold text-white shadow-sm'
-                                : 'text-white/85 hover:bg-white/10 hover:text-white',
+                                ? 'bg-primary/30 font-semibold text-text shadow-sm'
+                                : 'text-text-muted hover:bg-background hover:text-text',
                             )
                           }
                         >

@@ -50,3 +50,31 @@
     -moz-osx-font-smoothing: grayscale;
   }
 }
+
+@layer utilities {
+  .dashboard-menu-scrollbar {
+    scrollbar-color: transparent transparent;
+    scrollbar-width: thin;
+  }
+
+  .dashboard-menu-scrollbar:is(:hover, :focus-within) {
+    scrollbar-color: var(--color-secondary) transparent;
+  }
+
+  .dashboard-menu-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .dashboard-menu-scrollbar::-webkit-scrollbar-track,
+  .dashboard-menu-scrollbar::-webkit-scrollbar-thumb {
+    background-color: transparent;
+  }
+
+  .dashboard-menu-scrollbar::-webkit-scrollbar-thumb {
+    border-radius: var(--radius-full);
+  }
+
+  .dashboard-menu-scrollbar:is(:hover, :focus-within)::-webkit-scrollbar-thumb {
+    background-color: var(--color-secondary);
+  }
+}
