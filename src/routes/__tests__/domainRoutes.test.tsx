@@ -1,7 +1,7 @@
 import { matchRoutes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { APP_PATHS, ROUTE_PARAMS } from '@/constants/path';
-import { appealRoutes, moderationRoutes, notificationRoutes, resourceRoutes } from '@/routes/domains';
+import { appealRoutes, moderationRoutes, notificationRoutes, reportRoutes, resourceRoutes } from '@/routes/domains';
 
 describe('domain routes and dynamic path builders', () => {
   describe('APP_PATHS dynamic builders', () => {
@@ -18,6 +18,11 @@ describe('domain routes and dynamic path builders', () => {
     it('builds moderation detail path with ID', () => {
       expect(APP_PATHS.MODERATION_DETAIL('FIL_123')).toBe('/dashboard/moderation/FIL_123');
       expect(APP_PATHS.MODERATION_DETAIL(456)).toBe('/dashboard/moderation/456');
+    });
+
+    it('builds report detail path with ID', () => {
+      expect(APP_PATHS.REPORT_DETAIL('RPT_123')).toBe('/dashboard/reports/RPT_123');
+      expect(APP_PATHS.REPORT_DETAIL(456)).toBe('/dashboard/reports/456');
     });
 
     it('builds login path with encoded redirect query', () => {
@@ -52,6 +57,10 @@ describe('domain routes and dynamic path builders', () => {
 
     it('moderationRoutes matches moderation detail route', () => {
       expect(matchRoutes(moderationRoutes, '/moderation/FIL_123')).not.toBeNull();
+    });
+
+    it('reportRoutes matches reports segment', () => {
+      expect(matchRoutes(reportRoutes, '/reports')).not.toBeNull();
     });
   });
 });

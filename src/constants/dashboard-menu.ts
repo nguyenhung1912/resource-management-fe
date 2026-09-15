@@ -1,3 +1,4 @@
+import { APP_PATHS } from '@/constants/path';
 import type { DashboardMenuResponse } from '@/features/dashboard/types/dashboard-menu.types';
 
 export const dashboardMenuPreviewData: DashboardMenuResponse = {
@@ -113,6 +114,18 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
           functionName: 'Tìm kiếm người dùng',
           functionUrl: '/dashboard/search/users',
           functionDescription: 'Tìm kiếm người dùng trong hệ thống',
+        },
+      ],
+    },
+    {
+      groupId: 'moderation-management',
+      groupName: 'Kiểm duyệt & Báo cáo',
+      functions: [
+        {
+          functionId: 'violation-reports',
+          functionName: 'Báo cáo vi phạm',
+          functionUrl: APP_PATHS.REPORTS_MANAGER,
+          functionDescription: 'Xử lý báo cáo vi phạm tài liệu, bình luận và người dùng',
         },
       ],
     },
