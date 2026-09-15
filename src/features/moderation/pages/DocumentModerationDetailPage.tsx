@@ -55,7 +55,7 @@ export function DocumentModerationDetailPage() {
     setFeedbackBanner({
       type: 'success',
       title: 'Phê duyệt tài liệu thành công',
-      message: message || 'Tài liệu đã được chuyển sang trạng thái Đã duyệt (Approved) và sẵn sàng tra cứu.',
+      message: message || 'Tài liệu đã được chuyển sang trạng thái Đã duyệt và sẵn sàng tra cứu.',
     });
     revalidator.revalidate();
   };
