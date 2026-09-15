@@ -7,6 +7,7 @@ export const ROUTE_SEGMENTS = {
   RESOURCES_MANAGER: 'resources-manager',
   RESOURCE_UPLOAD: 'upload',
   RESOURCE_EDIT: 'edit',
+  MODERATION: 'moderation',
   UNAUTHORIZED: '401',
   FORBIDDEN: '403',
   NOT_FOUND: '404',
@@ -16,6 +17,7 @@ export const ROUTE_SEGMENTS = {
 export const ROUTE_PARAMS = {
   RESOURCE_ID: ':resourceId',
   APPEAL_ID: ':appealId',
+  FILE_ID: ':fileId',
 } as const;
 
 export const APP_PATHS = {
@@ -33,6 +35,8 @@ export const APP_PATHS = {
     `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.RESOURCES_MANAGER}/${resourceId}`,
   RESOURCE_EDIT: (resourceId: string | number) =>
     `${APP_PATHS.RESOURCE_DETAIL(resourceId)}/${ROUTE_SEGMENTS.RESOURCE_EDIT}`,
+  MODERATION: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.MODERATION}`,
+  MODERATION_DETAIL: (fileId: string | number) => `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.MODERATION}/${fileId}`,
   UNAUTHORIZED: `/${ROUTE_SEGMENTS.UNAUTHORIZED}`,
   FORBIDDEN: `/${ROUTE_SEGMENTS.FORBIDDEN}`,
   NOT_FOUND: `/${ROUTE_SEGMENTS.NOT_FOUND}`,

@@ -64,7 +64,12 @@ describe('main route configuration', () => {
 });
 
 describe('dashboard route configuration', () => {
-  it.each([APP_PATHS.DASHBOARD, APP_PATHS.RESOURCES_MANAGER, APP_PATHS.RESOURCE_UPLOAD])('matches %s', (path) => {
+  it.each([
+    APP_PATHS.DASHBOARD,
+    APP_PATHS.RESOURCES_MANAGER,
+    APP_PATHS.RESOURCE_UPLOAD,
+    APP_PATHS.MODERATION_DETAIL('FIL_TEST'),
+  ])('matches %s', (path) => {
     expect(matchRoutes(dashboardRoutes, path)).not.toBeNull();
   });
 
