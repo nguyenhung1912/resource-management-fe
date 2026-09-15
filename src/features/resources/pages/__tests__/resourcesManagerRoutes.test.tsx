@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { APP_PATHS } from '@/constants/path';
@@ -23,9 +23,10 @@ describe('resources manager routes', () => {
     expect(screen.getByRole('button', { name: 'Lọc tài nguyên' })).toBeInTheDocument();
     expect(screen.getByRole('combobox', { name: 'Sắp xếp tài nguyên' })).toBeInTheDocument();
     expect(screen.getByRole('banner', { name: 'Thanh điều hướng dashboard' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Tải lên tài nguyên' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Tải lên tài nguyên' })).toHaveAttribute('href', APP_PATHS.RESOURCE_UPLOAD);
+    expect(screen.getByRole('link', { name: 'Chỉnh sửa Báo cáo thực tập_Final.pdf' })).toHaveAttribute(
       'href',
-      '/dashboard/resources-manager/upload',
+      APP_PATHS.RESOURCE_EDIT('resource-1'),
     );
   });
 
@@ -40,5 +41,18 @@ describe('resources manager routes', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCES_MANAGER));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Quản lý tài nguyên' })).toBeInTheDocument();
+  });
+
+  it('mở form chỉnh sửa theo resource id và quay về trang quản lý khi hủy', async () => {
+    const router = createMemoryRouter(appRoutes, { initialEntries: [APP_PATHS.RESOURCE_EDIT('resource-1')] });
+
+    render(<RouterProvider router={router} />);
+
+    const dialog = await screen.findByRole('dialog', { name: 'Chỉnh sửa tài nguyên' });
+    expect(within(dialog).getByText('Báo cáo thực tập_Final.pdf')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Hủy' }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCES_MANAGER));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });

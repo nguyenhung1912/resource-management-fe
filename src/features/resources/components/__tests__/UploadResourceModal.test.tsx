@@ -82,7 +82,29 @@ describe('UploadResourceModal', () => {
     expect(screen.getByLabelText(/năm hoàn thành/i)).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /nhập tác giả/i })).toBeInTheDocument();
     expect(screen.getByLabelText('Chọn ảnh banner')).toBeInTheDocument();
-    expect(screen.queryByLabelText(/github/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/đính kèm mã nguồn/i)).toHaveAttribute('type', 'url');
+    expect(screen.getByRole('note', { name: 'Lưu ý:' })).toHaveTextContent(/liên kết chứa virus hay phần mềm độc hại/i);
+  });
+
+  it('không submit URL mã nguồn sai định dạng ở lần gửi đầu tiên', () => {
+    const handleSubmit = vi.fn();
+    renderModal({ onSubmit: handleSubmit });
+
+    chooseMainFile(new File(['noi dung'], 'resource.pdf', { type: 'application/pdf' }));
+    fireEvent.change(screen.getByLabelText(/loại tài nguyên/i), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText(/chuyên ngành/i), { target: { value: 'SE' } });
+    const authorInput = screen.getByRole('textbox', { name: /nhập tác giả/i });
+    fireEvent.change(authorInput, { target: { value: 'Nguyễn Văn An' } });
+    fireEvent.keyDown(authorInput, { key: 'Enter' });
+    fireEvent.change(screen.getByLabelText(/đính kèm mã nguồn/i), {
+      target: { value: 'https://?' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
+
+    expect(
+      screen.getByText('Liên kết mã nguồn phải là URL hợp lệ sử dụng giao thức http:// hoặc https://.'),
+    ).toBeInTheDocument();
+    expect(handleSubmit).not.toHaveBeenCalled();
   });
 
   it('nhận tệp hợp lệ và tự điền tên tài nguyên từ tên tệp', () => {
@@ -171,6 +193,14 @@ describe('UploadResourceModal', () => {
     fireEvent.keyDown(authorInput, { key: 'Enter' });
     fireEvent.change(authorInput, { target: { value: 'Trần Minh Bình' } });
     fireEvent.keyDown(authorInput, { key: 'Enter' });
+    const keywordInput = screen.getByRole('textbox', { name: 'Nhập từ khóa' });
+    fireEvent.change(keywordInput, { target: { value: 'React' } });
+    fireEvent.keyDown(keywordInput, { key: 'Enter' });
+    fireEvent.change(keywordInput, { target: { value: 'TypeScript' } });
+    fireEvent.keyDown(keywordInput, { key: 'Enter' });
+    fireEvent.change(screen.getByLabelText(/đính kèm mã nguồn/i), {
+      target: { value: '  https://github.com/example/source-code  ' },
+    });
     fireEvent.change(screen.getByLabelText('Chọn ảnh banner'), { target: { files: [bannerImage] } });
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
 
@@ -183,6 +213,8 @@ describe('UploadResourceModal', () => {
       courseCode: 'PRN222',
       yearCompleted: 2025,
       authorNames: ['Nguyễn Văn An', 'Trần Minh Bình'],
+      keywords: ['React', 'TypeScript'],
+      sourceCodeUrl: 'https://github.com/example/source-code',
       bannerImage,
     });
   });

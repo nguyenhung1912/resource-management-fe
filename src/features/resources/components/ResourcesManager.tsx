@@ -1,8 +1,22 @@
-import { useMemo, useState } from 'react';
-import { ChevronDown, ChevronLeft, ChevronRight, FileImage, FileText, FileVideo, Filter, Link2 } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  FileImage,
+  FileText,
+  FileVideo,
+  Filter,
+  Link2,
+  Pencil,
+  Trash2,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Badge, type BadgeProps } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { APP_PATHS } from '@/constants/path';
 import type { MyUploadItemResponse } from '@/features/resources/types/resource.types';
+import { DeleteResourceDialog } from './DeleteResourceDialog';
 
 const ALL_STATUSES = 0;
 
@@ -105,18 +119,33 @@ export function ResourcesManager({ items = SAMPLE_RESOURCES }: ResourcesManagerP
   const [selectedStatus, setSelectedStatus] = useState(ALL_STATUSES);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortDirection, setSortDirection] = useState<'newest' | 'oldest'>('newest');
+  const [resourceToDelete, setResourceToDelete] = useState<MyUploadItemResponse | null>(null);
+  const [deletedResourceIds, setDeletedResourceIds] = useState<Set<string>>(() => new Set());
+  const managerRef = useRef<HTMLElement>(null);
 
   const visibleItems = useMemo(() => {
+    const activeItems = items.filter((item) => !deletedResourceIds.has(item.id));
     const filteredItems =
-      selectedStatus === ALL_STATUSES ? items : items.filter((item) => item.fileStatusId === selectedStatus);
+      selectedStatus === ALL_STATUSES
+        ? activeItems
+        : activeItems.filter((item) => item.fileStatusId === selectedStatus);
     return filteredItems.toSorted((first, second) => {
       const difference = Date.parse(second.uploadedAt) - Date.parse(first.uploadedAt);
       return sortDirection === 'newest' ? difference : -difference;
     });
-  }, [items, selectedStatus, sortDirection]);
+  }, [deletedResourceIds, items, selectedStatus, sortDirection]);
+
+  const remainingItemCount = items.filter((item) => !deletedResourceIds.has(item.id)).length;
+
+  const handleConfirmDelete = () => {
+    if (!resourceToDelete) return;
+    setDeletedResourceIds((current) => new Set(current).add(resourceToDelete.id));
+  };
 
   return (
     <section
+      ref={managerRef}
+      tabIndex={-1}
       className="overflow-hidden rounded-xl border border-border-subtle bg-surface"
       aria-label="Danh sách tài nguyên"
     >
@@ -223,13 +252,32 @@ export function ResourcesManager({ items = SAMPLE_RESOURCES }: ResourcesManagerP
                 <td className="px-4 py-3 text-text-muted">{formatFileSize(item.fileSizeBytes)}</td>
                 <td className="px-4 py-3 text-text-muted">{dateFormatter.format(new Date(item.uploadedAt))}</td>
                 <td className="px-4 py-3 text-right sm:px-6">
-                  <button
-                    type="button"
-                    className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                    aria-label={`Xem chi tiết ${item.fileName}`}
-                  >
-                    Xem chi tiết
-                  </button>
+                  <div className="flex items-center justify-end gap-2">
+                    <Link
+                      to={APP_PATHS.RESOURCE_EDIT(item.id)}
+                      className="inline-flex items-center gap-1 rounded-md border border-border-subtle bg-surface px-2.5 py-1 text-xs font-medium text-text-main transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                      aria-label={`Chỉnh sửa ${item.fileName}`}
+                    >
+                      <Pencil className="size-3.5" aria-hidden="true" />
+                      Chỉnh sửa
+                    </Link>
+                    <button
+                      type="button"
+                      className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                      aria-label={`Xem chi tiết ${item.fileName}`}
+                    >
+                      Xem chi tiết
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 rounded-md border border-danger/30 bg-surface px-2.5 py-1 text-xs font-medium text-danger transition-colors hover:bg-danger/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40"
+                      aria-label={`Xóa ${item.fileName}`}
+                      onClick={() => setResourceToDelete(item)}
+                    >
+                      <Trash2 className="size-3.5" aria-hidden="true" />
+                      Xóa
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -239,7 +287,7 @@ export function ResourcesManager({ items = SAMPLE_RESOURCES }: ResourcesManagerP
 
       <footer className="flex flex-col gap-3 border-t border-border-subtle px-4 py-4 text-xs text-text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <p>
-          Hiển thị {visibleItems.length} trong số {items.length} tài nguyên
+          Hiển thị {visibleItems.length} trong số {remainingItemCount} tài nguyên
         </p>
         <nav className="flex items-center gap-1" aria-label="Phân trang tài nguyên">
           <button
@@ -266,6 +314,14 @@ export function ResourcesManager({ items = SAMPLE_RESOURCES }: ResourcesManagerP
           </button>
         </nav>
       </footer>
+
+      <DeleteResourceDialog
+        isOpen={Boolean(resourceToDelete)}
+        fileName={resourceToDelete?.fileName ?? ''}
+        restoreFocusRef={managerRef}
+        onClose={() => setResourceToDelete(null)}
+        onConfirm={handleConfirmDelete}
+      />
     </section>
   );
 }

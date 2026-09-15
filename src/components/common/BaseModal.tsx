@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode, type RefObject } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
@@ -16,6 +16,7 @@ export interface BaseModalProps {
   closeOnBackdropClick?: boolean;
   fullScreenOnMobile?: boolean;
   showCloseButton?: boolean;
+  restoreFocusRef?: RefObject<HTMLElement | null>;
   className?: string;
 }
 
@@ -26,6 +27,15 @@ const maxWidthMap = {
   xl: 'max-w-xl',
   '2xl': 'max-w-2xl',
 } as const;
+
+const FOCUSABLE_SELECTOR = [
+  'button:not([disabled])',
+  'a[href]',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',');
 
 export function BaseModal({
   isOpen,
@@ -40,11 +50,53 @@ export function BaseModal({
   closeOnBackdropClick = true,
   fullScreenOnMobile = false,
   showCloseButton = true,
+  restoreFocusRef,
   className,
 }: BaseModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const descriptionId = useId();
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previouslyFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const fallbackRestoreTarget = restoreFocusRef?.current ?? null;
+    const dialog = modalRef.current;
+    if (!dialog) return;
+
+    const getFocusableElements = () => Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+    const preferredElement = dialog.querySelector<HTMLElement>('[autofocus]');
+    (preferredElement ?? getFocusableElements()[0] ?? dialog).focus();
+
+    const trapFocus = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+
+      const focusableElements = getFocusableElements();
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    };
+
+    document.addEventListener('keydown', trapFocus);
+    return () => {
+      document.removeEventListener('keydown', trapFocus);
+      const restoreTarget = previouslyFocusedElement?.isConnected ? previouslyFocusedElement : fallbackRestoreTarget;
+      restoreTarget?.focus();
+    };
+  }, [isOpen, restoreFocusRef]);
 
   // Khóa cuộn trang khi modal mở
   useEffect(() => {
@@ -95,6 +147,7 @@ export function BaseModal({
       <div
         ref={modalRef}
         role="dialog"
+        tabIndex={-1}
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
         aria-describedby={description ? descriptionId : undefined}

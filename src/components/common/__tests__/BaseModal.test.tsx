@@ -86,4 +86,56 @@ describe('BaseModal', () => {
 
     expect(screen.getByRole('button', { name: 'Xác nhận' })).toBeInTheDocument();
   });
+
+  it('giữ phím Tab bên trong dialog theo cả hai chiều', () => {
+    render(
+      <BaseModal isOpen onClose={vi.fn()} footer={<button type="button">Xác nhận</button>}>
+        <button type="button">Nội dung</button>
+      </BaseModal>,
+    );
+
+    const closeButton = screen.getByRole('button', { name: 'Đóng' });
+    const confirmButton = screen.getByRole('button', { name: 'Xác nhận' });
+
+    confirmButton.focus();
+    fireEvent.keyDown(document, { key: 'Tab' });
+    expect(closeButton).toHaveFocus();
+
+    closeButton.focus();
+    fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+    expect(confirmButton).toHaveFocus();
+  });
+
+  it('đưa focus vào dialog khi mở và trả lại phần tử trước đó khi đóng', () => {
+    const { rerender } = render(
+      <>
+        <button type="button">Mở dialog</button>
+        <BaseModal isOpen={false} onClose={vi.fn()}>
+          <button type="button">Nội dung</button>
+        </BaseModal>
+      </>,
+    );
+    const trigger = screen.getByRole('button', { name: 'Mở dialog' });
+    trigger.focus();
+
+    rerender(
+      <>
+        <button type="button">Mở dialog</button>
+        <BaseModal isOpen onClose={vi.fn()}>
+          <button type="button">Nội dung</button>
+        </BaseModal>
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Đóng' })).toHaveFocus();
+
+    rerender(
+      <>
+        <button type="button">Mở dialog</button>
+        <BaseModal isOpen={false} onClose={vi.fn()}>
+          <button type="button">Nội dung</button>
+        </BaseModal>
+      </>,
+    );
+    expect(trigger).toHaveFocus();
+  });
 });
