@@ -10,7 +10,7 @@ const DocumentModerationDetailPage = lazy(() => import('@/features/moderation/pa
 export const moderationRoutes: RouteObject[] = [
   {
     path: ROUTE_SEGMENTS.MODERATION,
-    element: <RoleGuard allowedRoles={['ADMIN', 'LECTURER']} />,
+    element: <RoleGuard allowedRoles={['Admin', 'Lecturer']} />,
     handle: {
       meta: {
         breadcrumb: 'Kiểm duyệt',
