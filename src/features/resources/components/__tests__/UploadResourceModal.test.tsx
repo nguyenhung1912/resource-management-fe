@@ -83,7 +83,7 @@ describe('UploadResourceModal', () => {
     expect(screen.getByRole('textbox', { name: /nhập tác giả/i })).toBeInTheDocument();
     expect(screen.getByLabelText('Chọn ảnh banner')).toBeInTheDocument();
     expect(screen.getByLabelText(/đính kèm mã nguồn/i)).toHaveAttribute('type', 'url');
-    expect(screen.getByText(/mã nguồn từ liên kết bên ngoài có thể chứa tệp độc hại/i)).toBeInTheDocument();
+    expect(screen.getByRole('note', { name: 'Lưu ý:' })).toHaveTextContent(/liên kết chứa virus hay phần mềm độc hại/i);
   });
 
   it('không submit URL mã nguồn sai định dạng ở lần gửi đầu tiên', () => {
