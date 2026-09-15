@@ -51,6 +51,7 @@ export interface ModerationUploaderInfo {
 export interface ModerationAuthorItem {
   authorId?: string;
   authorName?: string;
+  fullName?: string;
   email?: string;
   affiliation?: string;
 }
@@ -127,4 +128,24 @@ export interface ModerationTargetDocument {
   createdAt?: string;
   fileUrl?: string;
   latestPlagiarismScore?: number | null;
+}
+
+export interface ModerationHistorySummaryDto {
+  historyId: string;
+  action: string;
+  moderatorName?: string;
+  reason?: string;
+  notes?: string;
+  plagiarismScore?: number;
+  createdAt: string;
+}
+
+export interface ModerationHistoryEnvelopeResponse {
+  message: string;
+  data: ModerationHistorySummaryDto[];
+}
+
+export interface ModerationDetailLoaderData {
+  detail: ModerationResourceDetailResponse;
+  history: ModerationHistorySummaryDto[];
 }
