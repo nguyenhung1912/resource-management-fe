@@ -37,7 +37,7 @@ describe('ReportResolutionDialog', () => {
   it('hiển thị lỗi validation khi chưa nhập đủ 10 ký tự ghi chú', async () => {
     render(<ReportResolutionDialog isOpen={true} onClose={vi.fn()} report={mockReport} onSuccess={vi.fn()} />);
 
-    const submitBtn = screen.getByRole('button', { name: /Xác nhận phán quyết/i });
+    const submitBtn = screen.getByRole('button', { name: /^Xác nhận$/i });
     fireEvent.click(submitBtn);
 
     expect(screen.getByText(/Ghi chú xử lý phải có độ dài tối thiểu 10 ký tự/i)).toBeInTheDocument();
@@ -66,7 +66,7 @@ describe('ReportResolutionDialog', () => {
       target: { value: 'Đã xác minh và gỡ tài liệu vi phạm.' },
     });
 
-    const submitBtn = screen.getByRole('button', { name: /Xác nhận phán quyết/i });
+    const submitBtn = screen.getByRole('button', { name: /^Xác nhận$/i });
     fireEvent.click(submitBtn);
 
     await waitFor(() => {

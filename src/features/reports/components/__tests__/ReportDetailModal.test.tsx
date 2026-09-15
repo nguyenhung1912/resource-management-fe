@@ -59,7 +59,7 @@ describe('ReportDetailModal', () => {
       />,
     );
 
-    const resolveBtn = screen.getByRole('button', { name: /Xử lý phán quyết/i });
+    const resolveBtn = screen.getByRole('button', { name: /^Xử lý$/i });
     fireEvent.click(resolveBtn);
 
     expect(handleClose).toHaveBeenCalled();

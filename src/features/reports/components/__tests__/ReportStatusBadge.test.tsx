@@ -13,8 +13,8 @@ describe('ReportStatusBadge', () => {
   it('hiển thị đúng nhãn cho trạng thái InProgress', () => {
     render(<ReportStatusBadge status="InProgress" />);
     const badge = screen.getByRole('status');
-    expect(badge).toHaveTextContent('Đang thẩm tra');
-    expect(badge).toHaveAttribute('aria-label', 'Trạng thái: Đang thẩm tra');
+    expect(badge).toHaveTextContent('Đang kiểm tra');
+    expect(badge).toHaveAttribute('aria-label', 'Trạng thái: Đang kiểm tra');
   });
 
   it('hiển thị đúng nhãn cho trạng thái Resolved', () => {
