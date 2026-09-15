@@ -12,6 +12,7 @@ export const ROUTE_SEGMENTS = {
   RESOURCE_EDIT: 'edit',
   MODERATION: 'moderation',
 
+  REPORTS: 'reports',
   UNAUTHORIZED: '401',
   FORBIDDEN: '403',
   NOT_FOUND: '404',
@@ -22,6 +23,7 @@ export const ROUTE_PARAMS = {
   RESOURCE_ID: ':resourceId',
   APPEAL_ID: ':appealId',
   FILE_ID: ':fileId',
+  REPORT_ID: ':reportId',
 } as const;
 
 export const APP_PATHS = {
@@ -59,6 +61,8 @@ export const APP_PATHS = {
 
   MODERATION_DETAIL: (fileId: string | number) => `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.MODERATION}/${fileId}`,
 
+  REPORTS_MANAGER: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.REPORTS}`,
+  REPORT_DETAIL: (reportId: string | number) => `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.REPORTS}/${reportId}`,
   UNAUTHORIZED: `/${ROUTE_SEGMENTS.UNAUTHORIZED}`,
   FORBIDDEN: `/${ROUTE_SEGMENTS.FORBIDDEN}`,
   NOT_FOUND: `/${ROUTE_SEGMENTS.NOT_FOUND}`,
