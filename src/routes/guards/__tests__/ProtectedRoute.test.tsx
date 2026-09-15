@@ -3,7 +3,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { APP_PATHS } from '@/constants/path';
 import { ProtectedRoute } from '../ProtectedRoute';
-import { useAuthStore } from '@/store/useAuthStore';
+import { useAuthStore } from '@/store/authStore';
 
 const defaultAuthState = {
   user: { id: 'test-1', username: 'tester', displayName: 'Tester', role: 'LECTURER' },

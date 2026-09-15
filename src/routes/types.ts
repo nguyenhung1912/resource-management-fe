@@ -1,4 +1,4 @@
-import type { UserRole } from '@/features/auth/types/auth.types';
+import type { UserRole } from '@/features/auth/types/auth_types';
 
 export interface RouteMeta {
   title?: string;
