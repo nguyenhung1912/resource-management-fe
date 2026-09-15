@@ -1,7 +1,19 @@
 import { useMemo, useState } from 'react';
-import { ChevronDown, ChevronLeft, ChevronRight, FileImage, FileText, FileVideo, Filter, Link2 } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  FileImage,
+  FileText,
+  FileVideo,
+  Filter,
+  Link2,
+  Pencil,
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Badge, type BadgeProps } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { APP_PATHS } from '@/constants/path';
 import type { MyUploadItemResponse } from '@/features/resources/types/resource.types';
 
 const ALL_STATUSES = 0;
@@ -223,13 +235,23 @@ export function ResourcesManager({ items = SAMPLE_RESOURCES }: ResourcesManagerP
                 <td className="px-4 py-3 text-text-muted">{formatFileSize(item.fileSizeBytes)}</td>
                 <td className="px-4 py-3 text-text-muted">{dateFormatter.format(new Date(item.uploadedAt))}</td>
                 <td className="px-4 py-3 text-right sm:px-6">
-                  <button
-                    type="button"
-                    className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                    aria-label={`Xem chi tiết ${item.fileName}`}
-                  >
-                    Xem chi tiết
-                  </button>
+                  <div className="flex items-center justify-end gap-2">
+                    <Link
+                      to={APP_PATHS.RESOURCE_EDIT(item.id)}
+                      className="inline-flex items-center gap-1 rounded-md border border-border-subtle bg-surface px-2.5 py-1 text-xs font-medium text-text-main transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                      aria-label={`Chỉnh sửa ${item.fileName}`}
+                    >
+                      <Pencil className="size-3.5" aria-hidden="true" />
+                      Chỉnh sửa
+                    </Link>
+                    <button
+                      type="button"
+                      className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                      aria-label={`Xem chi tiết ${item.fileName}`}
+                    >
+                      Xem chi tiết
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

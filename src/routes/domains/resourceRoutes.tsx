@@ -1,10 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
-import { ROUTE_SEGMENTS } from '@/constants/path';
+import { ROUTE_PARAMS, ROUTE_SEGMENTS } from '@/constants/path';
 
 const ResourcesManagerPage = lazy(() => import('@/features/resources/pages/ResourcesManagerPage'));
 const UploadResourcePage = lazy(() => import('@/features/resources/pages/UploadResourcePage'));
+const ModifyResourcePage = lazy(() => import('@/features/resources/pages/ModifyResourcePage'));
 
 export const resourceRoutes: RouteObject[] = [
   {
@@ -24,6 +25,16 @@ export const resourceRoutes: RouteObject[] = [
           meta: {
             title: 'Tải lên tài nguyên',
             breadcrumb: 'Tải lên',
+          },
+        },
+      },
+      {
+        path: `${ROUTE_PARAMS.RESOURCE_ID}/${ROUTE_SEGMENTS.RESOURCE_EDIT}`,
+        element: <ModifyResourcePage />,
+        handle: {
+          meta: {
+            title: 'Chỉnh sửa tài nguyên',
+            breadcrumb: 'Chỉnh sửa',
           },
         },
       },

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { AlertCircle, Upload } from 'lucide-react';
+import { AlertCircle, Link as LinkIcon, ShieldAlert, Upload } from 'lucide-react';
 import { BaseModal } from '@/components/common/BaseModal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { cn } from '@/utils/cn';
 import type { SelectOption, UploadResourceFormValues } from '@/features/resources/types/resource.types';
 import { AuthorInput } from './AuthorInput';
+import { KeywordInput } from './KeywordInput';
 import { ResourceFileDropzone } from './ResourceFileDropzone';
 
 const MAX_RESOURCE_FILE_SIZE = 50 * 1024 * 1024;
@@ -36,6 +37,8 @@ interface FormState {
   courseCode: string;
   yearCompleted: string;
   authorNames: string[];
+  keywords: string[];
+  sourceCodeUrl: string;
   bannerImage: File | null;
 }
 
@@ -53,6 +56,8 @@ const initialFormState: FormState = {
   courseCode: '',
   yearCompleted: '',
   authorNames: [],
+  keywords: [],
+  sourceCodeUrl: '',
   bannerImage: null,
 };
 
@@ -83,6 +88,15 @@ function getBannerFileError(file: File) {
   return undefined;
 }
 
+function isValidHttpUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return (url.protocol === 'http:' || url.protocol === 'https:') && Boolean(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 export function UploadResourceModal({
   isOpen,
   isSubmitting = false,
@@ -108,6 +122,12 @@ export function UploadResourceModal({
   const fileTypeError = isSubmitted && !form.fileTypeId ? 'Vui lòng chọn loại tài nguyên.' : undefined;
   const subMajorError = isSubmitted && !form.subMajorCode ? 'Vui lòng chọn chuyên ngành.' : undefined;
   const authorsError = isSubmitted && form.authorNames.length === 0 ? 'Vui lòng nhập ít nhất một tác giả.' : undefined;
+  const trimmedSourceCodeUrl = form.sourceCodeUrl.trim();
+  const hasInvalidSourceCodeUrl = Boolean(trimmedSourceCodeUrl) && !isValidHttpUrl(trimmedSourceCodeUrl);
+  const sourceCodeUrlError =
+    isSubmitted && hasInvalidSourceCodeUrl
+      ? 'Liên kết mã nguồn phải là URL hợp lệ sử dụng giao thức http:// hoặc https://.'
+      : undefined;
   const numericYear = form.yearCompleted ? Number(form.yearCompleted) : null;
   const yearError =
     form.yearCompleted &&
@@ -158,6 +178,7 @@ export function UploadResourceModal({
       !form.fileTypeId ||
       !form.subMajorCode ||
       form.authorNames.length === 0 ||
+      hasInvalidSourceCodeUrl ||
       Boolean(resourceFileError) ||
       Boolean(fileErrors.banner) ||
       Boolean(yearError);
@@ -173,6 +194,8 @@ export function UploadResourceModal({
       courseCode: form.courseCode || null,
       yearCompleted: numericYear,
       authorNames: form.authorNames,
+      keywords: form.keywords,
+      sourceCodeUrl: trimmedSourceCodeUrl || null,
       bannerImage: form.bannerImage,
     });
   };
@@ -368,6 +391,45 @@ export function UploadResourceModal({
             disabled={isSubmitting}
             onChange={(authorNames) => updateField('authorNames', authorNames)}
           />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="resource-keywords">Từ khóa</Label>
+          <KeywordInput
+            id="resource-keywords"
+            keywords={form.keywords}
+            disabled={isSubmitting}
+            onChange={(keywords) => updateField('keywords', keywords)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="resource-source-code-url" error={Boolean(sourceCodeUrlError)}>
+            Đính kèm mã nguồn (Không bắt buộc)
+          </Label>
+          <Input
+            id="resource-source-code-url"
+            type="url"
+            placeholder="https://github.com/... hoặc https://gitlab.com/..."
+            value={form.sourceCodeUrl}
+            error={sourceCodeUrlError}
+            helperText={!sourceCodeUrlError ? 'Dán liên kết công khai đến kho lưu trữ hoặc tệp mã nguồn.' : undefined}
+            disabled={isSubmitting}
+            iconLeft={<LinkIcon className="h-4 w-4" aria-hidden="true" />}
+            onChange={(event) => updateField('sourceCodeUrl', event.target.value)}
+          />
+          <div
+            role="note"
+            aria-label="Lưu ý:"
+            className="flex items-start gap-2.5 rounded-lg border border-warning/30 bg-warning/10 p-3.5 text-xs leading-relaxed text-text-main"
+          >
+            <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+            <p>
+              <span className="font-semibold">Lưu ý: </span>
+              Không được nhập những liên kết chứa virus hay phần mềm độc hại. Mọi vi phạm có thể dẫn đến khóa tài khoản
+              vĩnh viễn.
+            </p>
+          </div>
         </div>
 
         <div className="space-y-1.5 border-t border-border-subtle pt-5">

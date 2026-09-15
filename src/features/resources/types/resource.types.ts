@@ -12,6 +12,35 @@ export interface UploadResourceFormValues {
   courseCode: string | null;
   yearCompleted: number | null;
   authorNames: string[];
+  keywords: string[];
+  sourceCodeUrl: string | null;
+  bannerImage: File | null;
+}
+
+export interface ModifyResourceInitialValues {
+  id: string;
+  documentFileName: string;
+  documentFileTypeName: string;
+  documentFileSizeBytes: number | null;
+  fileName: string;
+  fileDescription: string | null;
+  fileTypeId: number;
+  subMajorCode: string;
+  courseCode: string | null;
+  yearCompleted: number | null;
+  authorNames: string[];
+  keywords: string[];
+}
+
+export interface ModifyResourceFormValues {
+  fileName: string;
+  fileDescription: string | null;
+  fileTypeId: number;
+  subMajorCode: string;
+  courseCode: string | null;
+  yearCompleted: number | null;
+  authorNames: string[];
+  keywords: string[];
   bannerImage: File | null;
 }
 
