@@ -1,10 +1,12 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { APP_PATHS } from '@/constants/path';
 import { appRoutes } from '@/routes';
 import { reportService } from '@/services/reportService';
-import { useAuthStore } from '@/store/useAuthStore';
+import { useAuthStore } from '@/store/authStore';
+
 import type {
   PagedReportResponse,
   ReportDetailResponse,
@@ -20,9 +22,43 @@ vi.mock('@/services/reportService', () => ({
   },
 }));
 
+const lecturerAuthState = {
+  user: {
+    uid: 'user-demo-1',
+    userCode: 'demo_user',
+    fullName: 'Giảng viên Test',
+    email: 'lecturer@test.com',
+    roleId: 3,
+    role: 'Lecturer',
+  },
+  token: 'mock-token',
+  expiration: '2099-12-31T23:59:59Z',
+  isAuthenticated: true,
+  isLoading: false,
+} satisfies Partial<ReturnType<typeof useAuthStore.getState>>;
+
+const studentAuthState = {
+  user: {
+    uid: 'student-1',
+    userCode: 'student',
+    fullName: 'Sinh viên A',
+    email: 'student@test.com',
+    roleId: 2,
+    role: 'Student',
+  },
+  token: 'mock-token',
+  expiration: '2099-12-31T23:59:59Z',
+  isAuthenticated: true,
+  isLoading: false,
+} satisfies Partial<ReturnType<typeof useAuthStore.getState>>;
+
 describe('reports manager routes integration', () => {
   const mockTypes: ReportTypeResponse[] = [
-    { reportTypeId: 1, reportTypeName: 'Vi phạm bản quyền', description: 'Sao chép trái phép' },
+    {
+      reportTypeId: 1,
+      reportTypeName: 'Vi phạm bản quyền',
+      description: 'Sao chép trái phép',
+    },
   ];
 
   const mockPagedReports: PagedReportResponse = {
@@ -59,27 +95,24 @@ describe('reports manager routes integration', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useAuthStore.setState({
-      user: {
-        id: 'user-demo-1',
-        username: 'demo_user',
-        displayName: 'Giảng viên Test',
-        role: 'LECTURER',
-      },
-      token: 'mock-token',
-      isAuthenticated: true,
-      isLoading: false,
-    });
+
+    useAuthStore.setState(lecturerAuthState);
   });
 
   it('cho phép Giảng viên/Admin truy cập route và hiển thị danh sách báo cáo', async () => {
     vi.mocked(reportService.getAllReports).mockResolvedValue(mockPagedReports);
     vi.mocked(reportService.getReportTypes).mockResolvedValue(mockTypes);
 
-    const router = createMemoryRouter(appRoutes, { initialEntries: [APP_PATHS.REPORTS_MANAGER] });
+    const router = createMemoryRouter(appRoutes, {
+      initialEntries: [APP_PATHS.REPORTS_MANAGER],
+    });
+
     render(<RouterProvider router={router} />);
 
-    const heading = await screen.findByRole('heading', { name: /Quản lý & Xử lý Báo cáo vi phạm/i });
+    const heading = await screen.findByRole('heading', {
+      name: /Quản lý & Xử lý Báo cáo vi phạm/i,
+    });
+
     expect(heading).toBeInTheDocument();
 
     const reportIdElements = await screen.findAllByText('RPT_TEST_001');
@@ -97,18 +130,30 @@ describe('reports manager routes integration', () => {
     vi.mocked(reportService.getReportTypes).mockResolvedValue(mockTypes);
     vi.mocked(reportService.getReportById).mockResolvedValue(mockDetail);
 
-    const router = createMemoryRouter(appRoutes, { initialEntries: [APP_PATHS.REPORTS_MANAGER] });
+    const router = createMemoryRouter(appRoutes, {
+      initialEntries: [APP_PATHS.REPORTS_MANAGER],
+    });
+
     render(<RouterProvider router={router} />);
 
-    const detailBtns = await screen.findAllByRole('button', { name: /Xem chi tiết báo cáo RPT_TEST_001/i });
+    const detailBtns = await screen.findAllByRole('button', {
+      name: /Xem chi tiết báo cáo RPT_TEST_001/i,
+    });
+
     expect(detailBtns[0]).toBeInTheDocument();
+
     fireEvent.click(detailBtns[0]);
 
     const dialog = await screen.findByRole('dialog');
+
     expect(dialog).toBeInTheDocument();
+
     expect(within(dialog).getByText(/Chi tiết báo cáo #RPT_TEST_001/i)).toBeInTheDocument();
 
-    const closeBtns = within(dialog).getAllByRole('button', { name: 'Đóng' });
+    const closeBtns = within(dialog).getAllByRole('button', {
+      name: 'Đóng',
+    });
+
     fireEvent.click(closeBtns[0]);
 
     await waitFor(() => {
@@ -117,19 +162,12 @@ describe('reports manager routes integration', () => {
   });
 
   it('chuyển hướng sang 403 Forbidden khi người dùng không có quyền (STUDENT)', async () => {
-    useAuthStore.setState({
-      user: {
-        id: 'student-1',
-        username: 'student',
-        displayName: 'Sinh viên A',
-        role: 'STUDENT',
-      },
-      token: 'mock-token',
-      isAuthenticated: true,
-      isLoading: false,
+    useAuthStore.setState(studentAuthState);
+
+    const router = createMemoryRouter(appRoutes, {
+      initialEntries: [APP_PATHS.REPORTS_MANAGER],
     });
 
-    const router = createMemoryRouter(appRoutes, { initialEntries: [APP_PATHS.REPORTS_MANAGER] });
     render(<RouterProvider router={router} />);
 
     await waitFor(() => {

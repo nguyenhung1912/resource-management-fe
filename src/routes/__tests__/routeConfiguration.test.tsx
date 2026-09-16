@@ -1,10 +1,34 @@
 import { render, screen } from '@testing-library/react';
 import { createMemoryRouter, matchRoutes, RouterProvider, type RouteObject } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { APP_PATHS, ROUTE_SEGMENTS } from '@/constants/path';
 import { authRoutes } from '@/routes/authRoutes';
 import { dashboardRoutes } from '@/routes/dashboardRoutes';
 import { mainRoutes } from '@/routes/mainRoutes';
+import { useAuthStore } from '@/store/authStore';
+
+const authenticatedState = {
+  user: {
+    uid: 'test-1',
+    userCode: 'admin_test',
+    fullName: 'Test Admin',
+    email: 'admin@test.com',
+    roleId: 1,
+    role: 'Admin',
+  },
+  token: 'valid-token',
+  expiration: '2099-12-31T23:59:59Z',
+  isAuthenticated: true,
+  isLoading: false,
+} satisfies Partial<ReturnType<typeof useAuthStore.getState>>;
+
+const unauthenticatedState = {
+  user: null,
+  token: null,
+  expiration: null,
+  isAuthenticated: false,
+  isLoading: false,
+} satisfies Partial<ReturnType<typeof useAuthStore.getState>>;
 
 vi.mock('@/services/signalRService', () => ({
   default: {
@@ -15,6 +39,14 @@ vi.mock('@/services/signalRService', () => ({
 }));
 
 describe('main route configuration', () => {
+  beforeEach(() => {
+    useAuthStore.setState(authenticatedState);
+  });
+
+  afterEach(() => {
+    useAuthStore.setState(unauthenticatedState);
+  });
+
   it.each([APP_PATHS.HOME, APP_PATHS.NOTIFICATIONS, APP_PATHS.APPEALS, APP_PATHS.ASSIGNED_APPEALS])(
     'matches %s',
     (path) => {
@@ -64,6 +96,14 @@ describe('main route configuration', () => {
 });
 
 describe('dashboard route configuration', () => {
+  beforeEach(() => {
+    useAuthStore.setState(authenticatedState);
+  });
+
+  afterEach(() => {
+    useAuthStore.setState(unauthenticatedState);
+  });
+
   it.each([
     APP_PATHS.DASHBOARD,
     APP_PATHS.RESOURCES_MANAGER,

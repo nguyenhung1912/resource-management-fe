@@ -1,10 +1,41 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { APP_PATHS } from '@/constants/path';
 import { appRoutes } from '@/routes';
+import { useAuthStore } from '@/store/authStore';
+
+const authenticatedState = {
+  user: {
+    uid: 'test-lecturer',
+    userCode: 'lecturer_test',
+    fullName: 'Test Lecturer',
+    email: 'lecturer@test.com',
+    roleId: 3,
+    role: 'Lecturer',
+  },
+  token: 'valid-token',
+  expiration: '2099-12-31T23:59:59Z',
+  isAuthenticated: true,
+  isLoading: false,
+} satisfies Partial<ReturnType<typeof useAuthStore.getState>>;
+
+const unauthenticatedState = {
+  user: null,
+  token: null,
+  expiration: null,
+  isAuthenticated: false,
+  isLoading: false,
+} satisfies Partial<ReturnType<typeof useAuthStore.getState>>;
 
 describe('resources manager routes', () => {
+  beforeEach(() => {
+    useAuthStore.setState(authenticatedState);
+  });
+
+  afterEach(() => {
+    useAuthStore.setState(unauthenticatedState);
+  });
   it('hiển thị danh sách tài nguyên mẫu và các công cụ quản lý', async () => {
     const router = createMemoryRouter(appRoutes, { initialEntries: [APP_PATHS.RESOURCES_MANAGER] });
 

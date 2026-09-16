@@ -1,24 +1,42 @@
 import { render, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { APP_PATHS } from '@/constants/path';
-import { ProtectedRoute } from '../ProtectedRoute';
-import { useAuthStore } from '@/store/useAuthStore';
 
-const defaultAuthState = {
-  user: { id: 'test-1', username: 'tester', displayName: 'Tester', role: 'LECTURER' },
+import { APP_PATHS } from '@/constants/path';
+import { useAuthStore } from '@/store/authStore';
+
+import { ProtectedRoute } from '../ProtectedRoute';
+
+const authenticatedState = {
+  user: {
+    uid: 'test-1',
+    userCode: 'tester',
+    fullName: 'Tester',
+    email: 'tester@example.com',
+    roleId: 3,
+    role: 'Lecturer',
+  },
   token: 'valid-token',
+  expiration: '2099-12-31T23:59:59Z',
   isAuthenticated: true,
   isLoading: false,
-};
+} satisfies Partial<ReturnType<typeof useAuthStore.getState>>;
+
+const unauthenticatedState = {
+  user: null,
+  token: null,
+  expiration: null,
+  isAuthenticated: false,
+  isLoading: false,
+} satisfies Partial<ReturnType<typeof useAuthStore.getState>>;
 
 describe('ProtectedRoute', () => {
   beforeEach(() => {
-    useAuthStore.setState(defaultAuthState);
+    useAuthStore.setState(authenticatedState);
   });
 
   afterEach(() => {
-    useAuthStore.setState(defaultAuthState);
+    useAuthStore.setState(unauthenticatedState);
   });
 
   it('renders children when user is authenticated', () => {
@@ -33,16 +51,22 @@ describe('ProtectedRoute', () => {
           ),
         },
       ],
-      { initialEntries: ['/protected'] },
+      {
+        initialEntries: ['/protected'],
+      },
     );
 
     render(<RouterProvider router={router} />);
 
-    expect(screen.getByRole('heading', { name: 'Protected Content' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        name: 'Protected Content',
+      }),
+    ).toBeInTheDocument();
   });
 
   it('redirects to /login?redirect=... when user is not authenticated', () => {
-    useAuthStore.setState({ user: null, token: null, isAuthenticated: false });
+    useAuthStore.setState(unauthenticatedState);
 
     const router = createMemoryRouter(
       [
@@ -59,18 +83,26 @@ describe('ProtectedRoute', () => {
           element: <h1>Login Page</h1>,
         },
       ],
-      { initialEntries: ['/dashboard/resources-manager?filter=active'] },
+      {
+        initialEntries: ['/dashboard/resources-manager?filter=active'],
+      },
     );
 
     render(<RouterProvider router={router} />);
 
-    expect(screen.getByRole('heading', { name: 'Login Page' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        name: 'Login Page',
+      }),
+    ).toBeInTheDocument();
+
     expect(router.state.location.pathname).toBe(APP_PATHS.LOGIN);
+
     expect(router.state.location.search).toBe('?redirect=%2Fdashboard%2Fresources-manager%3Ffilter%3Dactive');
   });
 
   it('does not append redirect query when unauthenticated path is root', () => {
-    useAuthStore.setState({ user: null, token: null, isAuthenticated: false });
+    useAuthStore.setState(unauthenticatedState);
 
     const router = createMemoryRouter(
       [
@@ -87,13 +119,21 @@ describe('ProtectedRoute', () => {
           element: <h1>Login Page</h1>,
         },
       ],
-      { initialEntries: ['/'] },
+      {
+        initialEntries: ['/'],
+      },
     );
 
     render(<RouterProvider router={router} />);
 
-    expect(screen.getByRole('heading', { name: 'Login Page' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', {
+        name: 'Login Page',
+      }),
+    ).toBeInTheDocument();
+
     expect(router.state.location.pathname).toBe(APP_PATHS.LOGIN);
+
     expect(router.state.location.search).toBe('');
   });
 });

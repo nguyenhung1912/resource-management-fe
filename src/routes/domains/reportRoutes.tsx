@@ -10,7 +10,7 @@ const ReportsManagerPage = lazy(() => import('@/features/reports/pages/ReportsMa
 export const reportRoutes: RouteObject[] = [
   {
     path: ROUTE_SEGMENTS.REPORTS,
-    element: <RoleGuard allowedRoles={['ADMIN', 'LECTURER']} />,
+    element: <RoleGuard allowedRoles={['Admin', 'Lecturer']} />,
     handle: {
       meta: {
         title: 'Quản lý báo cáo vi phạm',
