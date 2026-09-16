@@ -174,9 +174,25 @@ export function SearchFilterPanel({ initial, onApply, onClear }: SearchFilterPan
 
             {/* Nếu chọn range thì hiển thị 2 input date */}
             {timeframe === 'range' && (
-              <div className="flex gap-2 mt-2 animate-in fade-in slide-in-from-top-1">
-                <Input type="date" value={dateFrom ?? ''} onChange={(e) => setDateFrom(e.target.value)} />
-                <Input type="date" value={dateTo ?? ''} onChange={(e) => setDateTo(e.target.value)} />
+              <div className="mt-2 flex flex-col gap-2 animate-in fade-in slide-in-from-top-1">
+                <div className="flex items-center gap-2">
+                  <span className="w-8 text-xs text-text-muted">Từ:</span>
+                  <Input
+                    type="date"
+                    value={dateFrom ?? ''}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-full text-sm"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-8 text-xs text-text-muted">Đến:</span>
+                  <Input
+                    type="date"
+                    value={dateTo ?? ''}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-full text-sm"
+                  />
+                </div>
               </div>
             )}
           </div>

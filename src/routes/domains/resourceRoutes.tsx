@@ -6,6 +6,7 @@ import { ROUTE_PARAMS, ROUTE_SEGMENTS } from '@/constants/path';
 const ResourcesManagerPage = lazy(() => import('@/features/resources/pages/ResourcesManagerPage'));
 const UploadResourcePage = lazy(() => import('@/features/resources/pages/UploadResourcePage'));
 const ModifyResourcePage = lazy(() => import('@/features/resources/pages/ModifyResourcePage'));
+const SearchResourcesPage = lazy(() => import('@/features/resources/pages/SearchResourcesPage'));
 
 export const resourceRoutes: RouteObject[] = [
   {
@@ -37,6 +38,10 @@ export const resourceRoutes: RouteObject[] = [
             breadcrumb: 'Chỉnh sửa',
           },
         },
+      },
+      {
+        path: ROUTE_SEGMENTS.SEARCH,
+        element: <SearchResourcesPage />,
       },
     ],
   },
