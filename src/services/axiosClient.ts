@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import { APP_CONFIG } from '@/constants/config';
 import {
   requestErrorInterceptor,
@@ -16,6 +17,7 @@ export const axiosClient = axios.create({
 });
 
 axiosClient.interceptors.request.use(requestInterceptor, requestErrorInterceptor);
+
 axiosClient.interceptors.response.use(responseInterceptor, responseErrorInterceptor);
 
 export default axiosClient;

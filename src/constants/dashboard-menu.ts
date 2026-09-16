@@ -1,4 +1,5 @@
 import { APP_PATHS } from '@/constants/path';
+
 import type { DashboardMenuResponse } from '@/features/dashboard/types/dashboard-menu.types';
 
 export const dashboardMenuPreviewData: DashboardMenuResponse = {
@@ -10,17 +11,18 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
         {
           functionId: 'profile',
           functionName: 'Hồ sơ',
-          functionUrl: '/dashboard/profile',
+          functionUrl: APP_PATHS.PROFILE,
           functionDescription: 'Xem và cập nhật hồ sơ cá nhân',
         },
         {
-          functionId: 'notifications',
+          functionId: 'F014',
           functionName: 'Thông báo',
-          functionUrl: '/notifications',
+          functionUrl: APP_PATHS.NOTIFICATIONS,
           functionDescription: 'Theo dõi các thông báo mới',
         },
       ],
     },
+
     {
       groupId: 'digital-resources',
       groupName: 'Tài nguyên số',
@@ -63,30 +65,32 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
         },
       ],
     },
+
     {
       groupId: 'resource-management',
       groupName: 'Quản lý tài nguyên',
       functions: [
         {
-          functionId: 'upload-resource',
+          functionId: 'F003',
           functionName: 'Upload tài nguyên',
-          functionUrl: '/dashboard/resources-manager/upload',
+          functionUrl: APP_PATHS.RESOURCE_UPLOAD,
           functionDescription: 'Tải tài liệu mới lên hệ thống',
         },
         {
-          functionId: 'my-resources',
+          functionId: 'F001',
           functionName: 'Tài nguyên của tôi',
-          functionUrl: '/dashboard/resources-manager',
+          functionUrl: APP_PATHS.RESOURCES_MANAGER,
           functionDescription: 'Quản lý những tài nguyên bạn đã tải lên',
         },
         {
-          functionId: 'trash',
+          functionId: 'F004',
           functionName: 'Thùng rác',
           functionUrl: '/dashboard/resources-manager/trash',
           functionDescription: 'Xem các tài nguyên đã xóa',
         },
       ],
     },
+
     {
       groupId: 'resource-discovery',
       groupName: 'Truy xuất tài nguyên',
@@ -117,15 +121,42 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
         },
       ],
     },
+
     {
       groupId: 'moderation-management',
       groupName: 'Kiểm duyệt & Báo cáo',
       functions: [
         {
-          functionId: 'violation-reports',
+          functionId: 'F009',
           functionName: 'Báo cáo vi phạm',
           functionUrl: APP_PATHS.REPORTS_MANAGER,
           functionDescription: 'Xử lý báo cáo vi phạm tài liệu, bình luận và người dùng',
+        },
+      ],
+    },
+
+    // BỔ SUNG CHO ADMIN
+    {
+      groupId: 'admin-management',
+      groupName: 'Quản trị hệ thống',
+      functions: [
+        {
+          functionId: 'F010',
+          functionName: 'Quản lý người dùng',
+          functionUrl: '/dashboard/admin/users',
+          functionDescription: 'Xem và quản lý danh sách người dùng',
+        },
+        {
+          functionId: 'F012',
+          functionName: 'Quản lý Role',
+          functionUrl: '/dashboard/admin/roles',
+          functionDescription: 'Xem và quản lý các Role trong hệ thống',
+        },
+        {
+          functionId: 'F013',
+          functionName: 'Phân quyền chức năng',
+          functionUrl: '/dashboard/admin/functions',
+          functionDescription: 'Quản lý chức năng và phân quyền chức năng cho Role',
         },
       ],
     },

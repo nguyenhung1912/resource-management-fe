@@ -1,6 +1,6 @@
 import { HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from '@microsoft/signalr';
 import { APP_CONFIG } from '@/constants/config';
-import { STORAGE_KEYS } from '@/constants/storage-keys';
+import { authStorage } from '@/utils/authStorage';
 import type { NotificationItemResponse } from '@/features/notifications/types/notification.types';
 
 type NotificationHandler = (notification: NotificationItemResponse) => void;
@@ -21,9 +21,9 @@ class SignalRNotificationService {
       return;
     }
 
-    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-    // Nếu chưa có token, không khởi tạo kết nối
-    if (!token) {
+    const session = authStorage.getSession();
+
+    if (!session?.token) {
       return;
     }
 
@@ -32,19 +32,20 @@ class SignalRNotificationService {
 
       this.connection = new HubConnectionBuilder()
         .withUrl(this.getHubUrl(), {
-          accessTokenFactory: () => localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) || '',
+          accessTokenFactory: () => {
+            return authStorage.getSession()?.token ?? '';
+          },
         })
         .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
         .configureLogging(LogLevel.Warning)
         .build();
 
-      // Đăng ký các sự kiện từ Server
       this.connection.on('ReceiveNotification', (notification: NotificationItemResponse) => {
         this.notificationListeners.forEach((listener) => {
           try {
             listener(notification);
           } catch {
-            // Không để lỗi của 1 listener làm hỏng kết nối
+            // Không để lỗi listener ảnh hưởng kết nối
           }
         });
       });
@@ -54,14 +55,14 @@ class SignalRNotificationService {
           try {
             listener(count);
           } catch {
-            // Không để lỗi của 1 listener làm hỏng kết nối
+            // Không để lỗi listener ảnh hưởng kết nối
           }
         });
       });
 
       await this.connection.start();
     } catch {
-      // Khi server local chưa bật hub, không throw crash ứng dụng
+      // Server/hub chưa hoạt động thì không làm crash ứng dụng
     } finally {
       this.isStarting = false;
     }
