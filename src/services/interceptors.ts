@@ -1,6 +1,9 @@
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+
 import { APP_PATHS } from '@/constants/path';
-import { STORAGE_KEYS } from '@/constants/storage-keys';
+import { authStorage } from '@/utils/authStorage';
+
+export const AUTH_UNAUTHORIZED_EVENT = 'auth:unauthorized';
 
 type RedirectToErrorPage = (path: string) => void;
 type GetCurrentPath = () => string;
@@ -8,7 +11,6 @@ type GetCurrentPath = () => string;
 const ERROR_PATH_BY_STATUS: Readonly<Partial<Record<number, string>>> = {
   401: APP_PATHS.UNAUTHORIZED,
   403: APP_PATHS.FORBIDDEN,
-  404: APP_PATHS.NOT_FOUND,
   500: APP_PATHS.SERVER_ERROR,
 };
 
@@ -18,25 +20,13 @@ const redirectToErrorPage: RedirectToErrorPage = (path) => {
 
 const getCurrentPath: GetCurrentPath = () => window.location.pathname;
 
-export function setupInterceptors(
-  onRequest: (config: InternalAxiosRequestConfig) => InternalAxiosRequestConfig,
-  onRequestError: (error: AxiosError) => Promise<never>,
-  onResponse: (response: AxiosResponse) => AxiosResponse,
-  onResponseError: (error: AxiosError) => Promise<never>,
-) {
-  return {
-    onRequest,
-    onRequestError,
-    onResponse,
-    onResponseError,
-  };
-}
-
 export const requestInterceptor = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-  const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const session = authStorage.getSession();
+
+  if (session?.token) {
+    config.headers.Authorization = `Bearer ${session.token}`;
   }
+
   return config;
 };
 
@@ -58,10 +48,13 @@ export function createResponseErrorInterceptor(
     const status = error.response?.status;
 
     if (status === 401) {
-      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      authStorage.clearSession();
+
+      window.dispatchEvent(new Event(AUTH_UNAUTHORIZED_EVENT));
     }
 
     const errorPath = status === undefined ? undefined : ERROR_PATH_BY_STATUS[status];
+
     if (errorPath && !isRedirecting && currentPath() !== errorPath) {
       isRedirecting = true;
       redirect(errorPath);

@@ -4,7 +4,7 @@ import type { AuthState, AuthUser, LoginRequest } from '@/features/auth/types/au
 
 import { authService } from '@/services/authService';
 
-import { AUTH_UNAUTHORIZED_EVENT } from '@/services/apiClient';
+import { AUTH_UNAUTHORIZED_EVENT } from '@/services/interceptors';
 
 import { authStorage } from '@/utils/authStorage';
 

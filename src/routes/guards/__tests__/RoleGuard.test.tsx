@@ -131,7 +131,7 @@ describe('RoleGuard', () => {
         },
       ],
       {
-        initialEntries: ['/admin'],
+        initialEntries: ['/Admin'],
       },
     );
 
