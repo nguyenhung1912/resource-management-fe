@@ -1,6 +1,6 @@
 import { apiClient } from '@/services/apiClient';
 
-import type { CurrentUserResponse, LoginRequest, LoginResponse } from '@/features/auth/types/auth_types';
+import type { CurrentUserResponse, LoginRequest, LoginResponse } from '@/features/auth/types/auth.types';
 
 export interface IAuthService {
   login(request: LoginRequest): Promise<LoginResponse>;

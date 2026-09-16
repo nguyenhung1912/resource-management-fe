@@ -1,4 +1,4 @@
-import type { AuthSession } from '@/features/auth/types/auth_types';
+import type { AuthSession } from '@/features/auth/types/auth.types';
 
 const AUTH_SESSION_KEY = 'resource-management-auth';
 

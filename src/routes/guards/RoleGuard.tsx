@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
-import type { UserRole } from '@/features/auth/types/auth_types';
+import type { UserRole } from '@/features/auth/types/auth.types';
 import { useAuthStore } from '@/store/authStore';
 
 export interface RoleGuardProps {

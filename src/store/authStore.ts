@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { AuthState, AuthUser, LoginRequest } from '@/features/auth/types/auth_types';
+import type { AuthState, AuthUser, LoginRequest } from '@/features/auth/types/auth.types';
 
 import { authService } from '@/services/authService';
 

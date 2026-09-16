@@ -3,7 +3,7 @@ import { type FormEvent, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { GoogleIcon } from '@/components/ui/GoogleIcon';
+import { FcGoogle } from 'react-icons/fc';
 
 interface LoginFormProps {
   isLoading: boolean;
@@ -31,15 +31,8 @@ export function LoginForm({ isLoading, error, onSubmit, onGoogleLogin }: LoginFo
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      <Button
-        type="button"
-        variant="secondary"
-        size="lg"
-        iconLeft={<GoogleIcon />}
-        disabled={isLoading}
-        onClick={onGoogleLogin}
-        className="w-full"
-      >
+      <Button type="button" variant="outline" onClick={onGoogleLogin} className="w-full">
+        <FcGoogle className="h-5 w-5" />
         Đăng nhập với Google
       </Button>
 
