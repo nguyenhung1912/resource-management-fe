@@ -20,7 +20,7 @@ export function DashboardLayout() {
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
 
-  const { functions, isLoading: isMenuLoading } = useDashboardFunctions();
+  const { functions } = useDashboardFunctions();
 
   useDocumentTitle();
 
@@ -66,16 +66,14 @@ export function DashboardLayout() {
             isMenuOpen ? 'translate-x-0 lg:w-64' : '-translate-x-full lg:w-0 lg:-translate-x-full',
           )}
         >
-          {!isMenuLoading ? (
-            <DashboardMenu
-              menuData={dashboardMenuData}
-              user={{
-                displayName,
-                secondaryText: user?.role ?? '',
-              }}
-              onNavigate={() => setIsMenuOpen(false)}
-            />
-          ) : null}
+          <DashboardMenu
+            menuData={dashboardMenuData}
+            user={{
+              displayName,
+              secondaryText: user?.role ?? '',
+            }}
+            onNavigate={() => setIsMenuOpen(false)}
+          />
         </aside>
 
         <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">
