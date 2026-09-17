@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { useLoaderData, useRevalidator, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, RotateCcw, ShieldAlert, X } from 'lucide-react';
+import { RotateCcw, ShieldAlert } from 'lucide-react';
+import { AlertBanner } from '@/components/common/AlertBanner';
+import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { PageHeader } from '@/components/common/PageHeader';
 import { ReportCardItem } from '../components/ReportCardItem';
 import { ReportDetailModal } from '../components/ReportDetailModal';
 import { ReportEmptyState } from '../components/ReportEmptyState';
@@ -143,63 +146,35 @@ export function ReportsManagerPage() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-6 sm:py-8 space-y-6">
-      {/* 1. Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center shrink-0">
-            <ShieldAlert className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-text-main">
-                Quản lý & Xử lý Báo cáo vi phạm
-              </h1>
-              <span className="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-primary/10 text-primary border border-primary/20 select-none">
-                Giảng viên / Quản trị viên
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-text-muted mt-0.5">
-              Tiếp nhận, kiểm tra và xử lý các báo cáo vi phạm bản quyền, nội dung tài liệu, bình luận và hành vi người
-              dùng trong hệ thống.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* 1. Page Header Hero Banner */}
+      <PageHeader
+        title="Quản lý & Xử lý Báo cáo vi phạm"
+        description="Tiếp nhận, kiểm tra và xử lý các báo cáo vi phạm bản quyền, nội dung tài liệu, bình luận và hành vi người dùng trong hệ thống."
+        icon={ShieldAlert}
+        iconBg="bg-danger/10 text-danger"
+        badge={
+          <Badge variant="primary" showDot>
+            Giảng viên / Quản trị viên
+          </Badge>
+        }
+        actions={
           <Button
             variant="secondary"
             size="md"
             onClick={handleRefresh}
             isLoading={isRefreshing || revalidator.state === 'loading'}
             iconLeft={<RotateCcw className="h-4 w-4" />}
-            className="text-xs sm:text-sm cursor-pointer"
           >
             Làm mới
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Success Notification Banner */}
-      {successMessage && (
-        <div
-          role="status"
-          className="flex items-center justify-between p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-xs animate-in fade-in shadow-xs"
-        >
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" aria-hidden="true" />
-            <span className="font-medium">{successMessage}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setSuccessMessage(null)}
-            aria-label="Đóng thông báo"
-            className="text-emerald-700 hover:text-emerald-900 cursor-pointer p-1"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
+      {successMessage ? (
+        <AlertBanner type="success" message={successMessage} onClose={() => setSuccessMessage(null)} />
+      ) : null}
 
       {/* KPI Statistics Cards */}
       <ReportStatsCards stats={stats} activeStatus={currentStatus} onSelectStatus={handleStatusChange} />

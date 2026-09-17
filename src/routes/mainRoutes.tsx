@@ -4,7 +4,7 @@ import type { RouteObject } from 'react-router-dom';
 import { PageLoadingState } from '@/components/common/PageLoadingState';
 import { APP_PATHS } from '@/constants/path';
 import { MainLayout } from '@/layouts/MainLayout';
-import { appealRoutes, notificationRoutes } from './domains';
+import { appealRoutes, notificationRoutes, profileRoutes, changePasswordRoutes } from './domains';
 import { ProtectedRoute } from './guards/ProtectedRoute';
 import SearchResourcesPage from '@/features/resources/pages/SearchResourcesPage';
 import searchLoader from '@/features/resources/pages/searchLoader';
@@ -38,7 +38,7 @@ export const mainRoutes: RouteObject[] = [
       },
       {
         element: <ProtectedRoute />,
-        children: [...notificationRoutes, ...appealRoutes],
+        children: [...notificationRoutes, ...appealRoutes, ...profileRoutes, ...changePasswordRoutes],
       },
       {
         path: '/test-ui',

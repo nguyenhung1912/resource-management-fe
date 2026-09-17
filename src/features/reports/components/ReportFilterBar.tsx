@@ -1,4 +1,6 @@
 import { RotateCcw, Search } from 'lucide-react';
+import { Select } from '@/components/ui/Select';
+import { Tabs, type TabItem } from '@/components/ui/Tabs';
 import type {
   ReportOverviewStats,
   ReportStatus,
@@ -36,43 +38,45 @@ export function ReportFilterBar({
   onResetFilters,
   className,
 }: ReportFilterBarProps) {
-  const tabs: Array<{
-    id: string;
-    status: ReportStatus | undefined;
-    label: string;
-    count?: number;
-  }> = [
+  const tabItems: TabItem<string>[] = [
     {
       id: 'all',
-      status: undefined,
       label: 'Tất cả',
       count: stats?.total,
     },
     {
       id: 'Pending',
-      status: 'Pending',
       label: 'Chờ xử lý',
       count: stats?.pending,
+      dotColor: 'bg-warning',
     },
     {
       id: 'InProgress',
-      status: 'InProgress',
       label: 'Đang kiểm tra',
       count: stats?.inProgress,
+      dotColor: 'bg-primary',
     },
     {
       id: 'Resolved',
-      status: 'Resolved',
       label: 'Đã giải quyết',
       count: stats?.resolved,
+      dotColor: 'bg-success',
     },
     {
       id: 'Rejected',
-      status: 'Rejected',
       label: 'Bác bỏ',
       count: stats?.rejected,
+      dotColor: 'bg-danger',
     },
   ];
+
+  const handleTabChange = (val: string) => {
+    if (val === 'all') {
+      onStatusChange(undefined);
+    } else {
+      onStatusChange(val as ReportStatus);
+    }
+  };
 
   const hasActiveFilters = Boolean(
     activeStatus !== undefined ||
@@ -83,41 +87,21 @@ export function ReportFilterBar({
 
   return (
     <div
-      className={cn('flex flex-col gap-3 bg-surface p-3 sm:p-4 rounded-xl border border-border shadow-xs', className)}
+      className={cn(
+        'flex flex-col gap-3 bg-surface p-3 sm:p-4 rounded-xl border border-border-subtle shadow-xs',
+        className,
+      )}
     >
       {/* Row 1: Status Tabs */}
-      <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none">
-        {tabs.map((tab) => {
-          const isActive = activeStatus === tab.status;
-
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => onStatusChange(tab.status)}
-              aria-current={isActive ? 'page' : undefined}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer select-none whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-                isActive
-                  ? 'bg-primary text-white shadow-xs font-semibold'
-                  : 'text-text-muted hover:bg-gray-100 hover:text-text-main',
-              )}
-            >
-              <span>{tab.label}</span>
-              {typeof tab.count === 'number' && (
-                <span
-                  className={cn(
-                    'px-1.5 py-0.2 rounded-full text-[10px] font-bold leading-none',
-                    isActive ? 'bg-white/20 text-white' : 'bg-gray-200/80 text-text-muted',
-                  )}
-                >
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <Tabs
+        items={tabItems}
+        activeValue={activeStatus ?? 'all'}
+        onChange={handleTabChange}
+        variant="pills"
+        size="md"
+        itemRole="button"
+        ariaLabel="Lọc báo cáo theo trạng thái"
+      />
 
       {/* Row 2: Search Input + Entity Dropdown + Violation Type Dropdown + Reset */}
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 pt-1 border-t border-border-subtle">
@@ -133,32 +117,32 @@ export function ReportFilterBar({
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Tìm theo mã báo cáo, người gửi, lý do..."
             aria-label="Tìm kiếm báo cáo"
-            className="w-full h-9 pl-9 pr-3 rounded-lg border border-border bg-white text-xs text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+            className="w-full h-10 pl-9 pr-3 rounded-lg border border-border-subtle bg-white text-xs sm:text-sm text-text-main placeholder:text-text-muted/70 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
           />
         </div>
 
         {/* Target Type Filter */}
         <div className="sm:col-span-3">
-          <select
+          <Select
             value={currentTargetType ?? ''}
             onChange={(e) => onTargetTypeChange(e.target.value ? (e.target.value as ReportTargetType) : undefined)}
             aria-label="Lọc theo đối tượng vi phạm"
-            className="w-full h-9 px-3 rounded-lg border border-border bg-white text-xs text-text-main focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-colors"
+            selectSize="md"
           >
             <option value="">Tất cả đối tượng</option>
             <option value="File">Tài liệu</option>
             <option value="Comment">Bình luận</option>
             <option value="User">Người dùng</option>
-          </select>
+          </Select>
         </div>
 
         {/* Violation Category Filter */}
         <div className="sm:col-span-3">
-          <select
+          <Select
             value={currentReportTypeId !== undefined ? String(currentReportTypeId) : ''}
             onChange={(e) => onReportTypeIdChange(e.target.value ? parseInt(e.target.value, 10) : undefined)}
             aria-label="Lọc theo loại vi phạm"
-            className="w-full h-9 px-3 rounded-lg border border-border bg-white text-xs text-text-main focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-colors"
+            selectSize="md"
           >
             <option value="">Tất cả loại vi phạm</option>
             {reportTypes.map((rt) => (
@@ -166,7 +150,7 @@ export function ReportFilterBar({
                 {rt.reportTypeName}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {/* Reset Filter Button */}
@@ -177,7 +161,7 @@ export function ReportFilterBar({
               onClick={onResetFilters}
               aria-label="Xóa tất cả bộ lọc"
               title="Xóa bộ lọc"
-              className="h-9 w-9 flex items-center justify-center rounded-lg border border-border text-text-muted hover:text-text-main hover:bg-gray-100 cursor-pointer transition-colors shrink-0"
+              className="h-10 w-10 flex items-center justify-center rounded-lg border border-border-subtle text-text-muted hover:text-text-main hover:bg-gray-100 cursor-pointer transition-colors shrink-0"
             >
               <RotateCcw className="h-4 w-4" />
             </button>

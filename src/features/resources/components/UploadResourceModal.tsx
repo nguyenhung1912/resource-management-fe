@@ -4,8 +4,8 @@ import { BaseModal } from '@/components/common/BaseModal';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
-import { cn } from '@/utils/cn';
 import type { SelectOption, UploadResourceFormValues } from '@/features/resources/types/resource.types';
 import { AuthorInput } from './AuthorInput';
 import { KeywordInput } from './KeywordInput';
@@ -60,9 +60,6 @@ const initialFormState: FormState = {
   sourceCodeUrl: '',
   bannerImage: null,
 };
-
-const selectClassName =
-  'h-10 w-full rounded-lg border border-border-subtle bg-surface px-3 text-sm text-text-main outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:opacity-50';
 
 function getFileExtension(fileName: string) {
   return fileName.split('.').pop()?.toLowerCase() ?? '';
@@ -291,13 +288,11 @@ export function UploadResourceModal({
             <Label htmlFor="resource-file-type" requiredBadge error={Boolean(fileTypeError)}>
               Loại tài nguyên
             </Label>
-            <select
+            <Select
               id="resource-file-type"
               value={form.fileTypeId}
               disabled={isSubmitting}
-              aria-invalid={Boolean(fileTypeError)}
-              aria-describedby={fileTypeError ? 'resource-file-type-error' : undefined}
-              className={cn(selectClassName, fileTypeError && 'border-danger')}
+              error={fileTypeError}
               onChange={(event) => updateField('fileTypeId', event.target.value)}
             >
               <option value="">Chọn loại tài nguyên</option>
@@ -306,25 +301,18 @@ export function UploadResourceModal({
                   {fileType.label}
                 </option>
               ))}
-            </select>
-            {fileTypeError ? (
-              <p id="resource-file-type-error" role="alert" className="text-xs text-danger">
-                {fileTypeError}
-              </p>
-            ) : null}
+            </Select>
           </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="resource-sub-major" requiredBadge error={Boolean(subMajorError)}>
               Chuyên ngành
             </Label>
-            <select
+            <Select
               id="resource-sub-major"
               value={form.subMajorCode}
               disabled={isSubmitting}
-              aria-invalid={Boolean(subMajorError)}
-              aria-describedby={subMajorError ? 'resource-sub-major-error' : undefined}
-              className={cn(selectClassName, subMajorError && 'border-danger')}
+              error={subMajorError}
               onChange={(event) => updateField('subMajorCode', event.target.value)}
             >
               <option value="">Chọn chuyên ngành</option>
@@ -333,23 +321,17 @@ export function UploadResourceModal({
                   {subMajor.label}
                 </option>
               ))}
-            </select>
-            {subMajorError ? (
-              <p id="resource-sub-major-error" role="alert" className="text-xs text-danger">
-                {subMajorError}
-              </p>
-            ) : null}
+            </Select>
           </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="resource-course">Học phần</Label>
-            <select
+            <Select
               id="resource-course"
               value={form.courseCode}
               disabled={isSubmitting}
-              className={selectClassName}
               onChange={(event) => updateField('courseCode', event.target.value)}
             >
               <option value="">Không chọn học phần</option>
@@ -358,7 +340,7 @@ export function UploadResourceModal({
                   {course.label}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <div className="space-y-1.5">
