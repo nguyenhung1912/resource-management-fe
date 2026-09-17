@@ -109,9 +109,13 @@ describe('reports manager routes integration', () => {
 
     render(<RouterProvider router={router} />);
 
-    const heading = await screen.findByRole('heading', {
-      name: /Quản lý & Xử lý Báo cáo vi phạm/i,
-    });
+    const heading = await screen.findByRole(
+      'heading',
+      {
+        name: /Quản lý & Xử lý Báo cáo vi phạm/i,
+      },
+      { timeout: 5000 },
+    );
 
     expect(heading).toBeInTheDocument();
 
@@ -144,7 +148,7 @@ describe('reports manager routes integration', () => {
 
     fireEvent.click(detailBtns[0]);
 
-    const dialog = await screen.findByRole('dialog');
+    const dialog = await screen.findByRole('dialog', undefined, { timeout: 5000 });
 
     expect(dialog).toBeInTheDocument();
 

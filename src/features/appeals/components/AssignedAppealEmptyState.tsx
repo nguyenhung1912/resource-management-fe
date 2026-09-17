@@ -1,7 +1,7 @@
 import { FileQuestion, RotateCcw, SearchX } from 'lucide-react';
+import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/Button';
 import type { AppealStatus } from '@/features/appeals/types/appeal.types';
-import { cn } from '@/utils/cn';
 
 export interface AssignedAppealEmptyStateProps {
   currentStatus?: AppealStatus;
@@ -37,33 +37,14 @@ export function AssignedAppealEmptyState({
 
   const Icon = isSearchActive ? SearchX : FileQuestion;
 
-  return (
-    <div
-      className={cn(
-        'bg-surface rounded-xl border border-border-subtle p-8 sm:p-12 text-center flex flex-col items-center justify-center shadow-xs',
-        className,
-      )}
-    >
-      <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
-        <Icon className="h-6 w-6" aria-hidden="true" />
-      </div>
-      <h3 className="text-base font-semibold text-text-main">{title}</h3>
-      <p className="mt-1 text-xs sm:text-sm text-text-muted max-w-md leading-relaxed">{description}</p>
+  const action =
+    (isSearchActive || currentStatus) && onResetFilter ? (
+      <Button variant="secondary" size="sm" onClick={onResetFilter} iconLeft={<RotateCcw className="h-3.5 w-3.5" />}>
+        Đặt lại bộ lọc
+      </Button>
+    ) : undefined;
 
-      {(isSearchActive || currentStatus) && onResetFilter && (
-        <div className="mt-5">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={onResetFilter}
-            iconLeft={<RotateCcw className="h-3.5 w-3.5" />}
-          >
-            Đặt lại bộ lọc
-          </Button>
-        </div>
-      )}
-    </div>
-  );
+  return <EmptyState title={title} description={description} icon={Icon} action={action} className={className} />;
 }
 
 export default AssignedAppealEmptyState;

@@ -1,31 +1,39 @@
-import { Plus } from 'lucide-react';
+import { Files, Plus } from 'lucide-react';
 import { Link, Outlet } from 'react-router-dom';
+import { Badge } from '@/components/ui/Badge';
 import { buttonVariants } from '@/components/ui/Button';
+import { PageHeader } from '@/components/common/PageHeader';
 import { APP_PATHS } from '@/constants/path';
 import { ResourcesManager } from '@/features/resources/components/ResourcesManager';
 import { ResourceStats } from '@/features/resources/components/ResourceStats';
 
 export function ResourcesManagerPage() {
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-text-main">Quản lý tài nguyên</h1>
-          <p className="mt-1 text-sm text-text-muted">Theo dõi các tài liệu bạn đã tải lên hệ thống.</p>
-        </div>
-        <Link to={APP_PATHS.RESOURCE_UPLOAD} className={buttonVariants({ variant: 'primary', size: 'md' })}>
-          <Plus className="size-4" aria-hidden="true" />
-          Tải lên tài nguyên
-        </Link>
-      </div>
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* 1. Page Header Hero Banner */}
+      <PageHeader
+        title="Quản lý tài nguyên"
+        description="Theo dõi, tìm kiếm và quản lý các tài liệu học tập, giáo trình đã tải lên hệ thống."
+        icon={Files}
+        badge={
+          <Badge variant="success" showDot>
+            Kho tài nguyên trực tuyến
+          </Badge>
+        }
+        actions={
+          <Link to={APP_PATHS.RESOURCE_UPLOAD} className={buttonVariants({ variant: 'primary', size: 'md' })}>
+            <Plus className="size-4 mr-1.5" aria-hidden="true" />
+            Tải lên tài nguyên
+          </Link>
+        }
+      />
 
-      <div className="mt-6">
-        <ResourceStats />
-      </div>
+      {/* 2. Statistics KPI Cards */}
+      <ResourceStats />
 
-      <div className="mt-6">
-        <ResourcesManager />
-      </div>
+      {/* 3. Resources Manager Table & Tools */}
+      <ResourcesManager />
+
       <Outlet />
     </div>
   );

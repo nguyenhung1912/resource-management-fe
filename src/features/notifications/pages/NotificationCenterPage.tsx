@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { useLoaderData, useNavigate, useRevalidator, useSearchParams } from 'react-router-dom';
-import { Bell, CheckCheck, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Bell, CheckCheck, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { PageHeader } from '@/components/common/PageHeader';
+import { Pagination } from '@/components/common/Pagination';
+import { Tabs, type TabItem } from '@/components/ui/Tabs';
 import { NotificationEmpty } from '@/features/notifications/components/NotificationEmpty';
 import { NotificationItem } from '@/features/notifications/components/NotificationItem';
 import type {
@@ -11,7 +14,6 @@ import type {
 } from '@/features/notifications/types/notification.types';
 import notificationService from '@/services/notificationService';
 import { useNotificationStore } from '@/store/useNotificationStore';
-import { cn } from '@/utils/cn';
 
 export function NotificationCenterPage() {
   const data = useLoaderData() as PagedNotificationResponse;
@@ -21,6 +23,7 @@ export function NotificationCenterPage() {
 
   const [isMarkingAll, setIsMarkingAll] = useState(false);
   const fetchUnreadCount = useNotificationStore((state) => state.fetchUnreadCount);
+  const unreadCount = useNotificationStore((state) => state.unreadCount);
 
   const currentIsRead = searchParams.get('isRead');
   const currentPage = data.pageIndex || 1;
@@ -88,28 +91,33 @@ export function NotificationCenterPage() {
   const activeTab: 'all' | 'unread' | 'read' =
     currentIsRead === 'false' ? 'unread' : currentIsRead === 'true' ? 'read' : 'all';
 
+  const notificationTabs: TabItem[] = [
+    { id: 'all', label: 'Tất cả' },
+    {
+      id: 'unread',
+      label: 'Chưa đọc',
+      count: unreadCount > 0 ? unreadCount : undefined,
+      dotColor: 'bg-primary',
+    },
+    { id: 'read', label: 'Đã đọc' },
+  ];
+
   const startItem = data.totalCount === 0 ? 0 : (currentPage - 1) * data.pageSize + 1;
   const endItem = Math.min(currentPage * data.pageSize, data.totalCount);
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-8 space-y-6">
-      {/* Page Title & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <Bell className="h-5 w-5" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-text-main">Trung tâm thông báo</h1>
-              <p className="text-sm text-text-muted mt-0.5">
-                Quản lý và theo dõi tất cả các thông báo, cập nhật tài liệu và kiểm duyệt của bạn.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
+    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Page Header */}
+      <PageHeader
+        title="Trung tâm thông báo"
+        description="Quản lý và theo dõi tất cả các thông báo, cập nhật tài liệu và kiểm duyệt của bạn."
+        icon={Bell}
+        badge={
+          <Badge variant="primary" showDot>
+            Hộp thư cá nhân
+          </Badge>
+        }
+        actions={
           <Button
             variant="secondary"
             size="md"
@@ -125,54 +133,20 @@ export function NotificationCenterPage() {
           >
             Đánh dấu tất cả đã đọc
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Main Container */}
-      <div className="bg-surface rounded-xl border border-border-subtle shadow-xs overflow-hidden">
+      <div className="bg-surface rounded-2xl border border-border-subtle shadow-xs overflow-hidden">
         {/* Filter Tabs & Stats */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border-subtle px-5 py-3 gap-3 bg-background/30">
-          {/* Tabs */}
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => handleTabChange('all')}
-              className={cn(
-                'px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer',
-                activeTab === 'all'
-                  ? 'bg-surface text-primary font-semibold shadow-xs border border-border-subtle'
-                  : 'text-text-muted hover:text-text-main',
-              )}
-            >
-              Tất cả
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleTabChange('unread')}
-              className={cn(
-                'px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer',
-                activeTab === 'unread'
-                  ? 'bg-surface text-primary font-semibold shadow-xs border border-border-subtle'
-                  : 'text-text-muted hover:text-text-main',
-              )}
-            >
-              Chưa đọc
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleTabChange('read')}
-              className={cn(
-                'px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer',
-                activeTab === 'read'
-                  ? 'bg-surface text-primary font-semibold shadow-xs border border-border-subtle'
-                  : 'text-text-muted hover:text-text-main',
-              )}
-            >
-              Đã đọc
-            </button>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border-subtle px-5 py-3.5 gap-3 bg-background/40">
+          <Tabs
+            items={notificationTabs}
+            activeValue={activeTab}
+            onChange={(val) => handleTabChange(val as 'all' | 'unread' | 'read')}
+            variant="pills"
+            itemRole="button"
+          />
 
           {/* Meta count badge */}
           <div className="text-xs text-text-muted flex items-center gap-2">
@@ -216,49 +190,17 @@ export function NotificationCenterPage() {
 
         {/* Pagination Footer */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-3.5 border-t border-border-subtle bg-background/20 select-none">
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={!data.hasPreviousPage}
-              onClick={() => handlePageChange(currentPage - 1)}
-              iconLeft={<ChevronLeft className="h-4 w-4" />}
-            >
-              Trang trước
-            </Button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }).map((_, index) => {
-                const pageNumber = index + 1;
-                const isCurrent = pageNumber === currentPage;
-                return (
-                  <button
-                    key={pageNumber}
-                    type="button"
-                    onClick={() => handlePageChange(pageNumber)}
-                    className={cn(
-                      'h-8 w-8 rounded-lg text-xs font-medium transition-colors cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-primary',
-                      isCurrent
-                        ? 'bg-primary text-white shadow-xs'
-                        : 'text-text-muted hover:bg-gray-100 hover:text-text-main',
-                    )}
-                  >
-                    {pageNumber}
-                  </button>
-                );
-              })}
-            </div>
-
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={!data.hasNextPage}
-              onClick={() => handlePageChange(currentPage + 1)}
-              iconRight={<ChevronRight className="h-4 w-4" />}
-            >
-              Trang sau
-            </Button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={data.totalCount}
+            pageSize={data.pageSize}
+            itemLabel="thông báo"
+            hasPreviousPage={data.hasPreviousPage}
+            hasNextPage={data.hasNextPage}
+            onPageChange={handlePageChange}
+            className="rounded-t-none border-x-0 border-b-0 bg-background/20"
+          />
         )}
       </div>
     </div>
