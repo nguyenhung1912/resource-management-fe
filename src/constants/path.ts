@@ -2,6 +2,7 @@ export const ROUTE_SEGMENTS = {
   LOGIN: 'login',
   PROFILE: 'profile',
   CHANGE_PASSWORD: 'change-password',
+  FORGOT_PASSWORD: 'forgot-password',
 
   NOTIFICATIONS: 'notifications',
   APPEALS: 'appeals',
@@ -36,6 +37,8 @@ export const APP_PATHS = {
   PROFILE: `/${ROUTE_SEGMENTS.PROFILE}`,
 
   CHANGE_PASSWORD: `/${ROUTE_SEGMENTS.CHANGE_PASSWORD}`,
+
+  FORGOT_PASSWORD: `/${ROUTE_SEGMENTS.FORGOT_PASSWORD}`,
 
   NOTIFICATIONS: `/${ROUTE_SEGMENTS.NOTIFICATIONS}`,
 

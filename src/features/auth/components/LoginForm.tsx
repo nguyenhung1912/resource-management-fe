@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { FcGoogle } from 'react-icons/fc';
+import { Link } from 'react-router-dom';
+import { APP_PATHS } from '@/constants/path';
 
 interface LoginFormProps {
   isLoading: boolean;
@@ -95,17 +97,9 @@ export function LoginForm({ isLoading, error, onSubmit, onGoogleLogin }: LoginFo
       </div>
 
       <div className="flex justify-end">
-        <button
-          type="button"
-          className="
-            text-sm
-            font-medium
-            text-primary
-            hover:underline
-          "
-        >
+        <Link to={APP_PATHS.FORGOT_PASSWORD} className="text-sm font-medium text-primary hover:underline">
           Quên mật khẩu?
-        </button>
+        </Link>
       </div>
 
       <Button
