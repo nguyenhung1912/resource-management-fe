@@ -1,5 +1,6 @@
 import { Eye, Gavel } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import type { ReportItemResponse } from '@/features/reports/types/report.types';
 import { cn } from '@/utils/cn';
 import { formatDateTime } from '@/utils/date';
@@ -22,44 +23,44 @@ export function ReportTable({ items, onViewDetail, onResolve, className }: Repor
       )}
     >
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse" aria-label="Danh sách báo cáo vi phạm">
-          <thead>
-            <tr className="border-b border-border bg-gray-50/75 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
-              <th scope="col" className="py-3 px-4 sm:px-5">
+        <Table aria-label="Danh sách báo cáo vi phạm">
+          <TableHeader>
+            <TableRow className="border-b border-border bg-gray-50/75 hover:bg-gray-50/75">
+              <TableHead className="py-3 px-4 sm:px-5 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
                 Mã & Ngày gửi
-              </th>
-              <th scope="col" className="py-3 px-4">
+              </TableHead>
+              <TableHead className="py-3 px-4 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
                 Đối tượng vi phạm
-              </th>
-              <th scope="col" className="py-3 px-4">
+              </TableHead>
+              <TableHead className="py-3 px-4 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
                 Loại & Lý do phản ánh
-              </th>
-              <th scope="col" className="py-3 px-4">
+              </TableHead>
+              <TableHead className="py-3 px-4 text-[11px] font-semibold text-text-muted uppercase tracking-wider">
                 Người báo cáo
-              </th>
-              <th scope="col" className="py-3 px-4 text-center">
+              </TableHead>
+              <TableHead className="py-3 px-4 text-[11px] font-semibold text-text-muted uppercase tracking-wider text-center">
                 Trạng thái
-              </th>
-              <th scope="col" className="py-3 px-4 sm:px-5 text-right">
+              </TableHead>
+              <TableHead className="py-3 px-4 sm:px-5 text-[11px] font-semibold text-text-muted uppercase tracking-wider text-right">
                 Thao tác
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border text-xs">
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-border text-xs">
             {items.map((item) => (
-              <tr key={item.reportId} className="hover:bg-gray-50/60 transition-colors group">
+              <TableRow key={item.reportId} className="hover:bg-gray-50/60 transition-colors group">
                 {/* Column 1: Report ID & Date */}
-                <td className="py-3.5 px-4 sm:px-5 align-middle">
+                <TableCell className="py-3.5 px-4 sm:px-5 align-middle">
                   <div className="flex flex-col gap-0.5">
                     <span className="font-mono font-semibold text-xs text-text-main group-hover:text-primary transition-colors">
                       {item.reportId}
                     </span>
                     <span className="text-[11px] text-text-muted">{formatDateTime(item.createdAt)}</span>
                   </div>
-                </td>
+                </TableCell>
 
                 {/* Column 2: Target Entity */}
-                <td className="py-3.5 px-4 align-middle">
+                <TableCell className="py-3.5 px-4 align-middle">
                   <div className="flex flex-col gap-1 max-w-50">
                     <div className="flex items-center gap-1.5">
                       <ReportTargetBadge targetType={item.targetType} size="sm" />
@@ -68,33 +69,33 @@ export function ReportTable({ items, onViewDetail, onResolve, className }: Repor
                       {item.targetId}
                     </span>
                   </div>
-                </td>
+                </TableCell>
 
                 {/* Column 3: Violation Type & Reason */}
-                <td className="py-3.5 px-4 align-middle">
+                <TableCell className="py-3.5 px-4 align-middle">
                   <div className="flex flex-col gap-0.5 max-w-70">
                     <span className="font-semibold text-xs text-text-main leading-tight">{item.reportTypeName}</span>
                     <p className="text-[11px] text-text-muted line-clamp-2 leading-relaxed" title={item.reason}>
                       {item.reason}
                     </p>
                   </div>
-                </td>
+                </TableCell>
 
                 {/* Column 4: Reporter Info */}
-                <td className="py-3.5 px-4 align-middle">
+                <TableCell className="py-3.5 px-4 align-middle">
                   <div className="flex flex-col gap-0.5">
                     <span className="font-medium text-xs text-text-main">{item.reporterName}</span>
                     <span className="font-mono text-[11px] text-text-muted">{item.reporterUid}</span>
                   </div>
-                </td>
+                </TableCell>
 
                 {/* Column 5: Status Badge */}
-                <td className="py-3.5 px-4 align-middle text-center">
+                <TableCell className="py-3.5 px-4 align-middle text-center">
                   <ReportStatusBadge status={item.status} size="sm" />
-                </td>
+                </TableCell>
 
                 {/* Column 6: Actions */}
-                <td className="py-3.5 px-4 sm:px-5 align-middle text-right">
+                <TableCell className="py-3.5 px-4 sm:px-5 align-middle text-right">
                   <div className="flex items-center justify-end gap-1.5">
                     <Button
                       variant="secondary"
@@ -118,11 +119,11 @@ export function ReportTable({ items, onViewDetail, onResolve, className }: Repor
                       <span>Xử lý</span>
                     </Button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
