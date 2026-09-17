@@ -42,7 +42,7 @@ function renderMenu(initialPath = '/dashboard/resources-manager', onNavigate = v
 }
 
 describe('DashboardMenu', () => {
-  it('uses primary group headers and a softer primary selected route', () => {
+  it('uses Essential UI group headers and active route styles', () => {
     renderMenu();
 
     expect(screen.getByRole('navigation', { name: 'Menu dashboard' })).toHaveClass(
@@ -51,12 +51,12 @@ describe('DashboardMenu', () => {
       'dashboard-menu-scrollbar',
     );
     expect(screen.getByRole('button', { name: 'Quản lý tài nguyên' })).toHaveClass(
-      'bg-primary',
-      'text-white',
-      'hover:bg-primary/90',
+      'text-text-muted',
+      'hover:bg-background',
+      'hover:text-text-main',
     );
     expect(screen.getByRole('link', { name: 'Upload tài nguyên' })).toHaveClass('hover:bg-background');
-    expect(screen.getByRole('link', { name: 'Tài nguyên của tôi' })).toHaveClass('bg-primary/30', 'text-text');
+    expect(screen.getByRole('link', { name: 'Tài nguyên của tôi' })).toHaveClass('bg-primary/10', 'text-primary');
   });
 
   it('render nhóm và chức năng trực tiếp từ dữ liệu backend', () => {
