@@ -132,6 +132,12 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
           functionUrl: APP_PATHS.REPORTS_MANAGER,
           functionDescription: 'Xử lý báo cáo vi phạm tài liệu, bình luận và người dùng',
         },
+        {
+          functionId: 'plagiarism-reports',
+          functionName: 'Báo cáo Đạo văn AI',
+          functionUrl: APP_PATHS.PLAGIARISM_REPORTS,
+          functionDescription: 'Xem tổng quan tỷ lệ trùng lặp AI của toàn bộ tài liệu',
+        },
       ],
     },
 
