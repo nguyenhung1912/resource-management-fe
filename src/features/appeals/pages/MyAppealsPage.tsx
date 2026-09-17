@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useLoaderData, useRevalidator, useSearchParams } from 'react-router-dom';
 import { RotateCcw, Scale } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { PageHeader } from '@/components/common/PageHeader';
 import { AppealCardItem } from '../components/AppealCardItem';
 import { AppealDetailModal } from '../components/AppealDetailModal';
 import { AppealEmptyState } from '../components/AppealEmptyState';
@@ -87,34 +89,29 @@ export function MyAppealsPage() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-6 sm:py-8 space-y-6">
+    <div className="w-full max-w-7xl mx-auto px-4 py-6 sm:py-8 space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            <Scale className="h-5 w-5" aria-hidden="true" />
-          </div>
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-text-main">Khiếu nại của tôi</h1>
-            <p className="text-xs sm:text-sm text-text-muted mt-0.5">
-              Theo dõi tiến trình xử lý và phản hồi giải trình các tài liệu bị từ chối kiểm duyệt.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
+      <PageHeader
+        title="Khiếu nại của tôi"
+        description="Theo dõi tiến trình xử lý và phản hồi giải trình các tài liệu bị từ chối kiểm duyệt."
+        icon={Scale}
+        badge={
+          <Badge variant="primary" showDot>
+            Giải trình & Phản hồi
+          </Badge>
+        }
+        actions={
           <Button
             variant="secondary"
             size="md"
             onClick={handleRefresh}
             isLoading={isRefreshing || revalidator.state === 'loading'}
             iconLeft={<RotateCcw className="h-4 w-4" />}
-            className="text-xs sm:text-sm"
           >
             Làm mới
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Stats Card KPI */}
       <AppealStatsCards stats={stats} activeStatus={currentStatus} onSelectStatus={handleStatusChange} />
