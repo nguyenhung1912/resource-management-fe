@@ -92,6 +92,25 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
     },
 
     {
+      groupId: 'appeals-management',
+      groupName: 'Quản lý khiếu nại',
+      functions: [
+        {
+          functionId: 'my-appeals',
+          functionName: 'Khiếu nại của tôi',
+          functionUrl: APP_PATHS.APPEALS,
+          functionDescription: 'Theo dõi tiến trình khiếu nại của bạn',
+        },
+        {
+          functionId: 'assigned-appeals',
+          functionName: 'Tiếp nhận khiếu nại',
+          functionUrl: APP_PATHS.ASSIGNED_APPEALS,
+          functionDescription: 'Thẩm định và giải quyết khiếu nại từ sinh viên',
+        },
+      ],
+    },
+
+    {
       groupId: 'resource-discovery',
       groupName: 'Truy xuất tài nguyên',
       functions: [
