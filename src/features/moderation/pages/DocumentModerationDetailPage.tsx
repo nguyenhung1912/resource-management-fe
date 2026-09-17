@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useLoaderData, useRevalidator } from 'react-router-dom';
-import { AlertCircle, BarChart2, CheckCircle2, X } from 'lucide-react';
+import { BarChart2 } from 'lucide-react';
 import { APP_PATHS } from '@/constants/path';
+import { AlertBanner } from '@/components/common/AlertBanner';
 import { DocumentModerationHeader } from '../components/DocumentModerationHeader';
 import { DocumentMetadataCard } from '../components/DocumentMetadataCard';
 import { DocumentFileViewer } from '../components/DocumentFileViewer';
@@ -16,7 +17,6 @@ import type {
   ModerationTargetDocument,
   PlagiarismCheckResponse,
 } from '../types/moderation.types';
-import { cn } from '@/utils/cn';
 
 interface FeedbackBannerState {
   type: 'success' | 'danger';
@@ -86,7 +86,7 @@ export function DocumentModerationDetailPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Header section with back navigation and action toolbar */}
       <DocumentModerationHeader
         document={detail}
@@ -109,66 +109,19 @@ export function DocumentModerationDetailPage() {
       </div>
 
       {/* API scan error notification */}
-      {scanError && (
-        <div
-          role="alert"
-          className="flex items-start justify-between gap-3 p-4 rounded-xl bg-rose-50 border border-rose-200/80 text-danger text-xs animate-in fade-in"
-        >
-          <div className="flex items-start gap-2.5">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
-            <div className="space-y-0.5 leading-relaxed">
-              <span className="font-semibold">Lỗi phân tích AI:</span>
-              <p>{scanError}</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={clearScanError}
-            className="p-1 rounded-md text-danger/80 hover:text-danger hover:bg-rose-100 transition-colors"
-            aria-label="Đóng thông báo lỗi"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
-      )}
+      {scanError ? (
+        <AlertBanner type="danger" title="Lỗi phân tích AI:" message={scanError} onClose={clearScanError} />
+      ) : null}
 
       {/* Decision feedback banner */}
-      {feedbackBanner && (
-        <div
-          role="status"
-          className={cn(
-            'flex items-start justify-between gap-3 p-4 rounded-xl border text-xs animate-in fade-in',
-            feedbackBanner.type === 'success'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
-              : 'bg-rose-50 border-rose-200 text-rose-950',
-          )}
-        >
-          <div className="flex items-start gap-2.5">
-            {feedbackBanner.type === 'success' ? (
-              <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-emerald-600" aria-hidden="true" />
-            ) : (
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-600" aria-hidden="true" />
-            )}
-            <div className="space-y-0.5 leading-relaxed">
-              <span className="font-semibold">{feedbackBanner.title}</span>
-              <p>{feedbackBanner.message}</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setFeedbackBanner(null)}
-            className={cn(
-              'p-1 rounded-md transition-colors',
-              feedbackBanner.type === 'success'
-                ? 'text-emerald-800 hover:bg-emerald-100'
-                : 'text-rose-800 hover:bg-rose-100',
-            )}
-            aria-label="Đóng thông báo"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
-      )}
+      {feedbackBanner ? (
+        <AlertBanner
+          type={feedbackBanner.type}
+          title={feedbackBanner.title}
+          message={feedbackBanner.message}
+          onClose={() => setFeedbackBanner(null)}
+        />
+      ) : null}
 
       {/* Main Responsive Grid Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, FileText, User } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { PlagiarismScoreGauge } from './PlagiarismScoreGauge';
 import type { ModerationResourceItemResponse } from '../types/moderation.types';
 import { APP_PATHS } from '@/constants/path';
@@ -15,9 +16,9 @@ export interface PlagiarismQueueTableProps {
 function FileStatusBadge({ statusName }: { statusName?: string }) {
   const name = statusName ?? 'Pending';
   const variantMap: Record<string, string> = {
-    Approved: 'bg-badge-success-bg text-badge-success-text border-emerald-200/50',
-    Rejected: 'bg-badge-danger-bg text-badge-danger-text border-rose-200/50',
-    Pending: 'bg-orange-50 text-warning border-orange-200/50',
+    Approved: 'bg-success/10 text-success border-success/20',
+    Rejected: 'bg-danger/10 text-danger border-danger/20',
+    Pending: 'bg-warning/10 text-warning border-warning/20',
   };
   const classes = variantMap[name] ?? 'bg-gray-100 text-text-muted border-border-subtle';
   const dotMap: Record<string, string> = {
@@ -36,7 +37,7 @@ function FileStatusBadge({ statusName }: { statusName?: string }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium border',
+        'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium border select-none',
         classes,
       )}
     >
@@ -67,25 +68,25 @@ function DesktopTable({
   onNavigate: (fileId: string) => void;
 }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border-subtle">
-      <table className="w-full text-sm" aria-label="Danh sách tài liệu kiểm tra đạo văn AI">
-        <thead>
-          <tr className="border-b border-border-subtle bg-background">
+    <div className="overflow-x-auto rounded-2xl border border-border-subtle bg-surface">
+      <Table aria-label="Danh sách tài liệu kiểm tra đạo văn AI">
+        <TableHeader>
+          <TableRow className="border-b border-border-subtle bg-background hover:bg-background">
             {['Tên tài liệu', 'Chuyên ngành', 'Người upload', 'Ngày tạo', 'Trạng thái', 'Tỷ lệ AI', ''].map((col) => (
-              <th
+              <TableHead
                 key={col}
                 className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-text-muted whitespace-nowrap"
               >
                 {col}
-              </th>
+              </TableHead>
             ))}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border-subtle bg-surface">
+          </TableRow>
+        </TableHeader>
+        <TableBody className="divide-y divide-border-subtle bg-surface">
           {items.map((item) => (
-            <tr key={item.fileId} className="hover:bg-background/60 transition-colors duration-100">
+            <TableRow key={item.fileId} className="hover:bg-background/60 transition-colors duration-100">
               {/* Docs Name */}
-              <td className="px-4 py-3.5 max-w-55">
+              <TableCell className="px-4 py-3.5 max-w-55 align-middle">
                 <div className="flex items-start gap-2">
                   <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                     <FileText className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
@@ -99,18 +100,18 @@ function DesktopTable({
                     ) : null}
                   </div>
                 </div>
-              </td>
+              </TableCell>
 
               {/* Major */}
-              <td className="px-4 py-3.5">
+              <TableCell className="px-4 py-3.5 align-middle">
                 <p className="text-xs text-text-main">{item.subMajorName ?? '—'}</p>
                 {item.subMajorCode ? (
                   <p className="text-[11px] text-text-muted font-mono mt-0.5">{item.subMajorCode}</p>
                 ) : null}
-              </td>
+              </TableCell>
 
               {/* Uploader */}
-              <td className="px-4 py-3.5">
+              <TableCell className="px-4 py-3.5 align-middle">
                 <div className="flex items-center gap-1.5">
                   <div className="h-5 w-5 rounded-full bg-secondary/20 flex items-center justify-center shrink-0">
                     <User className="h-3 w-3 text-secondary" aria-hidden="true" />
@@ -124,23 +125,23 @@ function DesktopTable({
                     ) : null}
                   </div>
                 </div>
-              </td>
+              </TableCell>
 
               {/* CreatedAt */}
-              <td className="px-4 py-3.5 whitespace-nowrap">
+              <TableCell className="px-4 py-3.5 whitespace-nowrap align-middle">
                 <p className="text-xs text-text-muted">{formatRelativeTime(item.createdAt)}</p>
-              </td>
+              </TableCell>
 
               {/* Status */}
-              <td className="px-4 py-3.5">
+              <TableCell className="px-4 py-3.5 align-middle">
                 <FileStatusBadge statusName={item.fileStatusName} />
-              </td>
+              </TableCell>
 
-              <td className="px-4 py-3.5">
+              <TableCell className="px-4 py-3.5 align-middle">
                 <PlagiarismScoreGauge score={item.latestPlagiarismScore} />
-              </td>
+              </TableCell>
 
-              <td className="px-4 py-3.5">
+              <TableCell className="px-4 py-3.5 align-middle text-right">
                 <Button
                   type="button"
                   variant="outline"
@@ -151,11 +152,11 @@ function DesktopTable({
                 >
                   Xem chi tiết
                 </Button>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }
