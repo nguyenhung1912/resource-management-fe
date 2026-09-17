@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useLoaderData, useRevalidator } from 'react-router-dom';
-import { AlertCircle, CheckCircle2, X } from 'lucide-react';
+import { Link, useLoaderData, useRevalidator } from 'react-router-dom';
+import { AlertCircle, BarChart2, CheckCircle2, X } from 'lucide-react';
+import { APP_PATHS } from '@/constants/path';
 import { DocumentModerationHeader } from '../components/DocumentModerationHeader';
 import { DocumentMetadataCard } from '../components/DocumentMetadataCard';
 import { DocumentFileViewer } from '../components/DocumentFileViewer';
@@ -94,6 +95,18 @@ export function DocumentModerationDetailPage() {
         onOpenApprove={() => setIsApproveOpen(true)}
         onOpenReject={() => setIsRejectOpen(true)}
       />
+
+      {/* Quick link to Plagiarism Report overview */}
+      <div className="flex items-center justify-end">
+        <Link
+          to={APP_PATHS.PLAGIARISM_REPORTS}
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 transition-colors group"
+        >
+          <BarChart2 className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" aria-hidden="true" />
+          Xem Báo cáo Đạo văn AI toàn hệ thống
+          <span aria-hidden="true">→</span>
+        </Link>
+      </div>
 
       {/* API scan error notification */}
       {scanError && (
