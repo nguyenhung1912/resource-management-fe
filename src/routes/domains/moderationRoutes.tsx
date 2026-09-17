@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy } from 'react';
-import type { RouteObject } from 'react-router-dom';
-import { ROUTE_PARAMS, ROUTE_SEGMENTS } from '@/constants/path';
+import { Navigate, type RouteObject } from 'react-router-dom';
+import { APP_PATHS, ROUTE_PARAMS, ROUTE_SEGMENTS } from '@/constants/path';
 import { moderationDetailLoader } from '@/features/moderation/pages/moderationDetailLoader';
 import { plagiarismReportLoader } from '@/features/moderation/pages/plagiarismReportLoader';
 import { RoleGuard } from '../guards/RoleGuard';
@@ -24,16 +24,8 @@ export const moderationRoutes: RouteObject[] = [
     },
     children: [
       {
-        path: ROUTE_PARAMS.FILE_ID,
-        element: <DocumentModerationDetailPage />,
-        loader: moderationDetailLoader,
-        errorElement: <ServerErrorPage />,
-        handle: {
-          meta: {
-            title: 'Chi tiết kiểm duyệt tài liệu',
-            breadcrumb: 'Chi tiết tài liệu',
-          },
-        },
+        index: true,
+        element: <Navigate to={APP_PATHS.PLAGIARISM_REPORTS} replace />,
       },
       {
         path: ROUTE_SEGMENTS.PLAGIARISM_REPORTS,
@@ -44,6 +36,18 @@ export const moderationRoutes: RouteObject[] = [
           meta: {
             title: 'Báo cáo Đạo văn AI',
             breadcrumb: 'Báo cáo Đạo văn AI',
+          },
+        },
+      },
+      {
+        path: ROUTE_PARAMS.FILE_ID,
+        element: <DocumentModerationDetailPage />,
+        loader: moderationDetailLoader,
+        errorElement: <ServerErrorPage />,
+        handle: {
+          meta: {
+            title: 'Chi tiết kiểm duyệt tài liệu',
+            breadcrumb: 'Chi tiết tài liệu',
           },
         },
       },
