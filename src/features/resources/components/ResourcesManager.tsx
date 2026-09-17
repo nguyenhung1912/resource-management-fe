@@ -1,19 +1,25 @@
 import { useMemo, useRef, useState } from 'react';
 import {
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   FileImage,
   FileText,
   FileVideo,
   Filter,
   Link2,
   Pencil,
+  RotateCcw,
+  Search,
   Trash2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge, type BadgeProps } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Tabs, type TabItem } from '@/components/ui/Tabs';
+import { EmptyState } from '@/components/common/EmptyState';
+import { Pagination } from '@/components/common/Pagination';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { APP_PATHS } from '@/constants/path';
 import type { MyUploadItemResponse } from '@/features/resources/types/resource.types';
 import { DeleteResourceDialog } from './DeleteResourceDialog';
@@ -117,204 +123,292 @@ export interface ResourcesManagerProps {
 
 export function ResourcesManager({ items = SAMPLE_RESOURCES }: ResourcesManagerProps) {
   const [selectedStatus, setSelectedStatus] = useState(ALL_STATUSES);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortDirection, setSortDirection] = useState<'newest' | 'oldest'>('newest');
   const [resourceToDelete, setResourceToDelete] = useState<MyUploadItemResponse | null>(null);
   const [deletedResourceIds, setDeletedResourceIds] = useState<Set<string>>(() => new Set());
   const managerRef = useRef<HTMLElement>(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  const activeItems = useMemo(
+    () => items.filter((item) => !deletedResourceIds.has(item.id)),
+    [items, deletedResourceIds],
+  );
+
+  const statusCounts = useMemo(() => {
+    return {
+      all: activeItems.length,
+      approved: activeItems.filter((i) => i.fileStatusId === 1).length,
+      pending: activeItems.filter((i) => i.fileStatusId === 2).length,
+      rejected: activeItems.filter((i) => i.fileStatusId === 3).length,
+    };
+  }, [activeItems]);
+
+  const statusTabs: TabItem<number>[] = [
+    { id: ALL_STATUSES, label: 'Tất cả', count: statusCounts.all },
+    { id: 1, label: 'Đã duyệt', count: statusCounts.approved, dotColor: 'bg-success' },
+    { id: 2, label: 'Chờ duyệt', count: statusCounts.pending, dotColor: 'bg-warning' },
+    { id: 3, label: 'Bị từ chối', count: statusCounts.rejected, dotColor: 'bg-danger' },
+  ];
+
   const visibleItems = useMemo(() => {
-    const activeItems = items.filter((item) => !deletedResourceIds.has(item.id));
-    const filteredItems =
-      selectedStatus === ALL_STATUSES
-        ? activeItems
-        : activeItems.filter((item) => item.fileStatusId === selectedStatus);
-    return filteredItems.toSorted((first, second) => {
+    let filtered = activeItems;
+
+    if (selectedStatus !== ALL_STATUSES) {
+      filtered = filtered.filter((item) => item.fileStatusId === selectedStatus);
+    }
+
+    if (searchQuery.trim().length > 0) {
+      const q = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(
+        (item) =>
+          item.fileName.toLowerCase().includes(q) ||
+          item.fileTypeName.toLowerCase().includes(q) ||
+          (item.courseName && item.courseName.toLowerCase().includes(q)) ||
+          item.authors.some((a) => a.fullName.toLowerCase().includes(q)),
+      );
+    }
+
+    return filtered.toSorted((first, second) => {
       const difference = Date.parse(second.uploadedAt) - Date.parse(first.uploadedAt);
       return sortDirection === 'newest' ? difference : -difference;
     });
-  }, [deletedResourceIds, items, selectedStatus, sortDirection]);
+  }, [activeItems, selectedStatus, searchQuery, sortDirection]);
 
-  const remainingItemCount = items.filter((item) => !deletedResourceIds.has(item.id)).length;
+  const totalPages = Math.max(1, Math.ceil(visibleItems.length / pageSize));
+
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return visibleItems.slice(start, start + pageSize);
+  }, [visibleItems, currentPage, pageSize]);
+
+  const handleStatusSelect = (statusId: number) => {
+    setSelectedStatus(statusId);
+    setIsFilterOpen(false);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (newSort: 'newest' | 'oldest') => {
+    setSortDirection(newSort);
+    setCurrentPage(1);
+  };
 
   const handleConfirmDelete = () => {
     if (!resourceToDelete) return;
     setDeletedResourceIds((current) => new Set(current).add(resourceToDelete.id));
+    setResourceToDelete(null);
+  };
+
+  const handleResetFilters = () => {
+    setSelectedStatus(ALL_STATUSES);
+    setSearchQuery('');
+    setCurrentPage(1);
   };
 
   return (
-    <section
-      ref={managerRef}
-      tabIndex={-1}
-      className="overflow-hidden rounded-xl border border-border-subtle bg-surface"
-      aria-label="Danh sách tài nguyên"
-    >
-      <div className="flex justify-end border-b border-border-subtle px-4 py-4 sm:px-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative">
-            <Button
-              variant="secondary"
-              size="sm"
-              aria-label="Lọc tài nguyên"
-              aria-expanded={isFilterOpen}
-              aria-controls="resource-status-filter"
-              onClick={() => setIsFilterOpen((isOpen) => !isOpen)}
-              iconLeft={<Filter className="size-3.5" aria-hidden="true" />}
-              iconRight={<ChevronDown className="size-3.5" aria-hidden="true" />}
-            >
-              Lọc
-            </Button>
-            {isFilterOpen ? (
-              <div
-                id="resource-status-filter"
-                className="absolute right-0 z-10 mt-2 w-44 rounded-lg border border-border-subtle bg-surface p-1.5 shadow-lg"
-              >
-                {[
-                  { id: ALL_STATUSES, label: 'Tất cả trạng thái' },
-                  { id: 1, label: 'Đã duyệt' },
-                  { id: 2, label: 'Chờ duyệt' },
-                  { id: 3, label: 'Bị từ chối' },
-                ].map((status) => (
-                  <button
-                    key={status.id}
-                    type="button"
-                    className="w-full rounded-md px-3 py-2 text-left text-sm text-text-main hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                    onClick={() => {
-                      setSelectedStatus(status.id);
-                      setIsFilterOpen(false);
-                    }}
-                  >
-                    {status.label}
-                  </button>
-                ))}
-              </div>
-            ) : null}
+    <section ref={managerRef} tabIndex={-1} className="space-y-4 outline-none" aria-label="Danh sách tài nguyên">
+      {/* 1. Filter & Search Controls Bar */}
+      <div className="rounded-2xl border border-border-subtle bg-surface p-4 sm:p-5 shadow-xs space-y-4 select-none">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-text-muted pointer-events-none" />
+            <Input
+              type="search"
+              placeholder="Tìm theo tên tài liệu, môn học, tác giả..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="pl-9 pr-4"
+              aria-label="Tìm kiếm tài nguyên"
+            />
           </div>
 
-          <label className="relative">
-            <span className="sr-only">Sắp xếp tài nguyên</span>
-            <select
-              aria-label="Sắp xếp tài nguyên"
-              value={sortDirection}
-              onChange={(event) => setSortDirection(event.target.value === 'oldest' ? 'oldest' : 'newest')}
-              className="h-8 appearance-none rounded-md border border-border-subtle bg-surface pl-3 pr-8 text-xs font-medium text-text-main outline-none hover:bg-background focus-visible:ring-2 focus-visible:ring-primary/40"
-            >
-              <option value="newest">Sắp xếp: Mới nhất</option>
-              <option value="oldest">Sắp xếp: Cũ nhất</option>
-            </select>
-            <ChevronDown
-              className="pointer-events-none absolute right-2.5 top-2 size-3.5 text-text-muted"
-              aria-hidden="true"
-            />
-          </label>
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Filter Dropdown Popover */}
+            <div className="relative">
+              <Button
+                variant="secondary"
+                size="sm"
+                aria-label="Lọc tài nguyên"
+                aria-expanded={isFilterOpen}
+                aria-controls="resource-status-filter"
+                onClick={() => setIsFilterOpen((isOpen) => !isOpen)}
+                iconLeft={<Filter className="size-3.5" aria-hidden="true" />}
+                iconRight={<ChevronDown className="size-3.5" aria-hidden="true" />}
+              >
+                Lọc
+              </Button>
+              {isFilterOpen ? (
+                <div
+                  id="resource-status-filter"
+                  className="absolute right-0 z-20 mt-2 w-48 rounded-xl border border-border-subtle bg-surface p-1.5 shadow-lg"
+                >
+                  {[
+                    { id: ALL_STATUSES, label: 'Tất cả trạng thái' },
+                    { id: 1, label: 'Đã duyệt' },
+                    { id: 2, label: 'Chờ duyệt' },
+                    { id: 3, label: 'Bị từ chối' },
+                  ].map((status) => (
+                    <button
+                      key={status.id}
+                      type="button"
+                      className="w-full rounded-lg px-3 py-2 text-left text-xs sm:text-sm text-text-main hover:bg-background transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                      onClick={() => handleStatusSelect(status.id)}
+                    >
+                      {status.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            {/* Sort Select */}
+            <div className="w-44">
+              <Select
+                aria-label="Sắp xếp tài nguyên"
+                selectSize="sm"
+                value={sortDirection}
+                onChange={(e) => handleSortChange(e.target.value === 'oldest' ? 'oldest' : 'newest')}
+              >
+                <option value="newest">Sắp xếp: Mới nhất</option>
+                <option value="oldest">Sắp xếp: Cũ nhất</option>
+              </Select>
+            </div>
+
+            {(selectedStatus !== ALL_STATUSES || searchQuery.length > 0) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleResetFilters}
+                iconLeft={<RotateCcw className="size-3.5" />}
+                className="text-xs text-text-muted hover:text-text-main"
+              >
+                Đặt lại
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Status Tabs */}
+        <div className="pt-1 border-t border-border-subtle/60">
+          <Tabs
+            items={statusTabs}
+            activeValue={selectedStatus}
+            onChange={handleStatusSelect}
+            variant="pills"
+            size="sm"
+            ariaLabel="Lọc tài nguyên theo trạng thái"
+          />
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[900px] border-collapse text-left" aria-label="Danh sách tài nguyên đã tải lên">
-          <thead>
-            <tr className="border-b border-border-subtle bg-background/60 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-              <th className="px-4 py-3 sm:px-6">Tên tài liệu</th>
-              <th className="px-4 py-3">Loại tài nguyên</th>
-              <th className="px-4 py-3">Tác giả</th>
-              <th className="px-4 py-3">Trạng thái</th>
-              <th className="px-4 py-3">Dung lượng</th>
-              <th className="px-4 py-3">Ngày tải lên</th>
-              <th className="px-4 py-3 text-right sm:px-6">Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visibleItems.map((item) => (
-              <tr
-                key={item.id}
-                className="border-b border-border-subtle text-sm last:border-b-0 hover:bg-background/70"
-              >
-                <td className="px-4 py-3 sm:px-6">
-                  <div className="flex min-w-56 items-center gap-3">
-                    <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                      <ResourceIcon fileTypeName={item.fileTypeName} />
-                    </span>
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-text-main">{item.fileName}</p>
-                      <p className="mt-0.5 truncate text-xs text-text-muted">
-                        {item.courseName ?? item.subMajorName ?? item.majorName}
-                      </p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-text-main">{item.fileTypeName}</td>
-                <td className="px-4 py-3 text-text-main">{item.authors[0]?.fullName ?? 'Chưa cập nhật'}</td>
-                <td className="px-4 py-3">
-                  <Badge variant={statusVariant[item.fileStatusId] ?? 'neutral'}>
-                    {item.fileStatusName ?? 'Chưa xác định'}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3 text-text-muted">{formatFileSize(item.fileSizeBytes)}</td>
-                <td className="px-4 py-3 text-text-muted">{dateFormatter.format(new Date(item.uploadedAt))}</td>
-                <td className="px-4 py-3 text-right sm:px-6">
-                  <div className="flex items-center justify-end gap-2">
-                    <Link
-                      to={APP_PATHS.RESOURCE_EDIT(item.id)}
-                      className="inline-flex items-center gap-1 rounded-md border border-border-subtle bg-surface px-2.5 py-1 text-xs font-medium text-text-main transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                      aria-label={`Chỉnh sửa ${item.fileName}`}
-                    >
-                      <Pencil className="size-3.5" aria-hidden="true" />
-                      Chỉnh sửa
-                    </Link>
-                    <button
-                      type="button"
-                      className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                      aria-label={`Xem chi tiết ${item.fileName}`}
-                    >
-                      Xem chi tiết
-                    </button>
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1 rounded-md border border-danger/30 bg-surface px-2.5 py-1 text-xs font-medium text-danger transition-colors hover:bg-danger/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40"
-                      aria-label={`Xóa ${item.fileName}`}
-                      onClick={() => setResourceToDelete(item)}
-                    >
-                      <Trash2 className="size-3.5" aria-hidden="true" />
-                      Xóa
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {/* 2. Resources Data View */}
+      {visibleItems.length === 0 ? (
+        <EmptyState
+          title="Không tìm thấy tài nguyên nào"
+          description="Thử thay đổi từ khóa tìm kiếm hoặc chọn bộ lọc trạng thái khác."
+          action={
+            <Button variant="secondary" size="sm" onClick={handleResetFilters}>
+              Đặt lại bộ lọc
+            </Button>
+          }
+        />
+      ) : (
+        <div className="space-y-4">
+          {/* Desktop & Tablet Responsive Table View */}
+          <div className="overflow-hidden rounded-2xl border border-border-subtle bg-surface shadow-2xs">
+            <Table
+              className="w-full min-w-[900px] border-collapse text-left"
+              aria-label="Danh sách tài nguyên đã tải lên"
+            >
+              <TableHeader>
+                <TableRow className="border-b border-border-subtle bg-background/60 hover:bg-background/60 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+                  <TableHead className="px-4 py-3.5 sm:px-6">Tên tài liệu</TableHead>
+                  <TableHead className="px-4 py-3.5">Loại tài nguyên</TableHead>
+                  <TableHead className="px-4 py-3.5">Tác giả</TableHead>
+                  <TableHead className="px-4 py-3.5">Trạng thái</TableHead>
+                  <TableHead className="px-4 py-3.5">Dung lượng</TableHead>
+                  <TableHead className="px-4 py-3.5">Ngày tải lên</TableHead>
+                  <TableHead className="px-4 py-3.5 text-right sm:px-6">Hành động</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedItems.map((item) => (
+                  <TableRow
+                    key={item.id}
+                    className="border-b border-border-subtle text-sm last:border-b-0 hover:bg-background/60 transition-colors"
+                  >
+                    <TableCell className="px-4 py-3.5 sm:px-6">
+                      <div className="flex min-w-56 items-center gap-3">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <ResourceIcon fileTypeName={item.fileTypeName} />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-sm text-text-main">{item.fileName}</p>
+                          <p className="mt-0.5 truncate text-xs text-text-muted">
+                            {item.courseName ?? item.subMajorName ?? item.majorName}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5 text-text-main">{item.fileTypeName}</TableCell>
+                    <TableCell className="px-4 py-3.5 text-text-main">
+                      {item.authors[0]?.fullName ?? 'Chưa cập nhật'}
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5">
+                      <Badge variant={statusVariant[item.fileStatusId] ?? 'neutral'}>
+                        {item.fileStatusName ?? 'Chưa xác định'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5 text-text-muted">{formatFileSize(item.fileSizeBytes)}</TableCell>
+                    <TableCell className="px-4 py-3.5 text-text-muted">
+                      {dateFormatter.format(new Date(item.uploadedAt))}
+                    </TableCell>
+                    <TableCell className="px-4 py-3.5 text-right sm:px-6">
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          to={APP_PATHS.RESOURCE_EDIT(item.id)}
+                          className="inline-flex items-center gap-1 rounded-lg border border-border-subtle bg-surface px-2.5 py-1 text-xs font-medium text-text-main transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                          aria-label={`Chỉnh sửa ${item.fileName}`}
+                        >
+                          <Pencil className="size-3.5" aria-hidden="true" />
+                          Chỉnh sửa
+                        </Link>
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1 rounded-lg border border-danger/30 bg-surface px-2.5 py-1 text-xs font-medium text-danger transition-colors hover:bg-danger/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40 cursor-pointer"
+                          aria-label={`Xóa ${item.fileName}`}
+                          onClick={() => setResourceToDelete(item)}
+                        >
+                          <Trash2 className="size-3.5" aria-hidden="true" />
+                          Xóa
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
-      <footer className="flex flex-col gap-3 border-t border-border-subtle px-4 py-4 text-xs text-text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p>
-          Hiển thị {visibleItems.length} trong số {remainingItemCount} tài nguyên
-        </p>
-        <nav className="flex items-center gap-1" aria-label="Phân trang tài nguyên">
-          <button
-            type="button"
-            className="flex size-8 items-center justify-center rounded-md"
-            disabled
-            aria-label="Trang trước"
-          >
-            <ChevronLeft className="size-4" aria-hidden="true" />
-          </button>
-          <span
-            className="flex size-8 items-center justify-center rounded-md bg-primary text-sm font-semibold text-white"
-            aria-current="page"
-          >
-            1
-          </span>
-          <button
-            type="button"
-            className="flex size-8 items-center justify-center rounded-md"
-            disabled
-            aria-label="Trang sau"
-          >
-            <ChevronRight className="size-4" aria-hidden="true" />
-          </button>
-        </nav>
-      </footer>
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={visibleItems.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            itemLabel="tài nguyên"
+          />
+        </div>
+      )}
 
+      {/* Delete Confirmation Dialog */}
       <DeleteResourceDialog
         isOpen={Boolean(resourceToDelete)}
         fileName={resourceToDelete?.fileName ?? ''}
