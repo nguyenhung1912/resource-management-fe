@@ -59,3 +59,30 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
 }
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}
+
+export interface ForgotPasswordRequest {
+  userCode: string;
+  email: string;
+}
+
+export interface VerifyOtpRequest {
+  userCode: string;
+  otp: string;
+}
+
+export interface ResetPasswordRequest {
+  userCode: string;
+  email: string;
+  newPassword: string;
+  confirmPassword: string;
+}
