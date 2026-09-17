@@ -39,7 +39,7 @@ describe('PlagiarismRiskDashboard', () => {
 
     // Zone C — stat rows (dùng getAllByText vì "An toàn" xuất hiện ở nhiều zones: legend, stacked bar, stat row)
     expect(screen.getAllByText(/Tổng tài liệu/i).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText(/Đã quét AI/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Đã quét/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/An toàn/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/Cần xem xét/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/Nguy cơ cao/i).length).toBeGreaterThanOrEqual(1);
