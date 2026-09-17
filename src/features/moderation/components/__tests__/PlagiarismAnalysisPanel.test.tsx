@@ -1,13 +1,22 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { PlagiarismAnalysisPanel } from '../PlagiarismAnalysisPanel';
+import { MemoryRouter } from 'react-router-dom';
+import { PlagiarismAnalysisPanel, type PlagiarismAnalysisPanelProps } from '../PlagiarismAnalysisPanel';
 import type { PlagiarismCheckResponse } from '../../types/moderation.types';
+
+function renderWithRouter(props: PlagiarismAnalysisPanelProps) {
+  return render(
+    <MemoryRouter>
+      <PlagiarismAnalysisPanel {...props} />
+    </MemoryRouter>,
+  );
+}
 
 describe('PlagiarismAnalysisPanel', () => {
   it('hiển thị thông báo chưa quét AI và kích hoạt nút quét khi chưa có dữ liệu phân tích', () => {
     const handleScan = vi.fn();
 
-    render(<PlagiarismAnalysisPanel fileId="FIL_UNCHECKED" plagiarismCheck={null} onCheckPlagiarism={handleScan} />);
+    renderWithRouter({ fileId: 'FIL_UNCHECKED', plagiarismCheck: null, onCheckPlagiarism: handleScan });
 
     expect(screen.getByText('Tài liệu chưa được quét trùng lặp AI')).toBeInTheDocument();
     const scanBtn = screen.getByRole('button', { name: /Kích hoạt Quét Trùng Lặp/i });
@@ -25,7 +34,7 @@ describe('PlagiarismAnalysisPanel', () => {
       matchedChunks: [],
     };
 
-    render(<PlagiarismAnalysisPanel fileId="FIL_SAFE" plagiarismCheck={mockCheck} />);
+    renderWithRouter({ fileId: 'FIL_SAFE', plagiarismCheck: mockCheck });
 
     expect(screen.getByText('12.5%')).toBeInTheDocument();
     expect(screen.getByText(/Mức độ An toàn \(Trùng lặp thấp\)/i)).toBeInTheDocument();
@@ -40,7 +49,7 @@ describe('PlagiarismAnalysisPanel', () => {
       matchedChunks: [],
     };
 
-    render(<PlagiarismAnalysisPanel fileId="FIL_WARN" plagiarismCheck={mockCheck} />);
+    renderWithRouter({ fileId: 'FIL_WARN', plagiarismCheck: mockCheck });
 
     expect(screen.getByText('24.8%')).toBeInTheDocument();
     expect(screen.getByText(/Cần lưu ý \(Trùng lặp trung bình\)/i)).toBeInTheDocument();
@@ -61,7 +70,7 @@ describe('PlagiarismAnalysisPanel', () => {
       ],
     };
 
-    render(<PlagiarismAnalysisPanel fileId="FIL_DANGER" plagiarismCheck={mockCheck} />);
+    renderWithRouter({ fileId: 'FIL_DANGER', plagiarismCheck: mockCheck });
 
     expect(screen.getByText('42.1%')).toBeInTheDocument();
     expect(screen.getByText(/Vượt ngưỡng quy định \(Nguy cơ cao\)/i)).toBeInTheDocument();
@@ -78,9 +87,11 @@ describe('PlagiarismAnalysisPanel', () => {
       matchedChunks: [],
     };
 
-    render(
-      <PlagiarismAnalysisPanel fileId="FIL_RECHECK" plagiarismCheck={mockCheck} onCheckPlagiarism={handleRecheck} />,
-    );
+    renderWithRouter({
+      fileId: 'FIL_RECHECK',
+      plagiarismCheck: mockCheck,
+      onCheckPlagiarism: handleRecheck,
+    });
 
     const recheckBtns = screen.getAllByRole('button', { name: /Quét lại với AI/i });
     fireEvent.click(recheckBtns[0]);
