@@ -25,6 +25,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   SlidersHorizontal,
+  Sparkles,
   Trash2,
   UserRound,
   Users,
@@ -90,6 +91,10 @@ function getFunctionIcon(functionUrl: string): LucideIcon {
   if (normalizedUrl.includes('/appeals')) return Scale;
   if (normalizedUrl.includes('/reports')) return ShieldAlert;
   if (normalizedUrl.includes('/resources-manager')) return FolderOpen;
+  if (normalizedUrl.includes('/assigned-appeals')) return Gavel;
+  if (normalizedUrl.includes('/appeals')) return Scale;
+  if (normalizedUrl.includes('/reports-manager')) return ShieldAlert;
+  if (normalizedUrl.includes('/plagiarism')) return Sparkles;
 
   // Admin & System Management
   if (normalizedUrl.includes('/admin/users')) return Users;
