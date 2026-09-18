@@ -67,3 +67,31 @@ export interface MyUploadItemResponse extends ResourceResponse {
   keywords: string[];
   authors: ResourceAuthorResponse[];
 }
+
+export interface ResourceDetail {
+  fileId: string;
+  fileName: string;
+  fileDescription?: string | null;
+  fileUrl: string;
+  fileTypeName?: string | null;
+  uploadUserName?: string | null;
+  githubLink?: string | null;
+  bannerImage?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  keywords: string[];
+}
+
+export interface RecommendedResource {
+  fileId: string;
+  fileName: string;
+  uploadUserName?: string | null;
+  fileUrl?: string | null;
+  averageRating?: number;
+  totalRatings?: number;
+}
+
+export interface ResourceDetailLoaderData {
+  detail: ResourceDetail;
+  recommendations: RecommendedResource[];
+}

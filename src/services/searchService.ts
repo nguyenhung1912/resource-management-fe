@@ -1,5 +1,6 @@
 import axiosClient from '@/services/axiosClient';
 import type { SearchRequestParams, SearchResponse } from '@/features/resources/types/search.types';
+import type { RecommendedResource, ResourceDetail } from '@/features/resources/types/resource.types';
 
 function cleanParams(params: Partial<SearchRequestParams>): Record<string, unknown> {
   const out: Record<string, unknown> = {};
@@ -27,6 +28,16 @@ export async function searchResources(params: SearchRequestParams): Promise<Sear
     params: cleaned,
   });
 
+  return response.data;
+}
+
+export async function getResourceDetail(fileId: string): Promise<ResourceDetail> {
+  const response = await axiosClient.get<ResourceDetail>(`/api/Resources/${fileId}`);
+  return response.data;
+}
+
+export async function getRecommendedResources(limit: number = 5): Promise<RecommendedResource[]> {
+  const response = await axiosClient.get<RecommendedResource[]>('/api/recommendations', { params: { limit } });
   return response.data;
 }
 

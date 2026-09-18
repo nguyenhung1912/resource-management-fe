@@ -6,8 +6,6 @@ import { APP_PATHS } from '@/constants/path';
 import { MainLayout } from '@/layouts/MainLayout';
 import { appealRoutes, notificationRoutes, profileRoutes, changePasswordRoutes } from './domains';
 import { ProtectedRoute } from './guards/ProtectedRoute';
-import SearchResourcesPage from '@/features/resources/pages/SearchResourcesPage';
-import searchLoader from '@/features/resources/pages/searchLoader';
 
 const HomePage = lazy(() => import('@/App'));
 const ServerErrorPage = lazy(() =>
@@ -39,11 +37,6 @@ export const mainRoutes: RouteObject[] = [
       {
         element: <ProtectedRoute />,
         children: [...notificationRoutes, ...appealRoutes, ...profileRoutes, ...changePasswordRoutes],
-      },
-      {
-        path: '/test-ui',
-        element: <SearchResourcesPage />,
-        loader: searchLoader,
       },
     ],
   },
