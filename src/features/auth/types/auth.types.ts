@@ -25,7 +25,9 @@ export interface LoginResponse {
 export interface CurrentUserResponse {
   uid: string;
   userCode: string;
+  fullName: string;
   email: string;
+  roleId: number;
   role: UserRole;
   subMajorCode?: string | null;
 }

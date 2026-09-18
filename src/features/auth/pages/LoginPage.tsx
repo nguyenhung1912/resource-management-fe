@@ -2,9 +2,28 @@ import { Layers3 } from 'lucide-react';
 
 import { LoginForm } from '@/features/auth/components/LoginForm';
 import { useLogin } from '@/features/auth/hooks/useLogin';
+import { useSearchParams } from 'react-router-dom';
 
 export function LoginPage() {
   const { error, isLoading, handleLogin, handleGoogleLogin } = useLogin();
+
+  const [searchParams] = useSearchParams();
+
+  const googleErrorCode = searchParams.get('error');
+
+  const googleErrorMessages: Record<string, string> = {
+    google_login_failed: 'Đăng nhập Google thất bại.',
+
+    google_email_missing: 'Không lấy được email từ Google.',
+
+    google_account_not_found: 'Email Google chưa được đăng ký trong hệ thống.',
+
+    google_account_locked: 'Tài khoản đã bị khóa.',
+
+    google_callback_invalid: 'Thông tin đăng nhập Google không hợp lệ.',
+  };
+
+  const googleError = googleErrorCode ? googleErrorMessages[googleErrorCode] : null;
 
   return (
     <section
@@ -70,7 +89,12 @@ export function LoginPage() {
 
       {/* Login form */}
       <div className="px-8 py-7">
-        <LoginForm error={error} isLoading={isLoading} onSubmit={handleLogin} onGoogleLogin={handleGoogleLogin} />
+        <LoginForm
+          error={googleError ?? error}
+          isLoading={isLoading}
+          onSubmit={handleLogin}
+          onGoogleLogin={handleGoogleLogin}
+        />
       </div>
     </section>
   );

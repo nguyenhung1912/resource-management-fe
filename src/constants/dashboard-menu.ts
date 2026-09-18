@@ -168,19 +168,19 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
         {
           functionId: 'F010',
           functionName: 'Quản lý người dùng',
-          functionUrl: '/dashboard/admin/users',
+          functionUrl: APP_PATHS.ADMIN_USERS,
           functionDescription: 'Xem và quản lý danh sách người dùng',
         },
         {
           functionId: 'F012',
           functionName: 'Quản lý Role',
-          functionUrl: '/dashboard/admin/roles',
+          functionUrl: APP_PATHS.ADMIN_ROLES,
           functionDescription: 'Xem và quản lý các Role trong hệ thống',
         },
         {
           functionId: 'F013',
           functionName: 'Phân quyền chức năng',
-          functionUrl: '/dashboard/admin/functions',
+          functionUrl: APP_PATHS.ADMIN_FUNCTIONS,
           functionDescription: 'Quản lý chức năng và phân quyền chức năng cho Role',
         },
       ],
