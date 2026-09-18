@@ -62,6 +62,7 @@ describe('DashboardMenu', () => {
   it('render nhóm và chức năng trực tiếp từ dữ liệu backend', () => {
     renderMenu();
 
+    expect(screen.getByRole('img', { name: 'Logo Trường Đại học Quy Nhơn' })).toBeInTheDocument();
     expect(screen.getByText('User1')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Quản lý tài nguyên' })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('link', { name: 'Upload tài nguyên' })).toHaveAttribute(
