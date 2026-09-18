@@ -23,7 +23,6 @@ export const ROUTE_SEGMENTS = {
 
   // Moderation & Reports
   MODERATION: 'moderation',
-  SEARCH: 'search',
 
   PLAGIARISM_REPORTS: 'plagiarism-reports',
   REPORTS: 'reports',
