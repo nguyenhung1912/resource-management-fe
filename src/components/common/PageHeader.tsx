@@ -34,16 +34,20 @@ export function PageHeader({
         <div className="flex items-start gap-4 max-w-3xl">
           {Icon && (
             <div
-              className={cn('flex size-11 items-center justify-center rounded-xl shrink-0 mt-0.5 select-none', iconBg)}
+              className={cn(
+                'flex size-11 items-center justify-center rounded-xl shrink-0 select-none transition-all',
+                badge ? 'mt-0.5' : 'mt-0.5 sm:mt-1',
+                iconBg,
+              )}
             >
               <Icon className="size-5.5" aria-hidden="true" />
             </div>
           )}
 
-          <div className="space-y-1.5 min-w-0">
+          <div className={cn('min-w-0', badge ? 'space-y-1.5' : 'space-y-1')}>
             {badge && <div className="flex items-center gap-2 flex-wrap pb-0.5">{badge}</div>}
 
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-text-main truncate">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-text-main truncate leading-tight">
               {title}
             </h1>
 

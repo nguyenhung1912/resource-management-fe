@@ -7,18 +7,21 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
     {
       groupId: 'personal',
       groupName: 'Trang cá nhân',
+      allowedRoles: ['Student', 'Lecturer', 'Admin'],
       functions: [
         {
           functionId: 'profile',
           functionName: 'Hồ sơ',
           functionUrl: APP_PATHS.PROFILE,
           functionDescription: 'Xem và cập nhật hồ sơ cá nhân',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
         {
-          functionId: 'F014',
+          functionId: 'notifications',
           functionName: 'Thông báo',
           functionUrl: APP_PATHS.NOTIFICATIONS,
           functionDescription: 'Theo dõi các thông báo mới',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
       ],
     },
@@ -26,42 +29,71 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
     {
       groupId: 'digital-resources',
       groupName: 'Tài nguyên số',
+      allowedRoles: ['Student', 'Lecturer', 'Admin'],
       functions: [
         {
           functionId: 'all-resources',
           functionName: 'Tất cả tài nguyên',
-          functionUrl: '/dashboard/resources',
-          functionDescription: 'Duyệt toàn bộ tài nguyên số',
+          functionUrl: APP_PATHS.ALL_RESOURCES,
+          functionDescription: 'Duyệt toàn bộ tài nguyên số của nhà trường',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
         {
           functionId: 'lectures',
           functionName: 'Bài giảng',
-          functionUrl: '/dashboard/lectures',
-          functionDescription: 'Tìm kiếm tài liệu bài giảng',
+          functionUrl: APP_PATHS.LECTURES,
+          functionDescription: 'Tìm kiếm giáo trình và tài liệu bài giảng',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
         {
           functionId: 'graduation-theses',
           functionName: 'Khóa luận tốt nghiệp',
-          functionUrl: '/dashboard/theses',
-          functionDescription: 'Duyệt kho khóa luận tốt nghiệp',
+          functionUrl: APP_PATHS.THESES,
+          functionDescription: 'Duyệt kho khóa luận tốt nghiệp xuất sắc',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
         {
           functionId: 'course-reports',
           functionName: 'Báo cáo môn học',
-          functionUrl: '/dashboard/course-reports',
+          functionUrl: APP_PATHS.COURSE_REPORTS,
           functionDescription: 'Duyệt báo cáo và đồ án môn học',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
         {
           functionId: 'source-code',
           functionName: 'Mã nguồn',
-          functionUrl: '/dashboard/source-code',
-          functionDescription: 'Tìm kiếm tài nguyên mã nguồn',
+          functionUrl: APP_PATHS.SOURCE_CODE,
+          functionDescription: 'Tìm kiếm tài nguyên mã nguồn và dự án mẫu',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
         {
           functionId: 'other-resources',
           functionName: 'Tài nguyên khác',
-          functionUrl: '/dashboard/other-resources',
-          functionDescription: 'Duyệt các loại tài nguyên khác',
+          functionUrl: APP_PATHS.OTHER_RESOURCES,
+          functionDescription: 'Duyệt các loại tài liệu tham khảo khác',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
+        },
+      ],
+    },
+
+    {
+      groupId: 'user-management',
+      groupName: 'Quản lý người dùng',
+      allowedRoles: ['Admin'],
+      functions: [
+        {
+          functionId: 'admin-users',
+          functionName: 'Người dùng',
+          functionUrl: APP_PATHS.ADMIN_USERS,
+          functionDescription: 'Xem và quản lý danh sách người dùng hệ thống',
+          allowedRoles: ['Admin'],
+        },
+        {
+          functionId: 'admin-permissions',
+          functionName: 'Phân quyền chức năng',
+          functionUrl: APP_PATHS.ADMIN_FUNCTIONS,
+          functionDescription: 'Quản lý chức năng và phân quyền cho từng vai trò',
+          allowedRoles: ['Admin'],
         },
       ],
     },
@@ -69,43 +101,92 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
     {
       groupId: 'resource-management',
       groupName: 'Quản lý tài nguyên',
+      allowedRoles: ['Student', 'Lecturer', 'Admin'],
       functions: [
         {
-          functionId: 'F003',
+          functionId: 'upload-resource',
           functionName: 'Upload tài nguyên',
           functionUrl: APP_PATHS.RESOURCE_UPLOAD,
           functionDescription: 'Tải tài liệu mới lên hệ thống',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
         {
-          functionId: 'F001',
+          functionId: 'my-resources',
           functionName: 'Tài nguyên của tôi',
           functionUrl: APP_PATHS.RESOURCES_MANAGER,
           functionDescription: 'Quản lý những tài nguyên bạn đã tải lên',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
         {
-          functionId: 'F004',
-          functionName: 'Thùng rác',
-          functionUrl: '/dashboard/resources-manager/trash',
-          functionDescription: 'Xem các tài nguyên đã xóa',
+          functionId: 'manage-digital-resources',
+          functionName: 'Quản lý tài nguyên số',
+          functionUrl: APP_PATHS.MODERATION,
+          functionDescription: 'Thẩm định, kiểm duyệt tài liệu và báo cáo đạo văn AI',
+          allowedRoles: ['Lecturer', 'Admin'],
         },
-      ],
-    },
-
-    {
-      groupId: 'appeals-management',
-      groupName: 'Quản lý khiếu nại',
-      functions: [
         {
           functionId: 'my-appeals',
           functionName: 'Khiếu nại của tôi',
           functionUrl: APP_PATHS.APPEALS,
-          functionDescription: 'Theo dõi tiến trình khiếu nại của bạn',
+          functionDescription: 'Theo dõi tiến trình giải quyết khiếu nại tài liệu',
+          allowedRoles: ['Student'],
         },
         {
           functionId: 'assigned-appeals',
           functionName: 'Tiếp nhận khiếu nại',
           functionUrl: APP_PATHS.ASSIGNED_APPEALS,
           functionDescription: 'Thẩm định và giải quyết khiếu nại từ sinh viên',
+          allowedRoles: ['Lecturer', 'Admin'],
+        },
+        {
+          functionId: 'reports-manager',
+          functionName: 'Báo cáo vi phạm',
+          functionUrl: APP_PATHS.REPORTS_MANAGER,
+          functionDescription: 'Xử lý báo cáo vi phạm tài liệu, bình luận và người dùng',
+          allowedRoles: ['Lecturer', 'Admin'],
+        },
+        {
+          functionId: 'trash',
+          functionName: 'Thùng rác',
+          functionUrl: APP_PATHS.RESOURCE_TRASH,
+          functionDescription: 'Xem và khôi phục các tài nguyên đã xóa',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
+        },
+      ],
+    },
+
+    {
+      groupId: 'system-management',
+      groupName: 'Quản lý hệ thống',
+      allowedRoles: ['Lecturer', 'Admin'],
+      functions: [
+        {
+          functionId: 'system-functions',
+          functionName: 'Chức năng',
+          functionUrl: APP_PATHS.ADMIN_SYSTEM_FUNCTIONS,
+          functionDescription: 'Cấu hình và quản lý các chức năng hệ thống',
+          allowedRoles: ['Admin'],
+        },
+        {
+          functionId: 'academic-management',
+          functionName: 'Quản lý học vụ',
+          functionUrl: APP_PATHS.ADMIN_ACADEMIC,
+          functionDescription: 'Quản lý chuyên ngành, khóa học và học phần',
+          allowedRoles: ['Lecturer', 'Admin'],
+        },
+        {
+          functionId: 'audit-logs',
+          functionName: 'Nhật ký lưu vết',
+          functionUrl: APP_PATHS.ADMIN_AUDIT_LOGS,
+          functionDescription: 'Theo dõi nhật ký hoạt động và kiểm toán hệ thống',
+          allowedRoles: ['Admin'],
+        },
+        {
+          functionId: 'system-statistics',
+          functionName: 'Thống kê',
+          functionUrl: APP_PATHS.ADMIN_STATISTICS,
+          functionDescription: 'Thống kê dữ liệu học liệu và báo cáo phân tích',
+          allowedRoles: ['Lecturer', 'Admin'],
         },
       ],
     },
@@ -113,77 +194,18 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
     {
       groupId: 'resource-discovery',
       groupName: 'Truy xuất tài nguyên',
+      allowedRoles: ['Student', 'Lecturer', 'Admin'],
       functions: [
         {
-          functionId: 'search',
-          functionName: 'Tìm kiếm',
-          functionUrl: '/dashboard/search',
-          functionDescription: 'Tìm kiếm nhanh trong kho tài nguyên',
-        },
-        {
-          functionId: 'advanced-search',
-          functionName: 'Tìm kiếm nâng cao',
-          functionUrl: '/dashboard/search/advanced',
-          functionDescription: 'Tìm kiếm theo nhiều tiêu chí',
-        },
-        {
-          functionId: 'ai-search',
-          functionName: 'Tìm kiếm AI',
-          functionUrl: '/dashboard/search/ai',
-          functionDescription: 'Tìm kiếm tài nguyên với trợ lý AI',
-        },
-        {
-          functionId: 'user-search',
-          functionName: 'Tìm kiếm người dùng',
-          functionUrl: '/dashboard/search/users',
-          functionDescription: 'Tìm kiếm người dùng trong hệ thống',
-        },
-      ],
-    },
-
-    {
-      groupId: 'moderation-management',
-      groupName: 'Kiểm duyệt & Báo cáo',
-      functions: [
-        {
-          functionId: 'F009',
-          functionName: 'Báo cáo vi phạm',
-          functionUrl: APP_PATHS.REPORTS_MANAGER,
-          functionDescription: 'Xử lý báo cáo vi phạm tài liệu, bình luận và người dùng',
-        },
-        {
-          functionId: 'plagiarism-reports',
-          functionName: 'Báo cáo Đạo văn AI',
-          functionUrl: APP_PATHS.PLAGIARISM_REPORTS,
-          functionDescription: 'Xem tổng quan tỷ lệ trùng lặp AI của toàn bộ tài liệu',
-        },
-      ],
-    },
-
-    // BỔ SUNG CHO ADMIN
-    {
-      groupId: 'admin-management',
-      groupName: 'Quản trị hệ thống',
-      functions: [
-        {
-          functionId: 'F010',
-          functionName: 'Quản lý người dùng',
-          functionUrl: '/dashboard/admin/users',
-          functionDescription: 'Xem và quản lý danh sách người dùng',
-        },
-        {
-          functionId: 'F012',
-          functionName: 'Quản lý Role',
-          functionUrl: '/dashboard/admin/roles',
-          functionDescription: 'Xem và quản lý các Role trong hệ thống',
-        },
-        {
-          functionId: 'F013',
-          functionName: 'Phân quyền chức năng',
-          functionUrl: '/dashboard/admin/functions',
-          functionDescription: 'Quản lý chức năng và phân quyền chức năng cho Role',
+          functionId: 'search-hub',
+          functionName: 'Tra cứu tài nguyên',
+          functionUrl: APP_PATHS.SEARCH,
+          functionDescription: 'Tìm kiếm tài liệu thông minh, bộ lọc nâng cao và trợ lý AI',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
       ],
     },
   ],
 };
+
+export default dashboardMenuPreviewData;

@@ -1,6 +1,5 @@
 import { Files, Plus } from 'lucide-react';
 import { Link, Outlet } from 'react-router-dom';
-import { Badge } from '@/components/ui/Badge';
 import { buttonVariants } from '@/components/ui/Button';
 import { PageHeader } from '@/components/common/PageHeader';
 import { APP_PATHS } from '@/constants/path';
@@ -15,11 +14,6 @@ export function ResourcesManagerPage() {
         title="Quản lý tài nguyên"
         description="Theo dõi, tìm kiếm và quản lý các tài liệu học tập, giáo trình đã tải lên hệ thống."
         icon={Files}
-        badge={
-          <Badge variant="success" showDot>
-            Kho tài nguyên trực tuyến
-          </Badge>
-        }
         actions={
           <Link to={APP_PATHS.RESOURCE_UPLOAD} className={buttonVariants({ variant: 'primary', size: 'md' })}>
             <Plus className="size-4 mr-1.5" aria-hidden="true" />

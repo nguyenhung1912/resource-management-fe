@@ -50,18 +50,15 @@ describe('DashboardMenu', () => {
       'text-text',
       'dashboard-menu-scrollbar',
     );
-    expect(screen.getByRole('button', { name: 'Quản lý tài nguyên' })).toHaveClass(
-      'text-text-muted',
-      'hover:bg-background',
-      'hover:text-text-main',
-    );
-    expect(screen.getByRole('link', { name: 'Upload tài nguyên' })).toHaveClass('hover:bg-background');
-    expect(screen.getByRole('link', { name: 'Tài nguyên của tôi' })).toHaveClass('bg-primary/10', 'text-primary');
+    expect(screen.getByRole('button', { name: 'Quản lý tài nguyên' })).toHaveClass('bg-primary/10', 'text-primary');
+    expect(screen.getByRole('link', { name: 'Upload tài nguyên' })).toHaveClass('hover:bg-neutral-100');
+    expect(screen.getByRole('link', { name: 'Tài nguyên của tôi' })).toHaveClass('bg-primary', 'text-white');
   });
 
   it('render nhóm và chức năng trực tiếp từ dữ liệu backend', () => {
     renderMenu();
 
+    expect(screen.getByRole('img', { name: 'Logo Trường Đại học Quy Nhơn' })).toBeInTheDocument();
     expect(screen.getByText('User1')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Quản lý tài nguyên' })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('link', { name: 'Upload tài nguyên' })).toHaveAttribute(

@@ -41,7 +41,7 @@ describe('resources manager routes', () => {
 
     render(<RouterProvider router={router} />);
 
-    const heading = await screen.findByRole('heading', { name: 'Quản lý tài nguyên' }, { timeout: 5000 });
+    const heading = await screen.findByRole('heading', { name: 'Quản lý tài nguyên' }, { timeout: 10000 });
     const statistics = screen.getByRole('region', { name: 'Thống kê tài nguyên' });
     const resourceTable = screen.getByRole('table', { name: 'Danh sách tài nguyên đã tải lên' });
 

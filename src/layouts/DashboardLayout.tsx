@@ -26,7 +26,7 @@ export function DashboardLayout() {
 
   const displayName = user?.fullName ?? user?.userCode ?? 'Người dùng';
 
-  const dashboardMenuData = buildDashboardMenu(dashboardMenuPreviewData, functions);
+  const dashboardMenuData = buildDashboardMenu(dashboardMenuPreviewData, functions, user?.role);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-text-main">
