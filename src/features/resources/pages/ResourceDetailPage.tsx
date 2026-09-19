@@ -24,12 +24,7 @@ export default function ResourceDetailPage() {
 
           <section className="mt-6 bg-surface border border-border rounded-lg p-5">
             <h2 className="text-lg font-semibold mb-3 text-text">Mô tả chi tiết</h2>
-            <p className="text-text-muted leading-relaxed">
-              {detail.fileDescription || 'Không có mô tả.'} Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-              Vivamus lacinia odio vitae vestibulum vestibulum. Cras venenatis euismod malesuada. Integer porttitor,
-              sapien nec pulvinar dictum, velit urna bibendum nunc, in cursus ligula lacus ut neque. Sed sed sapien id
-              sapien congue placerat. Curabitur vitae orci ut magna tristique convallis.
-            </p>
+            <p className="text-text-muted leading-relaxed">{detail.fileDescription || 'Không có mô tả.'}</p>
           </section>
 
           <ResourceTags tags={detail.keywords} />
