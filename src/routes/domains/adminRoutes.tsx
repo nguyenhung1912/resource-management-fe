@@ -1,15 +1,15 @@
 /* eslint-disable react-refresh/only-export-components */
 
 import { lazy } from 'react';
-
 import type { RouteObject } from 'react-router-dom';
 
-import { adminAccountsLoader } from '@/features/admin/accounts/pages/adminAccountsLoader';
-
-import { adminRolesLoader } from '@/features/admin/roles/pages/adminRolesLoader';
-
-import { adminPermissionsLoader } from '@/features/admin/permissions/pages/adminPermissionsLoader';
 import { ROUTE_SEGMENTS } from '@/constants/path';
+
+import { adminAccountsLoader } from '@/features/admin/accounts/pages/adminAccountsLoader';
+import { adminRolesLoader } from '@/features/admin/roles/pages/adminRolesLoader';
+import { adminPermissionsLoader } from '@/features/admin/permissions/pages/adminPermissionsLoader';
+
+import { RoleGuard } from '../guards/RoleGuard';
 
 const AdminAccountsPage = lazy(() => import('@/features/admin/accounts/pages/AdminAccountsPage'));
 
@@ -17,53 +17,133 @@ const AdminRolesPage = lazy(() => import('@/features/admin/roles/pages/AdminRole
 
 const AdminPermissionsPage = lazy(() => import('@/features/admin/permissions/pages/AdminPermissionsPage'));
 
+const PlaceholderFeaturePage = lazy(() => import('@/features/dashboard/pages/PlaceholderFeaturePage'));
+
 export const adminRoutes: RouteObject[] = [
   {
-    path: `${ROUTE_SEGMENTS.ADMIN}/${ROUTE_SEGMENTS.USERS}`,
-
-    loader: adminAccountsLoader,
-
-    element: <AdminAccountsPage />,
-
+    path: ROUTE_SEGMENTS.ADMIN,
     handle: {
       meta: {
-        title: 'Quản lý tài khoản',
-
-        breadcrumb: 'Quản lý tài khoản',
+        title: 'Quản trị hệ thống',
+        breadcrumb: 'Quản trị',
       },
     },
-  },
-
-  {
-    path: `${ROUTE_SEGMENTS.ADMIN}/${ROUTE_SEGMENTS.ROLES}`,
-
-    loader: adminRolesLoader,
-
-    element: <AdminRolesPage />,
-
-    handle: {
-      meta: {
-        title: 'Quản lý Role',
-
-        breadcrumb: 'Quản lý Role',
+    children: [
+      // F010 - Quản lý người dùng
+      {
+        path: ROUTE_SEGMENTS.USERS,
+        loader: adminAccountsLoader,
+        element: <AdminAccountsPage />,
+        handle: {
+          meta: {
+            title: 'Quản lý người dùng',
+            breadcrumb: 'Người dùng',
+          },
+        },
       },
-    },
-  },
 
-  {
-    path: `${ROUTE_SEGMENTS.ADMIN}/${ROUTE_SEGMENTS.FUNCTIONS}`,
-
-    loader: adminPermissionsLoader,
-
-    element: <AdminPermissionsPage />,
-
-    handle: {
-      meta: {
-        title: 'Phân quyền chức năng',
-
-        breadcrumb: 'Phân quyền chức năng',
+      // F012 - Quản lý Role
+      {
+        path: ROUTE_SEGMENTS.ROLES,
+        loader: adminRolesLoader,
+        element: <AdminRolesPage />,
+        handle: {
+          meta: {
+            title: 'Quản lý Role',
+            breadcrumb: 'Role',
+          },
+        },
       },
-    },
+
+      // F013 - Phân quyền chức năng
+      {
+        path: ROUTE_SEGMENTS.FUNCTIONS,
+        loader: adminPermissionsLoader,
+        element: <AdminPermissionsPage />,
+        handle: {
+          meta: {
+            title: 'Phân quyền chức năng',
+            breadcrumb: 'Phân quyền',
+          },
+        },
+      },
+
+      // Cấu hình chức năng hệ thống
+      {
+        path: ROUTE_SEGMENTS.SYSTEM_FUNCTIONS,
+        element: (
+          <RoleGuard allowedRoles={['Admin']}>
+            <PlaceholderFeaturePage
+              title="Cấu hình Chức năng Hệ thống"
+              description="Danh mục các module nghiệp vụ và tham số cấu hình hệ thống."
+            />
+          </RoleGuard>
+        ),
+        handle: {
+          meta: {
+            title: 'Chức năng hệ thống',
+            breadcrumb: 'Chức năng',
+          },
+        },
+      },
+
+      // Quản lý học vụ
+      {
+        path: ROUTE_SEGMENTS.ACADEMIC,
+        element: (
+          <RoleGuard allowedRoles={['Admin', 'Lecturer']}>
+            <PlaceholderFeaturePage
+              title="Quản lý Học vụ"
+              description="Quản lý thông tin khoa, ngành đào tạo, học kỳ và học phần giảng dạy."
+            />
+          </RoleGuard>
+        ),
+        handle: {
+          meta: {
+            title: 'Quản lý học vụ',
+            breadcrumb: 'Học vụ',
+          },
+        },
+      },
+
+      // Nhật ký lưu vết
+      {
+        path: ROUTE_SEGMENTS.AUDIT_LOGS,
+        element: (
+          <RoleGuard allowedRoles={['Admin']}>
+            <PlaceholderFeaturePage
+              title="Nhật ký Lưu vết (Audit Logs)"
+              description="Ghi nhận nhật ký truy vết đăng nhập, thao tác người dùng và kiểm toán an ninh."
+            />
+          </RoleGuard>
+        ),
+        handle: {
+          meta: {
+            title: 'Nhật ký lưu vết',
+            breadcrumb: 'Nhật ký lưu vết',
+          },
+        },
+      },
+
+      // Thống kê
+      {
+        path: ROUTE_SEGMENTS.STATISTICS,
+        element: (
+          <RoleGuard allowedRoles={['Admin', 'Lecturer']}>
+            <PlaceholderFeaturePage
+              title="Thống kê Học liệu"
+              description="Tổng hợp biểu đồ xuất bản học liệu, lượt tải về và báo cáo tỷ lệ đạo văn AI."
+            />
+          </RoleGuard>
+        ),
+        handle: {
+          meta: {
+            title: 'Thống kê học liệu',
+            breadcrumb: 'Thống kê',
+          },
+        },
+      },
+    ],
   },
 ];
 

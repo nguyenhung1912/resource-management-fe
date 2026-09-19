@@ -4,7 +4,7 @@ import { Navigate, type RouteObject } from 'react-router-dom';
 import { PageLoadingState } from '@/components/common/PageLoadingState';
 import { APP_PATHS, ROUTE_SEGMENTS } from '@/constants/path';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
-import { moderationRoutes, reportRoutes, resourceRoutes, profileRoutes, adminRoutes } from './domains';
+import { adminRoutes, moderationRoutes, profileRoutes, reportRoutes, resourceRoutes, searchRoutes } from './domains';
 import { ProtectedRoute } from './guards/ProtectedRoute';
 
 const ServerErrorPage = lazy(() =>
@@ -32,8 +32,10 @@ export const dashboardRoutes: RouteObject[] = [
         element: <Navigate to={APP_PATHS.RESOURCES_MANAGER} replace />,
       },
       ...resourceRoutes,
+      ...searchRoutes,
       ...moderationRoutes,
       ...reportRoutes,
+      ...adminRoutes,
       ...profileRoutes,
       ...adminRoutes,
     ],

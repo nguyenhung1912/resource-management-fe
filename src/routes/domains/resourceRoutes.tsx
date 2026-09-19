@@ -6,6 +6,7 @@ import { ROUTE_PARAMS, ROUTE_SEGMENTS } from '@/constants/path';
 const ResourcesManagerPage = lazy(() => import('@/features/resources/pages/ResourcesManagerPage'));
 const UploadResourcePage = lazy(() => import('@/features/resources/pages/UploadResourcePage'));
 const ModifyResourcePage = lazy(() => import('@/features/resources/pages/ModifyResourcePage'));
+const PlaceholderFeaturePage = lazy(() => import('@/features/dashboard/pages/PlaceholderFeaturePage'));
 
 export const resourceRoutes: RouteObject[] = [
   {
@@ -35,6 +36,21 @@ export const resourceRoutes: RouteObject[] = [
           meta: {
             title: 'Chỉnh sửa tài nguyên',
             breadcrumb: 'Chỉnh sửa',
+          },
+        },
+      },
+      {
+        path: ROUTE_SEGMENTS.TRASH,
+        element: (
+          <PlaceholderFeaturePage
+            title="Thùng rác tài nguyên"
+            description="Xem và khôi phục các tài nguyên đã chuyển vào thùng rác."
+          />
+        ),
+        handle: {
+          meta: {
+            title: 'Thùng rác',
+            breadcrumb: 'Thùng rác',
           },
         },
       },

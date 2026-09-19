@@ -5,4 +5,5 @@ export { reportRoutes } from './reportRoutes';
 export { resourceRoutes } from './resourceRoutes';
 export { profileRoutes } from './profileRoutes';
 export { changePasswordRoutes } from './changePasswordRoutes';
+export { searchRoutes } from './searchRoutes';
 export { adminRoutes } from './adminRoutes';
