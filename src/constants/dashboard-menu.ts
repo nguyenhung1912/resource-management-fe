@@ -85,18 +85,21 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
           functionName: 'Quản lý người dùng',
           functionUrl: APP_PATHS.ADMIN_USERS,
           functionDescription: 'Xem và quản lý danh sách người dùng',
+          allowedRoles: ['Admin']
         },
         {
           functionId: 'F012',
           functionName: 'Quản lý Role',
           functionUrl: APP_PATHS.ADMIN_ROLES,
           functionDescription: 'Xem và quản lý các Role trong hệ thống',
+          allowedRoles: ['Admin']
         },
         {
           functionId: 'F013',
           functionName: 'Phân quyền chức năng',
           functionUrl: APP_PATHS.ADMIN_FUNCTIONS,
           functionDescription: 'Quản lý chức năng và phân quyền chức năng cho Role',
+          allowedRoles: ['Admin']
         },
       ],
     },
