@@ -3,7 +3,6 @@ import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { ROUTE_PARAMS, ROUTE_SEGMENTS } from '@/constants/path';
 import searchLoader from '@/features/resources/pages/searchLoader';
-import ResourceDetailPage from '@/features/resources/pages/ResourceDetailPage';
 import resourceDetailLoader from '@/features/resources/pages/resourceDetailLoader';
 
 const ResourcesManagerPage = lazy(() => import('@/features/resources/pages/ResourcesManagerPage'));
@@ -11,6 +10,7 @@ const UploadResourcePage = lazy(() => import('@/features/resources/pages/UploadR
 const ModifyResourcePage = lazy(() => import('@/features/resources/pages/ModifyResourcePage'));
 const SearchResourcesPage = lazy(() => import('@/features/resources/pages/SearchResourcesPage'));
 const PlaceholderFeaturePage = lazy(() => import('@/features/dashboard/pages/PlaceholderFeaturePage'));
+const ResourceDetailPage = lazy(() => import('@/features/resources/pages/ResourceDetailPage'));
 
 export const resourceRoutes: RouteObject[] = [
   {
