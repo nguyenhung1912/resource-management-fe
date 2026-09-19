@@ -77,7 +77,7 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
     },
 
     {
-      groupId: 'admin-management',
+      groupId: 'user-management',
       groupName: 'Quản trị hệ thống',
       functions: [
         {
