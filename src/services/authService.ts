@@ -1,5 +1,5 @@
 import axiosClient from '@/services/axiosClient';
-
+import { APP_CONFIG } from '@/constants/config';
 import type { DashboardFunction } from '@/features/dashboard/types/dashboard-menu.types';
 
 export const dashboardService = {
@@ -88,9 +88,7 @@ class AuthService implements IAuthService {
   }
 
   getGoogleLoginUrl(): string {
-    const baseUrl = import.meta.env.VITE_API_URL;
-
-    return `${baseUrl}/api/Auth/google-login`;
+    return `${APP_CONFIG.API_BASE_URL}/api/Auth/google-login`;
   }
 }
 

@@ -17,7 +17,7 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
           allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
         {
-          functionId: 'notifications',
+          functionId: 'F014',
           functionName: 'Thông báo',
           functionUrl: APP_PATHS.NOTIFICATIONS,
           functionDescription: 'Theo dõi các thông báo mới',
@@ -78,22 +78,28 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
 
     {
       groupId: 'user-management',
-      groupName: 'Quản lý người dùng',
-      allowedRoles: ['Admin'],
+      groupName: 'Quản trị hệ thống',
       functions: [
         {
-          functionId: 'admin-users',
-          functionName: 'Người dùng',
+          functionId: 'F010',
+          functionName: 'Quản lý người dùng',
           functionUrl: APP_PATHS.ADMIN_USERS,
-          functionDescription: 'Xem và quản lý danh sách người dùng hệ thống',
-          allowedRoles: ['Admin'],
+          functionDescription: 'Xem và quản lý danh sách người dùng',
+          allowedRoles: ['Admin']
         },
         {
-          functionId: 'admin-permissions',
+          functionId: 'F012',
+          functionName: 'Quản lý Role',
+          functionUrl: APP_PATHS.ADMIN_ROLES,
+          functionDescription: 'Xem và quản lý các Role trong hệ thống',
+          allowedRoles: ['Admin']
+        },
+        {
+          functionId: 'F013',
           functionName: 'Phân quyền chức năng',
           functionUrl: APP_PATHS.ADMIN_FUNCTIONS,
-          functionDescription: 'Quản lý chức năng và phân quyền cho từng vai trò',
-          allowedRoles: ['Admin'],
+          functionDescription: 'Quản lý chức năng và phân quyền chức năng cho Role',
+          allowedRoles: ['Admin']
         },
       ],
     },
@@ -104,14 +110,14 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
       allowedRoles: ['Student', 'Lecturer', 'Admin'],
       functions: [
         {
-          functionId: 'upload-resource',
+          functionId: 'F003',
           functionName: 'Upload tài nguyên',
           functionUrl: APP_PATHS.RESOURCE_UPLOAD,
           functionDescription: 'Tải tài liệu mới lên hệ thống',
           allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
         {
-          functionId: 'my-resources',
+          functionId: 'F001',
           functionName: 'Tài nguyên của tôi',
           functionUrl: APP_PATHS.RESOURCES_MANAGER,
           functionDescription: 'Quản lý những tài nguyên bạn đã tải lên',
@@ -139,14 +145,14 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
           allowedRoles: ['Lecturer', 'Admin'],
         },
         {
-          functionId: 'reports-manager',
+          functionId: 'F009',
           functionName: 'Báo cáo vi phạm',
           functionUrl: APP_PATHS.REPORTS_MANAGER,
           functionDescription: 'Xử lý báo cáo vi phạm tài liệu, bình luận và người dùng',
           allowedRoles: ['Lecturer', 'Admin'],
         },
         {
-          functionId: 'trash',
+          functionId: 'F004',
           functionName: 'Thùng rác',
           functionUrl: APP_PATHS.RESOURCE_TRASH,
           functionDescription: 'Xem và khôi phục các tài nguyên đã xóa',

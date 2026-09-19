@@ -37,6 +37,7 @@ export const dashboardRoutes: RouteObject[] = [
       ...reportRoutes,
       ...adminRoutes,
       ...profileRoutes,
+      ...adminRoutes,
     ],
   },
 ];

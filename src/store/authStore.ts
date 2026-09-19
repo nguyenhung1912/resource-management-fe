@@ -87,7 +87,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
       const user: AuthUser = {
         uid: response.uid,
         userCode: response.userCode,
+        fullName: response.fullName,
         email: response.email,
+        roleId: response.roleId,
         role: response.role,
         subMajorCode: response.subMajorCode,
       };

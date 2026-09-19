@@ -1,5 +1,6 @@
 export const ROUTE_SEGMENTS = {
   LOGIN: 'login',
+  GOOGLE_CALLBACK: 'google-callback',
   PROFILE: 'profile',
   CHANGE_PASSWORD: 'change-password',
   FORGOT_PASSWORD: 'forgot-password',
@@ -8,6 +9,12 @@ export const ROUTE_SEGMENTS = {
   APPEALS: 'appeals',
   ASSIGNED_APPEALS: 'assigned',
   DASHBOARD: 'dashboard',
+
+  ADMIN: 'admin',
+  USERS: 'users',
+  ROLES: 'roles',
+  FUNCTIONS: 'functions',
+
   RESOURCES_MANAGER: 'resources-manager',
   RESOURCE_UPLOAD: 'upload',
   RESOURCE_EDIT: 'edit',
@@ -30,9 +37,6 @@ export const ROUTE_SEGMENTS = {
   SEARCH: 'search',
 
   // Administration & System management
-  ADMIN: 'admin',
-  USERS: 'users',
-  FUNCTIONS: 'functions',
   SYSTEM_FUNCTIONS: 'system-functions',
   ACADEMIC: 'academic',
   AUDIT_LOGS: 'audit-logs',
@@ -56,6 +60,8 @@ export const APP_PATHS = {
 
   LOGIN: `/${ROUTE_SEGMENTS.LOGIN}`,
 
+  GOOGLE_CALLBACK: `/${ROUTE_SEGMENTS.GOOGLE_CALLBACK}`,
+
   LOGIN_WITH_REDIRECT: (redirect: string) => `/${ROUTE_SEGMENTS.LOGIN}?redirect=${encodeURIComponent(redirect)}`,
 
   PROFILE: `/${ROUTE_SEGMENTS.PROFILE}`,
@@ -73,7 +79,6 @@ export const APP_PATHS = {
   APPEAL_DETAIL: (appealId: string | number) => `/${ROUTE_SEGMENTS.APPEALS}/${appealId}`,
 
   DASHBOARD: `/${ROUTE_SEGMENTS.DASHBOARD}`,
-
   // Digital resources
   ALL_RESOURCES: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.RESOURCES}`,
   LECTURES: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.LECTURES}`,
@@ -111,6 +116,7 @@ export const APP_PATHS = {
 
   // Admin & System
   ADMIN_USERS: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.ADMIN}/${ROUTE_SEGMENTS.USERS}`,
+  ADMIN_ROLES: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.ADMIN}/${ROUTE_SEGMENTS.ROLES}`,
   ADMIN_FUNCTIONS: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.ADMIN}/${ROUTE_SEGMENTS.FUNCTIONS}`,
   ADMIN_SYSTEM_FUNCTIONS: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.ADMIN}/${ROUTE_SEGMENTS.SYSTEM_FUNCTIONS}`,
   ADMIN_ACADEMIC: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.ADMIN}/${ROUTE_SEGMENTS.ACADEMIC}`,

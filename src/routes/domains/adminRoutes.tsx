@@ -1,15 +1,27 @@
 /* eslint-disable react-refresh/only-export-components */
+
 import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
+
 import { ROUTE_SEGMENTS } from '@/constants/path';
+
+import { adminAccountsLoader } from '@/features/admin/accounts/pages/adminAccountsLoader';
+import { adminRolesLoader } from '@/features/admin/roles/pages/adminRolesLoader';
+import { adminPermissionsLoader } from '@/features/admin/permissions/pages/adminPermissionsLoader';
+
 import { RoleGuard } from '../guards/RoleGuard';
+
+const AdminAccountsPage = lazy(() => import('@/features/admin/accounts/pages/AdminAccountsPage'));
+
+const AdminRolesPage = lazy(() => import('@/features/admin/roles/pages/AdminRolesPage'));
+
+const AdminPermissionsPage = lazy(() => import('@/features/admin/permissions/pages/AdminPermissionsPage'));
 
 const PlaceholderFeaturePage = lazy(() => import('@/features/dashboard/pages/PlaceholderFeaturePage'));
 
 export const adminRoutes: RouteObject[] = [
   {
     path: ROUTE_SEGMENTS.ADMIN,
-    element: <RoleGuard allowedRoles={['Admin', 'Lecturer']} />,
     handle: {
       meta: {
         title: 'Quản trị hệ thống',
@@ -17,33 +29,37 @@ export const adminRoutes: RouteObject[] = [
       },
     },
     children: [
+      // F010 - Quản lý người dùng
       {
         path: ROUTE_SEGMENTS.USERS,
-        element: (
-          <RoleGuard allowedRoles={['Admin']}>
-            <PlaceholderFeaturePage
-              title="Quản lý Người dùng"
-              description="Xem và quản lý danh sách tài khoản sinh viên, giảng viên và quản trị viên."
-            />
-          </RoleGuard>
-        ),
+        loader: adminAccountsLoader,
+        element: <AdminAccountsPage />,
         handle: {
           meta: {
-            title: 'Quản lý Người dùng',
+            title: 'Quản lý người dùng',
             breadcrumb: 'Người dùng',
           },
         },
       },
+
+      // F012 - Quản lý Role
+      {
+        path: ROUTE_SEGMENTS.ROLES,
+        loader: adminRolesLoader,
+        element: <AdminRolesPage />,
+        handle: {
+          meta: {
+            title: 'Quản lý Role',
+            breadcrumb: 'Role',
+          },
+        },
+      },
+
+      // F013 - Phân quyền chức năng
       {
         path: ROUTE_SEGMENTS.FUNCTIONS,
-        element: (
-          <RoleGuard allowedRoles={['Admin']}>
-            <PlaceholderFeaturePage
-              title="Phân quyền Chức năng"
-              description="Quản lý ma trận phân quyền và gán chức năng cho từng vai trò trong hệ thống."
-            />
-          </RoleGuard>
-        ),
+        loader: adminPermissionsLoader,
+        element: <AdminPermissionsPage />,
         handle: {
           meta: {
             title: 'Phân quyền chức năng',
@@ -51,6 +67,8 @@ export const adminRoutes: RouteObject[] = [
           },
         },
       },
+
+      // Cấu hình chức năng hệ thống
       {
         path: ROUTE_SEGMENTS.SYSTEM_FUNCTIONS,
         element: (
@@ -68,13 +86,17 @@ export const adminRoutes: RouteObject[] = [
           },
         },
       },
+
+      // Quản lý học vụ
       {
         path: ROUTE_SEGMENTS.ACADEMIC,
         element: (
-          <PlaceholderFeaturePage
-            title="Quản lý Học vụ"
-            description="Quản lý thông tin khoa, ngành đào tạo, học kỳ và học phần giảng dạy."
-          />
+          <RoleGuard allowedRoles={['Admin', 'Lecturer']}>
+            <PlaceholderFeaturePage
+              title="Quản lý Học vụ"
+              description="Quản lý thông tin khoa, ngành đào tạo, học kỳ và học phần giảng dạy."
+            />
+          </RoleGuard>
         ),
         handle: {
           meta: {
@@ -83,6 +105,8 @@ export const adminRoutes: RouteObject[] = [
           },
         },
       },
+
+      // Nhật ký lưu vết
       {
         path: ROUTE_SEGMENTS.AUDIT_LOGS,
         element: (
@@ -100,13 +124,17 @@ export const adminRoutes: RouteObject[] = [
           },
         },
       },
+
+      // Thống kê
       {
         path: ROUTE_SEGMENTS.STATISTICS,
         element: (
-          <PlaceholderFeaturePage
-            title="Thống kê Học liệu"
-            description="Tổng hợp biểu đồ xuất bản học liệu, lượt tải về và báo cáo tỷ lệ đạo văn AI."
-          />
+          <RoleGuard allowedRoles={['Admin', 'Lecturer']}>
+            <PlaceholderFeaturePage
+              title="Thống kê Học liệu"
+              description="Tổng hợp biểu đồ xuất bản học liệu, lượt tải về và báo cáo tỷ lệ đạo văn AI."
+            />
+          </RoleGuard>
         ),
         handle: {
           meta: {
