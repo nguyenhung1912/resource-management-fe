@@ -3,6 +3,7 @@ import { type FormEvent, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { ArrowLeft } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { Link } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
@@ -112,6 +113,16 @@ export function LoginForm({ isLoading, error, onSubmit, onGoogleLogin }: LoginFo
       >
         {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
       </Button>
+
+      <div className="pt-2 text-center">
+        <Link
+          to={APP_PATHS.HOME}
+          className="inline-flex items-center justify-center gap-1.5 text-sm font-medium text-text-muted transition-colors hover:text-primary outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-md py-1 px-2"
+        >
+          <ArrowLeft className="size-4" />
+          <span>Quay lại trang chủ</span>
+        </Link>
+      </div>
     </form>
   );
 }
