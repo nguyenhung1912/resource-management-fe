@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import {
   ArrowRight,
   BookOpen,
@@ -98,8 +98,11 @@ const PLATFORM_METRICS = [
 ];
 
 export default function App() {
-  const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  if (isAuthenticated) {
+    return <Navigate to={APP_PATHS.DASHBOARD} replace />;
+  }
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -115,17 +118,10 @@ export default function App() {
                 <span className="h-1.5 w-1.5 rounded-full bg-success mr-1.5 animate-pulse" />
                 Hệ thống hoạt động bình thường
               </Badge>
-              {isAuthenticated && user?.role ? (
-                <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-primary/10 text-primary border border-primary/20 select-none">
-                  Vai trò: {user.role}
-                </span>
-              ) : null}
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-text-main">
-              {isAuthenticated && user?.fullName
-                ? `Xin chào, ${user.fullName}!`
-                : 'Cổng Quản lý Tài nguyên Học liệu Số'}
+              Cổng Quản lý Tài nguyên Học liệu Số
             </h1>
             <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
               Hệ thống lưu trữ, kiểm duyệt tài liệu học tập, phát hiện đạo văn bằng AI và xử lý khiếu nại bản quyền dành
