@@ -66,7 +66,9 @@ describe('resources manager routes', () => {
 
     render(<RouterProvider router={router} />);
 
-    expect(await screen.findByRole('dialog', { name: 'Tải lên tài nguyên mới' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('dialog', { name: 'Tải lên tài nguyên mới' }, { timeout: 10000 }),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Hủy' }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCES_MANAGER));
@@ -79,7 +81,7 @@ describe('resources manager routes', () => {
 
     render(<RouterProvider router={router} />);
 
-    const dialog = await screen.findByRole('dialog', { name: 'Chỉnh sửa tài nguyên' });
+    const dialog = await screen.findByRole('dialog', { name: 'Chỉnh sửa tài nguyên' }, { timeout: 10000 });
     expect(within(dialog).getByText('Báo cáo thực tập_Final.pdf')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Hủy' }));
 

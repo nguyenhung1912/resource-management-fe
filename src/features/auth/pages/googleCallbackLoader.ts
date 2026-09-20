@@ -17,7 +17,7 @@ export async function googleCallbackLoader({ request }: { request: Request }) {
   try {
     await useAuthStore.getState().completeGoogleLogin(token, expiration);
 
-    return redirect(APP_PATHS.HOME);
+    return redirect(APP_PATHS.DASHBOARD);
   } catch {
     return redirect(`${APP_PATHS.LOGIN}?error=google_login_failed`);
   }
