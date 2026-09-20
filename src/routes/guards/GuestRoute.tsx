@@ -12,7 +12,7 @@ export function GuestRoute({ children }: GuestRouteProps) {
   const [searchParams] = useSearchParams();
 
   if (isAuthenticated) {
-    const target = searchParams.get('redirect') || APP_PATHS.HOME;
+    const target = searchParams.get('redirect') || APP_PATHS.DASHBOARD;
     return <Navigate to={target} replace />;
   }
 

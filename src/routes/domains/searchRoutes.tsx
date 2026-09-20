@@ -2,8 +2,10 @@
 import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { ROUTE_SEGMENTS } from '@/constants/path';
+import { sourceCodeLoader } from '@/features/digital-resources/source-code/pages/sourceCodeLoader';
 
 const SearchHubPage = lazy(() => import('@/features/dashboard/pages/SearchHubPage'));
+const SourceCodePage = lazy(() => import('@/features/digital-resources/source-code/pages/SourceCodePage'));
 const PlaceholderFeaturePage = lazy(() => import('@/features/dashboard/pages/PlaceholderFeaturePage'));
 
 export const searchRoutes: RouteObject[] = [
@@ -74,15 +76,11 @@ export const searchRoutes: RouteObject[] = [
   },
   {
     path: ROUTE_SEGMENTS.SOURCE_CODE,
-    element: (
-      <PlaceholderFeaturePage
-        title="Kho Mã nguồn & Dự án mẫu"
-        description="Lưu trữ tài nguyên mã nguồn lập trình, dự án mẫu và thư viện dùng chung."
-      />
-    ),
+    loader: sourceCodeLoader,
+    element: <SourceCodePage />,
     handle: {
       meta: {
-        title: 'Mã nguồn',
+        title: 'Kho Mã nguồn & Dự án mẫu',
         breadcrumb: 'Mã nguồn',
       },
     },
