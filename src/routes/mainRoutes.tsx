@@ -4,8 +4,6 @@ import type { RouteObject } from 'react-router-dom';
 import { PageLoadingState } from '@/components/common/PageLoadingState';
 import { APP_PATHS } from '@/constants/path';
 import { MainLayout } from '@/layouts/MainLayout';
-import { appealRoutes, notificationRoutes, profileRoutes, changePasswordRoutes } from './domains';
-import { ProtectedRoute } from './guards/ProtectedRoute';
 
 const HomePage = lazy(() => import('@/App'));
 const ServerErrorPage = lazy(() =>
@@ -33,10 +31,6 @@ export const mainRoutes: RouteObject[] = [
             breadcrumb: 'Trang chủ',
           },
         },
-      },
-      {
-        element: <ProtectedRoute />,
-        children: [...notificationRoutes, ...appealRoutes, ...profileRoutes, ...changePasswordRoutes],
       },
     ],
   },

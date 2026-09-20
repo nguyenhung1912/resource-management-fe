@@ -1,4 +1,4 @@
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
 
@@ -15,6 +15,7 @@ import { cn } from '@/utils/cn';
 
 export function DashboardLayout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 1024 : false));
   const navigate = useNavigate();
 
   const logout = useAuthStore((state) => state.logout);
@@ -23,6 +24,21 @@ export function DashboardLayout() {
   const { functions } = useDashboardFunctions();
 
   useDocumentTitle();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleNavigate = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsMenuOpen(false);
+    }
+  };
 
   const displayName = user?.fullName ?? user?.userCode ?? 'Người dùng';
 
@@ -59,11 +75,12 @@ export function DashboardLayout() {
 
         <aside
           id="dashboard-menu"
-          aria-hidden={!isMenuOpen}
-          inert={!isMenuOpen}
+          aria-hidden={isMobile ? !isMenuOpen : undefined}
+          inert={isMobile && !isMenuOpen ? true : undefined}
           className={cn(
-            'fixed bottom-0 left-0 top-16 z-40 w-64 shrink-0 transform overflow-visible transition-[transform,width] duration-200 lg:static lg:h-full',
-            isMenuOpen ? 'translate-x-0 lg:w-64' : '-translate-x-full lg:w-0 lg:-translate-x-full',
+            'fixed bottom-0 left-0 top-16 z-40 w-64 shrink-0 transform overflow-visible transition-[transform,width] duration-200',
+            'lg:static lg:h-full lg:translate-x-0',
+            isMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
           )}
         >
           <DashboardMenu
@@ -72,7 +89,7 @@ export function DashboardLayout() {
               displayName,
               secondaryText: user?.role ?? '',
             }}
-            onNavigate={() => setIsMenuOpen(false)}
+            onNavigate={handleNavigate}
           />
         </aside>
 

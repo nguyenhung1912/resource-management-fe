@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { Link, useInRouterContext, useNavigate, type NavigateFunction } from 'react-router-dom';
-import { Layers, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 
+import logoQnu from '@/assets/logo-qnu.webp';
 import { APP_PATHS } from '@/constants/path';
 import type { DashboardHeaderUser } from '@/features/dashboard/types/dashboard-header.types';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
@@ -74,19 +75,21 @@ export function DashboardHeader({
           aria-expanded={isMenuOpen}
           aria-controls="dashboard-menu"
           onClick={onToggleMenu}
-          className="inline-flex size-10 items-center justify-center rounded-lg text-text-muted hover:text-text-main transition-colors hover:bg-background cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+          className="inline-flex size-10 items-center justify-center rounded-lg text-text-muted hover:text-text-main transition-colors hover:bg-background cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/40 lg:hidden"
         >
           <Menu className="size-5" aria-hidden="true" />
         </button>
 
         {inRouter ? (
           <Link
-            to={APP_PATHS.HOME}
+            to={APP_PATHS.DASHBOARD}
             className="flex items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary/40 group"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 transition-transform group-hover:scale-105">
-              <Layers className="h-5 w-5" />
-            </div>
+            <img
+              src={logoQnu}
+              alt="Logo Trường Đại học Quy Nhơn"
+              className="size-9 rounded-full border border-border/80 bg-surface object-contain p-0.5 shadow-2xs shrink-0 transition-transform group-hover:scale-105"
+            />
             <div className="min-w-0">
               <span className="block text-sm sm:text-base font-bold leading-tight tracking-tight text-text-main truncate group-hover:text-primary transition-colors">
                 TRƯỜNG ĐẠI HỌC QUY NHƠN
@@ -106,9 +109,11 @@ export function DashboardHeader({
             }}
             className="flex items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary/40 cursor-pointer group"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 transition-transform group-hover:scale-105">
-              <Layers className="h-5 w-5" />
-            </div>
+            <img
+              src={logoQnu}
+              alt="Logo Trường Đại học Quy Nhơn"
+              className="size-9 rounded-full border border-border/80 bg-surface object-contain p-0.5 shadow-2xs shrink-0 transition-transform group-hover:scale-105"
+            />
             <div className="min-w-0">
               <span className="block text-sm sm:text-base font-bold leading-tight tracking-tight text-text-main truncate group-hover:text-primary transition-colors">
                 TRƯỜNG ĐẠI HỌC QUY NHƠN

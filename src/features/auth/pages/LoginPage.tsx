@@ -1,8 +1,9 @@
-import { Layers3 } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
 
+import logoQnu from '@/assets/logo-qnu.webp';
+import { APP_PATHS } from '@/constants/path';
 import { LoginForm } from '@/features/auth/components/LoginForm';
 import { useLogin } from '@/features/auth/hooks/useLogin';
-import { useSearchParams } from 'react-router-dom';
 
 export function LoginPage() {
   const { error, isLoading, handleLogin, handleGoogleLogin } = useLogin();
@@ -47,22 +48,27 @@ export function LoginPage() {
           text-center
         "
       >
-        <div
+        <Link
+          to={APP_PATHS.HOME}
+          aria-label="Về trang chủ"
           className="
             mx-auto
             mb-4
-            flex
-            h-14
-            w-14
-            items-center
-            justify-center
-            rounded-xl
-            bg-primary/10
-            text-primary
+            inline-block
+            rounded-full
+            outline-none
+            transition-transform
+            hover:scale-105
+            focus-visible:ring-2
+            focus-visible:ring-primary/40
           "
         >
-          <Layers3 className="h-7 w-7" />
-        </div>
+          <img
+            src={logoQnu}
+            alt="Logo Trường Đại học Quy Nhơn"
+            className="size-20 rounded-full border-2 border-border/80 bg-surface object-contain p-1.5 shadow-2xs"
+          />
+        </Link>
 
         <h1
           className="
