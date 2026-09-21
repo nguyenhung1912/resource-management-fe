@@ -259,4 +259,86 @@ describe('UploadResourceModal', () => {
 
     expect(handleClose).toHaveBeenCalledTimes(1);
   });
+
+  it('hỗ trợ lọc phân cấp Khoa -> Ngành -> Chuyên ngành -> Học phần khi có dữ liệu học thuật', () => {
+    const departments = [
+      { value: 'DEPT-001', label: 'Công nghệ Thông tin' },
+      { value: 'DEPT-002', label: 'Kinh tế' },
+    ];
+    const majors = [
+      { value: 'MAJOR-001', label: 'Kỹ thuật Phần mềm' },
+      { value: 'MAJOR-002', label: 'Quản trị Kinh doanh' },
+    ];
+    const subMajors = [
+      { value: 'SM-SE', label: 'Công nghệ Phần mềm' },
+      { value: 'SM-BA', label: 'Phân tích Kinh doanh' },
+    ];
+    const courses = [
+      { value: 'PRN222', label: 'PRN222 - C# .NET' },
+      { value: 'MKT101', label: 'MKT101 - Marketing căn bản' },
+    ];
+
+    renderModal({
+      departments,
+      majors,
+      subMajors,
+      courses,
+      majorDetails: [
+        { majorId: 'MAJOR-001', majorName: 'Kỹ thuật Phần mềm', departmentId: 'DEPT-001' },
+        { majorId: 'MAJOR-002', majorName: 'Quản trị Kinh doanh', departmentId: 'DEPT-002' },
+      ],
+      subMajorDetails: [
+        { subMajorCode: 'SM-SE', subMajorName: 'Công nghệ Phần mềm', majorId: 'MAJOR-001' },
+        { subMajorCode: 'SM-BA', subMajorName: 'Phân tích Kinh doanh', majorId: 'MAJOR-002' },
+      ],
+      courseDetails: [
+        { courseCode: 'PRN222', courseName: 'C# .NET', subMajorCode: 'SM-SE' },
+        { courseCode: 'MKT101', courseName: 'Marketing căn bản', subMajorCode: 'SM-BA' },
+      ],
+    });
+
+    expect(screen.getByLabelText(/khoa \/ đơn vị/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/ngành đào tạo/i)).toBeInTheDocument();
+
+    // 1. Chọn khoa CNTT -> Ngành Kinh tế bị lọc ra
+    fireEvent.change(screen.getByLabelText(/khoa \/ đơn vị/i), { target: { value: 'DEPT-001' } });
+    expect(screen.getByRole('option', { name: 'Kỹ thuật Phần mềm' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Quản trị Kinh doanh' })).not.toBeInTheDocument();
+
+    // 2. Chọn ngành CNTT -> Chuyên ngành Kinh doanh bị lọc ra
+    fireEvent.change(screen.getByLabelText(/ngành đào tạo/i), { target: { value: 'MAJOR-001' } });
+    expect(screen.getByRole('option', { name: 'Công nghệ Phần mềm' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'Phân tích Kinh doanh' })).not.toBeInTheDocument();
+
+    // 3. Chọn chuyên ngành SE -> Học phần MKT101 bị lọc ra
+    fireEvent.change(screen.getByLabelText(/chuyên ngành/i), { target: { value: 'SM-SE' } });
+    expect(screen.getByRole('option', { name: 'PRN222 - C# .NET' })).toBeInTheDocument();
+    expect(screen.queryByRole('option', { name: 'MKT101 - Marketing căn bản' })).not.toBeInTheDocument();
+  });
+
+  it('tự động đồng bộ Khoa và Ngành khi người dùng chọn Chuyên ngành trực tiếp', () => {
+    renderModal({
+      departments: [{ value: 'DEPT-001', label: 'Công nghệ Thông tin' }],
+      majors: [{ value: 'MAJOR-001', label: 'Kỹ thuật Phần mềm' }],
+      subMajors: [{ value: 'SM-SE', label: 'Công nghệ Phần mềm' }],
+      courses: [{ value: 'PRN222', label: 'PRN222 - C# .NET' }],
+      majorDetails: [{ majorId: 'MAJOR-001', majorName: 'Kỹ thuật Phần mềm', departmentId: 'DEPT-001' }],
+      subMajorDetails: [{ subMajorCode: 'SM-SE', subMajorName: 'Công nghệ Phần mềm', majorId: 'MAJOR-001' }],
+      courseDetails: [{ courseCode: 'PRN222', courseName: 'C# .NET', subMajorCode: 'SM-SE' }],
+    });
+
+    const deptSelect = screen.getByLabelText(/khoa \/ đơn vị/i);
+    const majorSelect = screen.getByLabelText(/ngành đào tạo/i);
+    const subMajorSelect = screen.getByLabelText(/chuyên ngành/i);
+
+    expect(deptSelect).toHaveValue('');
+    expect(majorSelect).toHaveValue('');
+
+    // Chọn chuyên ngành trực tiếp
+    fireEvent.change(subMajorSelect, { target: { value: 'SM-SE' } });
+
+    // Tự động map ngược lên Ngành và Khoa
+    expect(majorSelect).toHaveValue('MAJOR-001');
+    expect(deptSelect).toHaveValue('DEPT-001');
+  });
 });

@@ -103,4 +103,34 @@ describe('UploadResourcePage', () => {
     if (!(retriedBody instanceof FormData)) throw new Error('Upload phải sử dụng FormData');
     expect(retriedBody.get('File')).toBe(file);
   });
+
+  it('hiển thị đầy đủ danh mục học thuật (khoa, ngành, chuyên ngành, học phần) khi có dữ liệu loader', async () => {
+    const mockLoaderData = {
+      departments: [{ id: 'DEPT-001', name: 'Khoa Công nghệ Thông tin' }],
+      majors: [{ majorId: 'MAJOR-001', majorName: 'Kỹ thuật Phần mềm', departmentId: 'DEPT-001' }],
+      subMajors: [{ subMajorCode: 'SM-SE', subMajorName: 'Công nghệ Phần mềm', majorId: 'MAJOR-001' }],
+      courses: [{ courseCode: 'COURSE-001', courseName: 'Lập trình C#', subMajorCode: 'SM-SE' }],
+      fileTypes: [{ id: 10, name: 'Tài liệu thí nghiệm' }],
+    };
+
+    const router = createMemoryRouter(
+      [
+        {
+          path: APP_PATHS.RESOURCE_UPLOAD,
+          element: <UploadResourcePage />,
+          loader: () => mockLoaderData,
+        },
+        { path: APP_PATHS.RESOURCES_MANAGER, element: <h1>Quản lý tài nguyên</h1> },
+      ],
+      { initialEntries: [APP_PATHS.RESOURCE_UPLOAD] },
+    );
+    render(<RouterProvider router={router} />);
+
+    expect(await screen.findByRole('dialog', { name: 'Tải lên tài nguyên mới' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Khoa Công nghệ Thông tin' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Kỹ thuật Phần mềm' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Công nghệ Phần mềm (SM-SE)' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'COURSE-001 - Lập trình C#' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Tài liệu thí nghiệm' })).toBeInTheDocument();
+  });
 });

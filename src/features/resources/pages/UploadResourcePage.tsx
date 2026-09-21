@@ -1,10 +1,11 @@
-import { useNavigate } from 'react-router-dom';
+import { useLoaderData, useNavigate } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
 import { UploadResourceModal } from '@/features/resources/components/UploadResourceModal';
 import { useUploadResource } from '@/features/resources/hooks/useUploadResource';
+import type { UploadResourceLoaderData } from '@/features/resources/pages/uploadResourceLoader';
 import type { SelectOption, UploadResourceFormValues } from '@/features/resources/types/resource.types';
 
-// Tạm giữ các danh mục hiện tại đến khi tích hợp API danh mục.
+// Dữ liệu fallback dự phòng khi chưa tải được loader hoặc môi trường test biệt lập
 const previewFileTypes: SelectOption<number>[] = [
   { value: 1, label: 'Báo cáo nghiên cứu' },
   { value: 2, label: 'Đồ án' },
@@ -25,6 +26,7 @@ const previewCourses: SelectOption<string>[] = [
 export function UploadResourcePage() {
   const navigate = useNavigate();
   const { isSubmitting, apiError, uploadResource } = useUploadResource();
+  const loaderData = useLoaderData() as UploadResourceLoaderData | undefined;
 
   const closeUpload = () => {
     void navigate(APP_PATHS.RESOURCES_MANAGER);
@@ -35,14 +37,60 @@ export function UploadResourcePage() {
     if (isUploaded) closeUpload();
   };
 
+  const rawFileTypes = loaderData?.fileTypes;
+  const rawDepartments = loaderData?.departments;
+  const rawMajors = loaderData?.majors;
+  const rawSubMajors = loaderData?.subMajors;
+  const rawCourses = loaderData?.courses;
+
+  const fileTypes: SelectOption<number>[] = rawFileTypes?.length
+    ? rawFileTypes.map((ft) => ({
+        value: Number(ft.id),
+        label: ft.name,
+      }))
+    : previewFileTypes;
+
+  const departments: SelectOption<string>[] = rawDepartments?.length
+    ? rawDepartments.map((d) => ({
+        value: d.id,
+        label: d.name,
+      }))
+    : [];
+
+  const majors: SelectOption<string>[] = rawMajors?.length
+    ? rawMajors.map((m) => ({
+        value: m.majorId,
+        label: m.majorName,
+      }))
+    : [];
+
+  const subMajors: SelectOption<string>[] = rawSubMajors?.length
+    ? rawSubMajors.map((sm) => ({
+        value: sm.subMajorCode,
+        label: `${sm.subMajorName} (${sm.subMajorCode})`,
+      }))
+    : previewSubMajors;
+
+  const courses: SelectOption<string>[] = rawCourses?.length
+    ? rawCourses.map((c) => ({
+        value: c.courseCode,
+        label: `${c.courseCode} - ${c.courseName}`,
+      }))
+    : previewCourses;
+
   return (
     <UploadResourceModal
       isOpen
       isSubmitting={isSubmitting}
       apiError={apiError}
-      fileTypes={previewFileTypes}
-      subMajors={previewSubMajors}
-      courses={previewCourses}
+      fileTypes={fileTypes}
+      departments={departments}
+      majors={majors}
+      subMajors={subMajors}
+      courses={courses}
+      subMajorDetails={rawSubMajors}
+      courseDetails={rawCourses}
+      majorDetails={rawMajors}
       onClose={closeUpload}
       onSubmit={handleSubmit}
     />

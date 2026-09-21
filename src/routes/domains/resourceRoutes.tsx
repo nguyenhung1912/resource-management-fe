@@ -2,6 +2,7 @@
 import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { ROUTE_PARAMS, ROUTE_SEGMENTS } from '@/constants/path';
+import { uploadResourceLoader } from '@/features/resources/pages/uploadResourceLoader';
 
 const ResourcesManagerPage = lazy(() => import('@/features/resources/pages/ResourcesManagerPage'));
 const UploadResourcePage = lazy(() => import('@/features/resources/pages/UploadResourcePage'));
@@ -22,6 +23,7 @@ export const resourceRoutes: RouteObject[] = [
       {
         path: ROUTE_SEGMENTS.RESOURCE_UPLOAD,
         element: <UploadResourcePage />,
+        loader: uploadResourceLoader,
         handle: {
           meta: {
             title: 'Tải lên tài nguyên',
