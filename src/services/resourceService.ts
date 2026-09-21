@@ -1,5 +1,10 @@
 import axiosClient from '@/services/axiosClient';
-import type { UploadResourceRequest } from '@/features/resources/types/resource.types';
+import type {
+  MyUploadFilterRequest,
+  MyUploadItemResponse,
+  PaginatedResponse,
+  UploadResourceRequest,
+} from '@/features/resources/types/resource.types';
 import type {
   LookupItem,
   SourceCodeDetail,
@@ -154,6 +159,42 @@ export const resourceService = {
       },
     });
 
+    return response.data;
+  },
+
+  // GET /api/Resources/my-uploads
+  async getMyUploads(filter: MyUploadFilterRequest = {}): Promise<PaginatedResponse<MyUploadItemResponse>> {
+    const params: Record<string, string | number> = {
+      PageNumber: filter.pageNumber ?? 1,
+      PageSize: filter.pageSize ?? 10,
+    };
+
+    if (filter.search?.trim()) {
+      params.Search = filter.search.trim();
+    }
+    if (filter.fileStatusId !== undefined && filter.fileStatusId > 0) {
+      params.FileStatusId = filter.fileStatusId;
+    }
+    if (filter.fileTypeId !== undefined && filter.fileTypeId > 0) {
+      params.FileTypeId = filter.fileTypeId;
+    }
+    if (filter.sortBy?.trim()) {
+      params.SortBy = filter.sortBy.trim();
+    }
+    if (filter.sortDirection) {
+      params.SortDirection = filter.sortDirection;
+    }
+
+    const response = await axiosClient.get<PaginatedResponse<MyUploadItemResponse>>('/api/Resources/my-uploads', {
+      params,
+    });
+
+    return response.data;
+  },
+
+  // DELETE /api/Resources/{fileId}
+  async deleteResource(fileId: string): Promise<{ message: string }> {
+    const response = await axiosClient.delete<{ message: string }>(`/api/Resources/${encodeURIComponent(fileId)}`);
     return response.data;
   },
 };

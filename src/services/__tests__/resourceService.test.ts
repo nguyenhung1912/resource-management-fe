@@ -13,6 +13,7 @@ vi.mock('@/services/axiosClient', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
@@ -433,6 +434,92 @@ describe('resourceService', () => {
           'Content-Type': 'multipart/form-data',
         },
       });
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('getMyUploads', () => {
+    it('gọi GET /api/Resources/my-uploads với tham số mặc định', async () => {
+      const mockResult = {
+        items: [],
+        totalCount: 0,
+        pageNumber: 1,
+        pageSize: 10,
+        totalPages: 0,
+      };
+
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: mockResult });
+
+      const result = await resourceService.getMyUploads();
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/Resources/my-uploads', {
+        params: {
+          PageNumber: 1,
+          PageSize: 10,
+        },
+      });
+      expect(result).toEqual(mockResult);
+    });
+
+    it('gửi đầy đủ các tham số lọc khi được truyền', async () => {
+      const mockResult = {
+        items: [
+          {
+            fileId: 'FIL_001',
+            fileName: 'Báo cáo thực tập.pdf',
+            fileTypeName: 'Báo cáo',
+            fileStatusId: 1,
+            fileStatusName: 'Đã duyệt',
+            majorId: 'CNTT',
+            majorName: 'Công nghệ thông tin',
+            subMajorName: 'Kỹ thuật phần mềm',
+            courseName: 'Thực tập tốt nghiệp',
+            keywords: ['thực tập'],
+            authors: [{ id: 'USR_1', fullName: 'Nguyễn Văn A' }],
+          },
+        ],
+        totalCount: 1,
+        pageNumber: 2,
+        pageSize: 5,
+        totalPages: 1,
+      };
+
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: mockResult });
+
+      const result = await resourceService.getMyUploads({
+        search: '  thực tập  ',
+        fileStatusId: 1,
+        fileTypeId: 2,
+        pageNumber: 2,
+        pageSize: 5,
+        sortBy: 'CreatedAt',
+        sortDirection: 'desc',
+      });
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/Resources/my-uploads', {
+        params: {
+          Search: 'thực tập',
+          FileStatusId: 1,
+          FileTypeId: 2,
+          PageNumber: 2,
+          PageSize: 5,
+          SortBy: 'CreatedAt',
+          SortDirection: 'desc',
+        },
+      });
+      expect(result).toEqual(mockResult);
+      expect(result.items).toHaveLength(1);
+    });
+  });
+
+  describe('deleteResource', () => {
+    it('gọi DELETE /api/Resources/{fileId} với fileId được mã hóa an toàn', async () => {
+      const mockResponse = { message: 'Xóa tài nguyên thành công.' };
+      vi.mocked(axiosClient.delete).mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await resourceService.deleteResource('res/special#1');
+
+      expect(axiosClient.delete).toHaveBeenCalledWith('/api/Resources/res%2Fspecial%231');
       expect(result).toEqual(mockResponse);
     });
   });

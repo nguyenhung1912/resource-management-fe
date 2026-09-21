@@ -47,17 +47,51 @@ export interface ModifyResourceFormValues {
   bannerImage: File | null;
 }
 
+export interface MyUploadFilterRequest {
+  search?: string;
+  fileStatusId?: number;
+  fileTypeId?: number;
+  pageNumber?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc' | string;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export interface ResourceAuthorResponse {
-  id: string;
-  fullName: string;
+  id?: string;
+  fullName?: string;
+  authorName?: string;
 }
 
 export interface ResourceResponse {
-  id: string;
+  id?: string;
+  fileId?: string;
   fileName: string;
+  fileDescription?: string | null;
+  fileUrl?: string | null;
+  fileTypeId?: number;
   fileTypeName: string;
-  fileSizeBytes: number | null;
-  uploadedAt: string;
+  subMajorCode?: string | null;
+  courseCode?: string | null;
+  yearCompleted?: number | null;
+  authorNames?: string[];
+  githubLink?: string | null;
+  bannerImage?: string | null;
+  fileSize?: number | null;
+  fileSizeBytes?: number | null;
+  createdAt?: string;
+  uploadedAt?: string;
+  updatedAt?: string;
+  uploadBy?: string | null;
+  statusName?: string | null;
 }
 
 export interface MyUploadItemResponse extends ResourceResponse {

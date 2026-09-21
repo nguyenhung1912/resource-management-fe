@@ -12,7 +12,7 @@ export interface ResourceStat {
   colorVariant?: StatCardColorVariant;
 }
 
-const SAMPLE_RESOURCE_STATS: ResourceStat[] = [
+export const SAMPLE_RESOURCE_STATS: ResourceStat[] = [
   {
     label: 'Đã duyệt',
     value: 856,
