@@ -104,3 +104,56 @@ export interface MyUploadItemResponse extends ResourceResponse {
   keywords: string[];
   authors: ResourceAuthorResponse[];
 }
+
+export interface UpdateResourceRequest {
+  fileName?: string | null;
+  fileDescription?: string | null;
+  fileTypeId?: number | null;
+  majorID?: string | null;
+  subMajorCode?: string | null;
+  courseCode?: string | null;
+  yearCompleted?: number | null;
+  gitHubLink?: string | null;
+  fileBannerImage?: string | null;
+}
+
+export interface UpdateAuthorsRequest {
+  authorNames: string[];
+}
+
+export interface AddKeywordsRequest {
+  keywords: string[];
+}
+
+export interface ResourceKeywordItem {
+  fileKeywordId: string;
+  keyword: string;
+}
+
+export interface ResourceDetailResponse {
+  fileId: string;
+  fileName: string;
+  fileDescription?: string | null;
+  fileUrl?: string | null;
+  fileTypeId: number;
+  fileTypeName?: string | null;
+  fileStatusId: number;
+  fileStatusName?: string | null;
+  majorId?: string | null;
+  majorName?: string | null;
+  subMajorCode?: string | null;
+  subMajorName?: string | null;
+  courseCode?: string | null;
+  courseName?: string | null;
+  yearCompleted?: number | null;
+  uploadUserId?: string | null;
+  uploadUserName?: string | null;
+  githubLink?: string | null;
+  bannerImage?: string | null;
+  fileSize: number;
+  createdAt: string;
+  updatedAt?: string | null;
+  keywords: string[];
+  authorNames: string[];
+  authors: ResourceAuthorResponse[];
+}

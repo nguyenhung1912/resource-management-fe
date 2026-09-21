@@ -1,13 +1,17 @@
 import axiosClient from '@/services/axiosClient';
 import type {
+  AddKeywordsRequest,
   MyUploadFilterRequest,
   MyUploadItemResponse,
   PaginatedResponse,
+  ResourceDetailResponse,
+  ResourceKeywordItem,
+  UpdateAuthorsRequest,
+  UpdateResourceRequest,
   UploadResourceRequest,
 } from '@/features/resources/types/resource.types';
 import type {
   LookupItem,
-  SourceCodeDetail,
   SourceCodePaginatedResult,
   SourceCodeQuery,
   UploadResourceSuccessResponse,
@@ -93,8 +97,8 @@ export const resourceService = {
   },
 
   // GET /api/Resources/{fileId}
-  async getResourceDetail(fileId: string): Promise<SourceCodeDetail> {
-    const response = await axiosClient.get<SourceCodeDetail>(`/api/Resources/${encodeURIComponent(fileId)}`);
+  async getResourceDetail<T = ResourceDetailResponse>(fileId: string): Promise<T> {
+    const response = await axiosClient.get<T>(`/api/Resources/${encodeURIComponent(fileId)}`);
 
     return response.data;
   },
@@ -195,6 +199,49 @@ export const resourceService = {
   // DELETE /api/Resources/{fileId}
   async deleteResource(fileId: string): Promise<{ message: string }> {
     const response = await axiosClient.delete<{ message: string }>(`/api/Resources/${encodeURIComponent(fileId)}`);
+    return response.data;
+  },
+
+  // PUT /api/ResourcesUpdate/{fileId}
+  async updateResource(fileId: string, payload: UpdateResourceRequest): Promise<{ message?: string }> {
+    const response = await axiosClient.put<{ message?: string }>(
+      `/api/ResourcesUpdate/${encodeURIComponent(fileId)}`,
+      payload,
+    );
+    return response.data;
+  },
+
+  // PUT /api/Resources/{fileId}/authors
+  async updateAuthors(fileId: string, authorNames: string[]): Promise<{ message?: string }> {
+    const response = await axiosClient.put<{ message?: string }>(
+      `/api/Resources/${encodeURIComponent(fileId)}/authors`,
+      { authorNames } satisfies UpdateAuthorsRequest,
+    );
+    return response.data;
+  },
+
+  // POST /api/Resources/{fileId}/keywords
+  async addKeywords(fileId: string, keywords: string[]): Promise<{ message?: string }> {
+    const response = await axiosClient.post<{ message?: string }>(
+      `/api/Resources/${encodeURIComponent(fileId)}/keywords`,
+      { keywords } satisfies AddKeywordsRequest,
+    );
+    return response.data;
+  },
+
+  // GET /api/Resources/{fileId}/keywords
+  async getResourceKeywords(fileId: string): Promise<ResourceKeywordItem[]> {
+    const response = await axiosClient.get<ResourceKeywordItem[]>(
+      `/api/Resources/${encodeURIComponent(fileId)}/keywords`,
+    );
+    return response.data;
+  },
+
+  // DELETE /api/Resources/{fileId}/keywords/{keywordId}
+  async deleteKeyword(fileId: string, keywordId: string): Promise<{ message?: string }> {
+    const response = await axiosClient.delete<{ message?: string }>(
+      `/api/Resources/${encodeURIComponent(fileId)}/keywords/${encodeURIComponent(keywordId)}`,
+    );
     return response.data;
   },
 };

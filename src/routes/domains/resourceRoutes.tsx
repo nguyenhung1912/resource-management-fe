@@ -4,6 +4,7 @@ import type { RouteObject } from 'react-router-dom';
 import { ROUTE_PARAMS, ROUTE_SEGMENTS } from '@/constants/path';
 import { uploadResourceLoader } from '@/features/resources/pages/uploadResourceLoader';
 import { resourcesManagerLoader } from '@/features/resources/pages/resourcesManagerLoader';
+import { modifyResourceLoader } from '@/features/resources/pages/modifyResourceLoader';
 
 const ResourcesManagerPage = lazy(() => import('@/features/resources/pages/ResourcesManagerPage'));
 const UploadResourcePage = lazy(() => import('@/features/resources/pages/UploadResourcePage'));
@@ -37,6 +38,7 @@ export const resourceRoutes: RouteObject[] = [
       {
         path: `${ROUTE_PARAMS.RESOURCE_ID}/${ROUTE_SEGMENTS.RESOURCE_EDIT}`,
         element: <ModifyResourcePage />,
+        loader: modifyResourceLoader,
         handle: {
           meta: {
             title: 'Chỉnh sửa tài nguyên',

@@ -166,6 +166,33 @@ describe('resources manager routes', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Hủy' }));
 
     await waitFor(() => expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCES_MANAGER));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('lưu chỉnh sửa tài nguyên thành công, gọi revalidate và điều hướng về trang quản lý', async () => {
+    vi.spyOn(resourceService, 'getMyUploads').mockResolvedValue({
+      items: [],
+      totalCount: 0,
+      pageNumber: 1,
+      pageSize: 10,
+      totalPages: 0,
+    });
+    const updateResourceSpy = vi.spyOn(resourceService, 'updateResource').mockResolvedValue({ message: 'OK' });
+    vi.spyOn(resourceService, 'updateAuthors').mockResolvedValue({ message: 'OK' });
+    vi.spyOn(resourceService, 'getResourceKeywords').mockResolvedValue([]);
+    vi.spyOn(resourceService, 'addKeywords').mockResolvedValue({ message: 'OK' });
+
+    const router = createMemoryRouter(appRoutes, { initialEntries: [APP_PATHS.RESOURCE_EDIT('resource-1')] });
+
+    render(<RouterProvider router={router} />);
+
+    const dialog = await screen.findByRole('dialog', { name: 'Chỉnh sửa tài nguyên' }, { timeout: 10000 });
+    expect(within(dialog).getByText('Báo cáo thực tập_Final.pdf')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu thay đổi' }));
+
+    await waitFor(() => expect(updateResourceSpy).toHaveBeenCalled());
+    await waitFor(() => expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCES_MANAGER));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 });
