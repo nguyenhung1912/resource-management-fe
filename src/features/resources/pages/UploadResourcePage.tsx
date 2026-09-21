@@ -1,4 +1,4 @@
-import { useLoaderData, useNavigate } from 'react-router-dom';
+import { useLoaderData, useNavigate, useRevalidator } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
 import { UploadResourceModal } from '@/features/resources/components/UploadResourceModal';
 import { useUploadResource } from '@/features/resources/hooks/useUploadResource';
@@ -25,6 +25,7 @@ const previewCourses: SelectOption<string>[] = [
 
 export function UploadResourcePage() {
   const navigate = useNavigate();
+  const revalidator = useRevalidator();
   const { isSubmitting, apiError, uploadResource } = useUploadResource();
   const loaderData = useLoaderData() as UploadResourceLoaderData | undefined;
 
@@ -34,7 +35,10 @@ export function UploadResourcePage() {
 
   const handleSubmit = async (values: UploadResourceFormValues) => {
     const isUploaded = await uploadResource(values);
-    if (isUploaded) closeUpload();
+    if (isUploaded) {
+      revalidator.revalidate();
+      closeUpload();
+    }
   };
 
   const rawFileTypes = loaderData?.fileTypes;

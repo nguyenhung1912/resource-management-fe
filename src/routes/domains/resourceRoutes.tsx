@@ -15,6 +15,7 @@ export const resourceRoutes: RouteObject[] = [
     path: ROUTE_SEGMENTS.RESOURCES_MANAGER,
     element: <ResourcesManagerPage />,
     loader: resourcesManagerLoader,
+    shouldRevalidate: () => true,
     handle: {
       meta: {
         title: 'Quản lý tài nguyên',

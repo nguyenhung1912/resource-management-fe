@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useRevalidator } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
 import { ModifyResourceModal } from '@/features/resources/components/ModifyResourceModal';
 import type { ModifyResourceInitialValues, SelectOption } from '@/features/resources/types/resource.types';
@@ -39,11 +39,17 @@ function createPreviewResource(resourceId: string): ModifyResourceInitialValues 
 
 export function ModifyResourcePage() {
   const navigate = useNavigate();
+  const revalidator = useRevalidator();
   const { resourceId = 'resource-1' } = useParams();
   const previewResource = createPreviewResource(resourceId);
 
   const closeModify = () => {
     void navigate(APP_PATHS.RESOURCES_MANAGER);
+  };
+
+  const handleSubmit = () => {
+    revalidator.revalidate();
+    closeModify();
   };
 
   return (
@@ -54,7 +60,7 @@ export function ModifyResourcePage() {
       subMajors={previewSubMajors}
       courses={previewCourses}
       onClose={closeModify}
-      onSubmit={closeModify}
+      onSubmit={handleSubmit}
     />
   );
 }
