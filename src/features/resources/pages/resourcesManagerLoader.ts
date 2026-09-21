@@ -1,8 +1,7 @@
 import { CheckCircle2, Clock, XCircle } from 'lucide-react';
 import type { LoaderFunctionArgs } from 'react-router-dom';
 import type { ResourceStat } from '@/features/resources/components/ResourceStats';
-import { SAMPLE_RESOURCE_STATS } from '@/features/resources/components/ResourceStats';
-import { SAMPLE_RESOURCES } from '@/features/resources/components/ResourcesManager';
+import { DEFAULT_RESOURCE_STATS } from '../constants/resourceConstants';
 import type { MyUploadItemResponse, PaginatedResponse } from '@/features/resources/types/resource.types';
 import { resourceService } from '@/services/resourceService';
 
@@ -15,7 +14,6 @@ export interface ResourcesManagerLoaderData {
     pending: number;
     rejected: number;
   };
-  isSampleData: boolean;
 }
 
 export async function resourcesManagerLoader({ request }: LoaderFunctionArgs): Promise<ResourcesManagerLoaderData> {
@@ -86,55 +84,26 @@ export async function resourcesManagerLoader({ request }: LoaderFunctionArgs): P
           pending: pendingCount,
           rejected: rejectedCount,
         },
-        isSampleData: false,
       };
     }
   } catch {
-    // Fall back to sample data below
+    // Không có sample data fallback, trả về dữ liệu rỗng
   }
-
-  // Graceful fallback for offline, unauthenticated or test environments
-  let filtered = [...SAMPLE_RESOURCES];
-  if (fileStatusId && fileStatusId > 0) {
-    filtered = filtered.filter((r) => r.fileStatusId === fileStatusId);
-  }
-  if (search.trim()) {
-    const q = search.toLowerCase().trim();
-    filtered = filtered.filter(
-      (item) =>
-        item.fileName.toLowerCase().includes(q) ||
-        item.fileTypeName.toLowerCase().includes(q) ||
-        (item.courseName && item.courseName.toLowerCase().includes(q)) ||
-        item.authors.some((a) => (a.fullName ?? a.authorName ?? '').toLowerCase().includes(q)),
-    );
-  }
-
-  filtered.sort((a, b) => {
-    const dateA = Date.parse(a.createdAt ?? a.uploadedAt ?? '');
-    const dateB = Date.parse(b.createdAt ?? b.uploadedAt ?? '');
-    return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
-  });
-
-  const totalCount = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const startIndex = (pageNumber - 1) * pageSize;
-  const pagedItems = filtered.slice(startIndex, startIndex + pageSize);
 
   return {
     resourcesData: {
-      items: pagedItems,
-      totalCount,
+      items: [],
+      totalCount: 0,
       pageNumber,
       pageSize,
-      totalPages,
+      totalPages: 0,
     },
-    stats: SAMPLE_RESOURCE_STATS,
+    stats: DEFAULT_RESOURCE_STATS,
     statusCounts: {
-      all: SAMPLE_RESOURCES.length,
-      approved: SAMPLE_RESOURCES.filter((r) => r.fileStatusId === 1).length,
-      pending: SAMPLE_RESOURCES.filter((r) => r.fileStatusId === 2).length,
-      rejected: SAMPLE_RESOURCES.filter((r) => r.fileStatusId === 3).length,
+      all: 0,
+      approved: 0,
+      pending: 0,
+      rejected: 0,
     },
-    isSampleData: true,
   };
 }

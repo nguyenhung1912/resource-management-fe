@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import {
   createMemoryRouter,
   matchRoutes,
@@ -113,7 +113,9 @@ describe('dashboard route configuration', () => {
 
     render(<RouterProvider router={router} />);
 
-    expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCES_MANAGER);
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCES_MANAGER);
+    });
   });
 
   it('renders the server error page when a dashboard child loader throws', async () => {

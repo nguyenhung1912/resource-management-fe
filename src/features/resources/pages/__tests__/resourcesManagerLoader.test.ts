@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { LoaderFunctionArgs } from 'react-router-dom';
 import { resourcesManagerLoader } from '../resourcesManagerLoader';
 import { resourceService } from '@/services/resourceService';
-import { SAMPLE_RESOURCES } from '@/features/resources/components/ResourcesManager';
 
 vi.mock('@/services/resourceService', () => ({
   resourceService: {
@@ -15,7 +14,7 @@ function createMockLoaderArgs(url: string): LoaderFunctionArgs {
     request: new Request(url),
     params: {},
     context: undefined,
-  };
+  } as LoaderFunctionArgs;
 }
 
 describe('resourcesManagerLoader', () => {
@@ -64,7 +63,6 @@ describe('resourcesManagerLoader', () => {
       sortDirection: 'asc',
     });
 
-    expect(result.isSampleData).toBe(false);
     expect(result.resourcesData.items).toEqual(mockItems);
     expect(result.statusCounts).toEqual({
       all: 21,
@@ -79,27 +77,23 @@ describe('resourcesManagerLoader', () => {
     ]);
   });
 
-  it('tự động dự phòng về dữ liệu mẫu khi service quăng lỗi hoặc chưa đăng nhập', async () => {
+  it('trả về danh sách rỗng và số liệu 0 khi service báo lỗi hoặc không có dữ liệu', async () => {
     vi.mocked(resourceService.getMyUploads).mockRejectedValue(new Error('Unauthorized 401'));
 
     const result = await resourcesManagerLoader(
       createMockLoaderArgs('http://localhost:3000/dashboard/resources-manager'),
     );
 
-    expect(result.isSampleData).toBe(true);
-    expect(result.resourcesData.items).toHaveLength(SAMPLE_RESOURCES.length);
-    expect(result.statusCounts.all).toBe(SAMPLE_RESOURCES.length);
-    expect(result.stats[0].value).toBe(856);
-  });
-
-  it('lọc dữ liệu mẫu chính xác khi ở chế độ fallback', async () => {
-    vi.mocked(resourceService.getMyUploads).mockRejectedValue(new Error('Network error'));
-
-    const result = await resourcesManagerLoader(
-      createMockLoaderArgs('http://localhost:3000/dashboard/resources-manager?status=1'),
-    );
-
-    expect(result.isSampleData).toBe(true);
-    expect(result.resourcesData.items.every((item) => item.fileStatusId === 1)).toBe(true);
+    expect(result.resourcesData.items).toHaveLength(0);
+    expect(result.resourcesData.totalCount).toBe(0);
+    expect(result.statusCounts).toEqual({
+      all: 0,
+      approved: 0,
+      pending: 0,
+      rejected: 0,
+    });
+    expect(result.stats[0].value).toBe(0);
+    expect(result.stats[1].value).toBe(0);
+    expect(result.stats[2].value).toBe(0);
   });
 });

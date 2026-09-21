@@ -8,13 +8,14 @@ import {
   Filter,
   Link2,
   Pencil,
+  Plus,
   RotateCcw,
   Search,
   Trash2,
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Badge, type BadgeProps } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonVariants } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Tabs, type TabItem } from '@/components/ui/Tabs';
@@ -25,72 +26,8 @@ import { APP_PATHS } from '@/constants/path';
 import type { MyUploadItemResponse } from '@/features/resources/types/resource.types';
 import type { ResourcesManagerLoaderData } from '@/features/resources/pages/resourcesManagerLoader';
 import { resourceService } from '@/services/resourceService';
+import { ALL_STATUSES } from '../constants/resourceConstants';
 import { DeleteResourceDialog } from './DeleteResourceDialog';
-
-const ALL_STATUSES = 0;
-
-export const SAMPLE_RESOURCES: MyUploadItemResponse[] = [
-  {
-    id: 'resource-1',
-    fileName: 'Báo cáo thực tập_Final.pdf',
-    fileTypeName: 'Báo cáo',
-    fileSizeBytes: 2_516_582,
-    uploadedAt: '2024-05-12T08:00:00.000Z',
-    fileStatusId: 2,
-    fileStatusName: 'Chờ duyệt',
-    majorId: 'CNTT',
-    majorName: 'Công nghệ thông tin',
-    subMajorName: 'Kỹ thuật phần mềm',
-    courseName: 'Thực tập doanh nghiệp',
-    keywords: ['thực tập', 'báo cáo'],
-    authors: [{ id: 'author-1', fullName: 'Nguyễn Văn A' }],
-  },
-  {
-    id: 'resource-2',
-    fileName: 'Bài giảng tuần 4 - CTDL&GT.mp4',
-    fileTypeName: 'Slide/Video',
-    fileSizeBytes: 152_043_520,
-    uploadedAt: '2024-05-10T08:00:00.000Z',
-    fileStatusId: 1,
-    fileStatusName: 'Đã duyệt',
-    majorId: 'CNTT',
-    majorName: 'Công nghệ thông tin',
-    subMajorName: 'Khoa học máy tính',
-    courseName: 'Cấu trúc dữ liệu và giải thuật',
-    keywords: ['CTDL', 'bài giảng'],
-    authors: [{ id: 'author-2', fullName: 'Trần Thị B' }],
-  },
-  {
-    id: 'resource-3',
-    fileName: 'Tài liệu tham khảo Machine Learning',
-    fileTypeName: 'Link/Tài liệu',
-    fileSizeBytes: null,
-    uploadedAt: '2024-05-05T08:00:00.000Z',
-    fileStatusId: 3,
-    fileStatusName: 'Bị từ chối',
-    majorId: 'CNTT',
-    majorName: 'Công nghệ thông tin',
-    subMajorName: 'Trí tuệ nhân tạo',
-    courseName: 'Machine Learning',
-    keywords: ['machine learning', 'tham khảo'],
-    authors: [{ id: 'author-3', fullName: 'Lê Văn C' }],
-  },
-  {
-    id: 'resource-4',
-    fileName: 'Sơ đồ kiến trúc hệ thống.png',
-    fileTypeName: 'Hình ảnh',
-    fileSizeBytes: 1_258_291,
-    uploadedAt: '2024-05-01T08:00:00.000Z',
-    fileStatusId: 2,
-    fileStatusName: 'Chờ duyệt',
-    majorId: 'CNTT',
-    majorName: 'Công nghệ thông tin',
-    subMajorName: 'Kỹ thuật phần mềm',
-    courseName: 'Kiến trúc và thiết kế phần mềm',
-    keywords: ['kiến trúc', 'hệ thống'],
-    authors: [{ id: 'author-4', fullName: 'Phạm Thị D' }],
-  },
-];
 
 const statusVariant: Record<number, NonNullable<BadgeProps['variant']>> = {
   1: 'success',
@@ -153,17 +90,15 @@ export function ResourcesManager({ items, loaderData, onRevalidate, onDeleteSucc
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  const isServerDriven = Boolean(loaderData && !loaderData.isSampleData && !items);
-  const rawItems = items ?? (loaderData ? loaderData.resourcesData.items : SAMPLE_RESOURCES);
+  const isServerDriven = Boolean(loaderData && !items);
 
-  const activeItems = useMemo(
-    () =>
-      rawItems.filter((item) => {
-        const id = item.fileId || item.id || '';
-        return !deletedResourceIds.has(id);
-      }),
-    [rawItems, deletedResourceIds],
-  );
+  const activeItems = useMemo(() => {
+    const raw = items ?? loaderData?.resourcesData.items ?? [];
+    return raw.filter((item) => {
+      const id = item.fileId || item.id || '';
+      return !deletedResourceIds.has(id);
+    });
+  }, [items, loaderData?.resourcesData, deletedResourceIds]);
 
   const statusCounts = useMemo(() => {
     if (loaderData?.statusCounts) {
@@ -442,12 +377,27 @@ export function ResourcesManager({ items, loaderData, onRevalidate, onDeleteSucc
       {/* 2. Resources Data View */}
       {visibleItems.length === 0 ? (
         <EmptyState
-          title="Không tìm thấy tài nguyên nào"
-          description="Thử thay đổi từ khóa tìm kiếm hoặc chọn bộ lọc trạng thái khác."
+          title={
+            searchQuery.trim().length > 0 || selectedStatus !== ALL_STATUSES
+              ? 'Không tìm thấy tài nguyên phù hợp'
+              : 'Chưa có tài nguyên nào'
+          }
+          description={
+            searchQuery.trim().length > 0 || selectedStatus !== ALL_STATUSES
+              ? 'Không tìm thấy tài nguyên nào phù hợp với bộ lọc hoặc từ khóa tìm kiếm của bạn.'
+              : 'Bạn chưa tải lên tài nguyên nào lên hệ thống. Hãy bắt đầu chia sẻ tài liệu ngay bây giờ.'
+          }
           action={
-            <Button variant="secondary" size="sm" onClick={handleResetFilters}>
-              Đặt lại bộ lọc
-            </Button>
+            searchQuery.trim().length > 0 || selectedStatus !== ALL_STATUSES ? (
+              <Button variant="secondary" size="sm" onClick={handleResetFilters}>
+                Đặt lại bộ lọc
+              </Button>
+            ) : (
+              <Link to={APP_PATHS.RESOURCE_UPLOAD} className={buttonVariants({ variant: 'primary', size: 'sm' })}>
+                <Plus className="size-4 mr-1.5" aria-hidden="true" />
+                Tải lên tài nguyên
+              </Link>
+            )
           }
         />
       ) : (

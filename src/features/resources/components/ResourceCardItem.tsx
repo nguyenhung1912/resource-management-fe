@@ -16,10 +16,17 @@ const dateFormatter = new Intl.DateTimeFormat('vi-VN', {
   year: 'numeric',
 });
 
-function formatFileSize(bytes: number | null) {
-  if (bytes === null) return '—';
+function formatFileSize(bytes?: number | null) {
+  if (bytes === null || bytes === undefined) return '—';
   const megabytes = bytes / (1024 * 1024);
   return `${megabytes.toLocaleString('vi-VN', { maximumFractionDigits: 1 })} MB`;
+}
+
+function formatUploadedDate(dateStr?: string) {
+  if (!dateStr) return '—';
+  const timestamp = Date.parse(dateStr);
+  if (Number.isNaN(timestamp)) return '—';
+  return dateFormatter.format(new Date(timestamp));
 }
 
 function ResourceIcon({ fileTypeName }: { fileTypeName: string }) {
@@ -66,17 +73,17 @@ export function ResourceCardItem({ item, onDelete }: ResourceCardItemProps) {
         </div>
         <div>
           <span className="text-[11px] block text-text-muted/80">Dung lượng</span>
-          <span className="font-medium text-text-main">{formatFileSize(item.fileSizeBytes)}</span>
+          <span className="font-medium text-text-main">{formatFileSize(item.fileSize ?? item.fileSizeBytes)}</span>
         </div>
         <div className="col-span-2">
           <span className="text-[11px] block text-text-muted/80">Ngày tải lên</span>
-          <span className="font-medium text-text-main">{dateFormatter.format(new Date(item.uploadedAt))}</span>
+          <span className="font-medium text-text-main">{formatUploadedDate(item.createdAt ?? item.uploadedAt)}</span>
         </div>
       </div>
 
       <div className="flex items-center justify-end gap-2 pt-2 border-t border-border-subtle/60">
         <Link
-          to={APP_PATHS.RESOURCE_EDIT(item.id)}
+          to={APP_PATHS.RESOURCE_EDIT(item.fileId || item.id || '')}
           className="inline-flex items-center gap-1 rounded-lg border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-text-main transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           aria-label={`Chỉnh sửa ${item.fileName}`}
         >
