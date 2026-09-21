@@ -12,7 +12,7 @@ import {
   Search,
   Trash2,
 } from 'lucide-react';
-import { Link, useRevalidator, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Badge, type BadgeProps } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -130,11 +130,12 @@ function ResourceIcon({ fileTypeName }: { fileTypeName: string }) {
 export interface ResourcesManagerProps {
   items?: MyUploadItemResponse[];
   loaderData?: ResourcesManagerLoaderData;
+  onRevalidate?: () => void;
+  onDeleteSuccess?: (fileId: string) => void;
 }
 
-export function ResourcesManager({ items, loaderData }: ResourcesManagerProps) {
+export function ResourcesManager({ items, loaderData, onRevalidate, onDeleteSuccess }: ResourcesManagerProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const revalidator = useRevalidator();
   const managerRef = useRef<HTMLElement>(null);
 
   // URL search params
@@ -298,7 +299,8 @@ export function ResourcesManager({ items, loaderData }: ResourcesManagerProps) {
       setResourceToDelete(null);
 
       await resourceService.deleteResource(targetId);
-      revalidator.revalidate();
+      onRevalidate?.();
+      onDeleteSuccess?.(targetId);
     } catch (err: unknown) {
       setDeletedResourceIds((current) => {
         const next = new Set(current);

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Files, Plus } from 'lucide-react';
-import { Link, Outlet, useLoaderData, useSearchParams } from 'react-router-dom';
+import { Link, Outlet, useLoaderData, useRevalidator, useSearchParams } from 'react-router-dom';
 import { buttonVariants } from '@/components/ui/Button';
 import { PageHeader } from '@/components/common/PageHeader';
 import { APP_PATHS } from '@/constants/path';
@@ -11,6 +11,7 @@ import type { ResourcesManagerLoaderData } from './resourcesManagerLoader';
 export function ResourcesManagerPage() {
   const loaderData = useLoaderData() as ResourcesManagerLoaderData | undefined;
   const [searchParams, setSearchParams] = useSearchParams();
+  const revalidator = useRevalidator();
 
   const activeStatusId = useMemo(() => {
     const statusParam = searchParams.get('status');
@@ -47,7 +48,7 @@ export function ResourcesManagerPage() {
       <ResourceStats stats={loaderData?.stats} activeStatusId={activeStatusId} onSelectStatus={handleSelectStatus} />
 
       {/* 3. Resources Manager Table & Tools */}
-      <ResourcesManager loaderData={loaderData} />
+      <ResourcesManager loaderData={loaderData} onRevalidate={() => revalidator.revalidate()} />
 
       <Outlet />
     </div>
