@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { AlertCircle, Link as LinkIcon, ShieldAlert, Upload } from 'lucide-react';
 import { BaseModal } from '@/components/common/BaseModal';
 import { Button } from '@/components/ui/Button';
@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import type { SelectOption, UploadResourceFormValues } from '@/features/resources/types/resource.types';
+import type { CourseResponse, MajorResponse, SubMajorResponse } from '@/features/resources/types/academicCatalog.types';
 import { AuthorInput } from './AuthorInput';
-import { KeywordInput } from './KeywordInput';
 import { ResourceFileDropzone } from './ResourceFileDropzone';
 
 const MAX_RESOURCE_FILE_SIZE = 50 * 1024 * 1024;
@@ -24,6 +24,11 @@ export interface UploadResourceModalProps {
   fileTypes: SelectOption<number>[];
   subMajors: SelectOption<string>[];
   courses: SelectOption<string>[];
+  departments?: SelectOption<string>[];
+  majors?: SelectOption<string>[];
+  subMajorDetails?: SubMajorResponse[];
+  courseDetails?: CourseResponse[];
+  majorDetails?: MajorResponse[];
   onClose: () => void;
   onSubmit: (values: UploadResourceFormValues) => void | Promise<void>;
 }
@@ -33,11 +38,12 @@ interface FormState {
   fileName: string;
   fileDescription: string;
   fileTypeId: string;
+  departmentId: string;
+  majorId: string;
   subMajorCode: string;
   courseCode: string;
   yearCompleted: string;
   authorNames: string[];
-  keywords: string[];
   sourceCodeUrl: string;
   bannerImage: File | null;
 }
@@ -52,11 +58,12 @@ const initialFormState: FormState = {
   fileName: '',
   fileDescription: '',
   fileTypeId: '',
+  departmentId: '',
+  majorId: '',
   subMajorCode: '',
   courseCode: '',
   yearCompleted: '',
   authorNames: [],
-  keywords: [],
   sourceCodeUrl: '',
   bannerImage: null,
 };
@@ -101,12 +108,171 @@ export function UploadResourceModal({
   fileTypes,
   subMajors,
   courses,
+  departments,
+  majors,
+  subMajorDetails,
+  courseDetails,
+  majorDetails,
   onClose,
   onSubmit,
 }: UploadResourceModalProps) {
   const [form, setForm] = useState<FormState>(initialFormState);
   const [fileErrors, setFileErrors] = useState<FileErrors>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Lọc ngành theo khoa đã chọn (nếu có thông tin chi tiết)
+  const filteredMajorOptions = useMemo(() => {
+    if (!majors) return [];
+    if (!form.departmentId || !majorDetails?.length) return majors;
+    const allowedMajorIds = new Set(
+      majorDetails.filter((m) => m.departmentId === form.departmentId).map((m) => m.majorId),
+    );
+    return majors.filter((m) => allowedMajorIds.has(m.value));
+  }, [majors, form.departmentId, majorDetails]);
+
+  // Lọc chuyên ngành theo ngành đã chọn (nếu có thông tin chi tiết)
+  const filteredSubMajorOptions = useMemo(() => {
+    if (!form.majorId || !subMajorDetails?.length) return subMajors;
+    const allowedSubMajorCodes = new Set(
+      subMajorDetails.filter((sm) => sm.majorId === form.majorId).map((sm) => sm.subMajorCode),
+    );
+    return subMajors.filter((sm) => allowedSubMajorCodes.has(sm.value));
+  }, [subMajors, form.majorId, subMajorDetails]);
+
+  // Lọc học phần theo chuyên ngành đã chọn (nếu có thông tin chi tiết)
+  const filteredCourseOptions = useMemo(() => {
+    if (!form.subMajorCode || !courseDetails?.length) return courses;
+    const allowedCourseCodes = new Set(
+      courseDetails.filter((c) => c.subMajorCode === form.subMajorCode).map((c) => c.courseCode),
+    );
+    return courses.filter((c) => allowedCourseCodes.has(c.value));
+  }, [courses, form.subMajorCode, courseDetails]);
+
+  const handleDepartmentChange = (deptId: string) => {
+    setForm((current) => {
+      let newMajorId = current.majorId;
+      let newSubMajorCode = current.subMajorCode;
+      let newCourseCode = current.courseCode;
+
+      if (deptId && majorDetails?.length) {
+        const major = majorDetails.find((m) => m.majorId === current.majorId);
+        if (major && major.departmentId !== deptId) {
+          newMajorId = '';
+          newSubMajorCode = '';
+          newCourseCode = '';
+        }
+      }
+
+      return {
+        ...current,
+        departmentId: deptId,
+        majorId: newMajorId,
+        subMajorCode: newSubMajorCode,
+        courseCode: newCourseCode,
+      };
+    });
+  };
+
+  const handleMajorChange = (majId: string) => {
+    setForm((current) => {
+      let newDeptId = current.departmentId;
+      if (majId && majorDetails?.length) {
+        const major = majorDetails.find((m) => m.majorId === majId);
+        if (major?.departmentId) {
+          newDeptId = major.departmentId;
+        }
+      }
+
+      let newSubMajorCode = current.subMajorCode;
+      let newCourseCode = current.courseCode;
+      if (majId && subMajorDetails?.length) {
+        const subMajor = subMajorDetails.find((sm) => sm.subMajorCode === current.subMajorCode);
+        if (subMajor && subMajor.majorId !== majId) {
+          newSubMajorCode = '';
+          newCourseCode = '';
+        }
+      }
+
+      return {
+        ...current,
+        departmentId: newDeptId,
+        majorId: majId,
+        subMajorCode: newSubMajorCode,
+        courseCode: newCourseCode,
+      };
+    });
+  };
+
+  const handleSubMajorChange = (subMajorCode: string) => {
+    setForm((current) => {
+      let newMajorId = current.majorId;
+      let newDeptId = current.departmentId;
+
+      if (subMajorCode && subMajorDetails?.length) {
+        const subMajor = subMajorDetails.find((sm) => sm.subMajorCode === subMajorCode);
+        if (subMajor?.majorId) {
+          newMajorId = subMajor.majorId;
+          if (majorDetails?.length) {
+            const major = majorDetails.find((m) => m.majorId === subMajor.majorId);
+            if (major?.departmentId) {
+              newDeptId = major.departmentId;
+            }
+          }
+        }
+      }
+
+      let newCourseCode = current.courseCode;
+      if (subMajorCode && courseDetails?.length) {
+        const course = courseDetails.find((c) => c.courseCode === current.courseCode);
+        if (course && course.subMajorCode !== subMajorCode) {
+          newCourseCode = '';
+        }
+      }
+
+      return {
+        ...current,
+        departmentId: newDeptId,
+        majorId: newMajorId,
+        subMajorCode,
+        courseCode: newCourseCode,
+      };
+    });
+  };
+
+  const handleCourseChange = (courseCode: string) => {
+    setForm((current) => {
+      let newSubMajorCode = current.subMajorCode;
+      let newMajorId = current.majorId;
+      let newDeptId = current.departmentId;
+
+      if (courseCode && courseDetails?.length) {
+        const course = courseDetails.find((c) => c.courseCode === courseCode);
+        if (course?.subMajorCode && !newSubMajorCode) {
+          newSubMajorCode = course.subMajorCode;
+          if (subMajorDetails?.length) {
+            const subMajor = subMajorDetails.find((sm) => sm.subMajorCode === course.subMajorCode);
+            if (subMajor?.majorId) {
+              newMajorId = subMajor.majorId;
+              if (majorDetails?.length) {
+                const major = majorDetails.find((m) => m.majorId === subMajor.majorId);
+                if (major?.departmentId) {
+                  newDeptId = major.departmentId;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return {
+        ...current,
+        departmentId: newDeptId,
+        majorId: newMajorId,
+        subMajorCode: newSubMajorCode,
+        courseCode,
+      };
+    });
+  };
 
   const resourceFileError =
     fileErrors.resource ?? (isSubmitted && !form.file ? 'Vui lòng chọn tệp tài nguyên.' : undefined);
@@ -121,8 +287,10 @@ export function UploadResourceModal({
   const authorsError = isSubmitted && form.authorNames.length === 0 ? 'Vui lòng nhập ít nhất một tác giả.' : undefined;
   const trimmedSourceCodeUrl = form.sourceCodeUrl.trim();
   const hasInvalidSourceCodeUrl = Boolean(trimmedSourceCodeUrl) && !isValidHttpUrl(trimmedSourceCodeUrl);
-  const sourceCodeUrlError =
-    isSubmitted && hasInvalidSourceCodeUrl
+  const hasLongSourceCodeUrl = trimmedSourceCodeUrl.length > 500;
+  const sourceCodeUrlError = hasLongSourceCodeUrl
+    ? 'Liên kết mã nguồn không được vượt quá 500 ký tự.'
+    : isSubmitted && hasInvalidSourceCodeUrl
       ? 'Liên kết mã nguồn phải là URL hợp lệ sử dụng giao thức http:// hoặc https://.'
       : undefined;
   const numericYear = form.yearCompleted ? Number(form.yearCompleted) : null;
@@ -157,6 +325,8 @@ export function UploadResourceModal({
   };
 
   const resetAndClose = () => {
+    if (isSubmitting) return;
+
     setForm(initialFormState);
     setFileErrors({});
     setIsSubmitted(false);
@@ -176,6 +346,7 @@ export function UploadResourceModal({
       !form.subMajorCode ||
       form.authorNames.length === 0 ||
       hasInvalidSourceCodeUrl ||
+      hasLongSourceCodeUrl ||
       Boolean(resourceFileError) ||
       Boolean(fileErrors.banner) ||
       Boolean(yearError);
@@ -191,7 +362,6 @@ export function UploadResourceModal({
       courseCode: form.courseCode || null,
       yearCompleted: numericYear,
       authorNames: form.authorNames,
-      keywords: form.keywords,
       sourceCodeUrl: trimmedSourceCodeUrl || null,
       bannerImage: form.bannerImage,
     });
@@ -222,14 +392,15 @@ export function UploadResourceModal({
       maxWidth="2xl"
       closeOnBackdropClick={!isSubmitting}
       closeOnEscape={!isSubmitting}
+      showCloseButton={!isSubmitting}
       fullScreenOnMobile
       footer={footer}
     >
-      <form id="upload-resource-form" noValidate className="space-y-5" onSubmit={handleSubmit}>
+      <form id="upload-resource-form" noValidate aria-busy={isSubmitting} className="space-y-5" onSubmit={handleSubmit}>
         {apiError ? (
           <div
             role="alert"
-            className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 p-3.5 text-xs leading-relaxed text-danger"
+            className="flex items-start gap-2.5 rounded-lg border border-danger/20 bg-danger/5 p-3.5 text-xs leading-relaxed text-danger"
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <div>
@@ -283,6 +454,44 @@ export function UploadResourceModal({
           />
         </div>
 
+        {departments && departments.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="resource-department">Khoa / Đơn vị</Label>
+              <Select
+                id="resource-department"
+                value={form.departmentId}
+                disabled={isSubmitting}
+                onChange={(event) => handleDepartmentChange(event.target.value)}
+              >
+                <option value="">Tất cả khoa / đơn vị</option>
+                {departments.map((dept) => (
+                  <option key={dept.value} value={dept.value}>
+                    {dept.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="resource-major">Ngành đào tạo</Label>
+              <Select
+                id="resource-major"
+                value={form.majorId}
+                disabled={isSubmitting}
+                onChange={(event) => handleMajorChange(event.target.value)}
+              >
+                <option value="">Tất cả ngành đào tạo</option>
+                {filteredMajorOptions.map((major) => (
+                  <option key={major.value} value={major.value}>
+                    {major.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
+        ) : null}
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="resource-file-type" requiredBadge error={Boolean(fileTypeError)}>
@@ -313,10 +522,10 @@ export function UploadResourceModal({
               value={form.subMajorCode}
               disabled={isSubmitting}
               error={subMajorError}
-              onChange={(event) => updateField('subMajorCode', event.target.value)}
+              onChange={(event) => handleSubMajorChange(event.target.value)}
             >
               <option value="">Chọn chuyên ngành</option>
-              {subMajors.map((subMajor) => (
+              {filteredSubMajorOptions.map((subMajor) => (
                 <option key={subMajor.value} value={subMajor.value}>
                   {subMajor.label}
                 </option>
@@ -332,10 +541,10 @@ export function UploadResourceModal({
               id="resource-course"
               value={form.courseCode}
               disabled={isSubmitting}
-              onChange={(event) => updateField('courseCode', event.target.value)}
+              onChange={(event) => handleCourseChange(event.target.value)}
             >
               <option value="">Không chọn học phần</option>
-              {courses.map((course) => (
+              {filteredCourseOptions.map((course) => (
                 <option key={course.value} value={course.value}>
                   {course.label}
                 </option>
@@ -375,16 +584,6 @@ export function UploadResourceModal({
           />
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="resource-keywords">Từ khóa</Label>
-          <KeywordInput
-            id="resource-keywords"
-            keywords={form.keywords}
-            disabled={isSubmitting}
-            onChange={(keywords) => updateField('keywords', keywords)}
-          />
-        </div>
-
         <div className="space-y-2">
           <Label htmlFor="resource-source-code-url" error={Boolean(sourceCodeUrlError)}>
             Đính kèm mã nguồn (Không bắt buộc)
@@ -392,6 +591,7 @@ export function UploadResourceModal({
           <Input
             id="resource-source-code-url"
             type="url"
+            maxLength={501}
             placeholder="https://github.com/... hoặc https://gitlab.com/..."
             value={form.sourceCodeUrl}
             error={sourceCodeUrlError}

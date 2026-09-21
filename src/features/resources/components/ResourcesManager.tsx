@@ -1,19 +1,21 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type ChangeEvent } from 'react';
 import {
   ChevronDown,
+  Download,
   FileImage,
   FileText,
   FileVideo,
   Filter,
   Link2,
   Pencil,
+  Plus,
   RotateCcw,
   Search,
   Trash2,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Badge, type BadgeProps } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
+import { Button, buttonVariants } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Tabs, type TabItem } from '@/components/ui/Tabs';
@@ -22,72 +24,10 @@ import { Pagination } from '@/components/common/Pagination';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { APP_PATHS } from '@/constants/path';
 import type { MyUploadItemResponse } from '@/features/resources/types/resource.types';
+import type { ResourcesManagerLoaderData } from '@/features/resources/pages/resourcesManagerLoader';
+import { resourceService } from '@/services/resourceService';
+import { ALL_STATUSES } from '../constants/resourceConstants';
 import { DeleteResourceDialog } from './DeleteResourceDialog';
-
-const ALL_STATUSES = 0;
-
-const SAMPLE_RESOURCES: MyUploadItemResponse[] = [
-  {
-    id: 'resource-1',
-    fileName: 'Báo cáo thực tập_Final.pdf',
-    fileTypeName: 'Báo cáo',
-    fileSizeBytes: 2_516_582,
-    uploadedAt: '2024-05-12T08:00:00.000Z',
-    fileStatusId: 2,
-    fileStatusName: 'Chờ duyệt',
-    majorId: 'CNTT',
-    majorName: 'Công nghệ thông tin',
-    subMajorName: 'Kỹ thuật phần mềm',
-    courseName: 'Thực tập doanh nghiệp',
-    keywords: ['thực tập', 'báo cáo'],
-    authors: [{ id: 'author-1', fullName: 'Nguyễn Văn A' }],
-  },
-  {
-    id: 'resource-2',
-    fileName: 'Bài giảng tuần 4 - CTDL&GT.mp4',
-    fileTypeName: 'Slide/Video',
-    fileSizeBytes: 152_043_520,
-    uploadedAt: '2024-05-10T08:00:00.000Z',
-    fileStatusId: 1,
-    fileStatusName: 'Đã duyệt',
-    majorId: 'CNTT',
-    majorName: 'Công nghệ thông tin',
-    subMajorName: 'Khoa học máy tính',
-    courseName: 'Cấu trúc dữ liệu và giải thuật',
-    keywords: ['CTDL', 'bài giảng'],
-    authors: [{ id: 'author-2', fullName: 'Trần Thị B' }],
-  },
-  {
-    id: 'resource-3',
-    fileName: 'Tài liệu tham khảo Machine Learning',
-    fileTypeName: 'Link/Tài liệu',
-    fileSizeBytes: null,
-    uploadedAt: '2024-05-05T08:00:00.000Z',
-    fileStatusId: 3,
-    fileStatusName: 'Bị từ chối',
-    majorId: 'CNTT',
-    majorName: 'Công nghệ thông tin',
-    subMajorName: 'Trí tuệ nhân tạo',
-    courseName: 'Machine Learning',
-    keywords: ['machine learning', 'tham khảo'],
-    authors: [{ id: 'author-3', fullName: 'Lê Văn C' }],
-  },
-  {
-    id: 'resource-4',
-    fileName: 'Sơ đồ kiến trúc hệ thống.png',
-    fileTypeName: 'Hình ảnh',
-    fileSizeBytes: 1_258_291,
-    uploadedAt: '2024-05-01T08:00:00.000Z',
-    fileStatusId: 2,
-    fileStatusName: 'Chờ duyệt',
-    majorId: 'CNTT',
-    majorName: 'Công nghệ thông tin',
-    subMajorName: 'Kỹ thuật phần mềm',
-    courseName: 'Kiến trúc và thiết kế phần mềm',
-    keywords: ['kiến trúc', 'hệ thống'],
-    authors: [{ id: 'author-4', fullName: 'Phạm Thị D' }],
-  },
-];
 
 const statusVariant: Record<number, NonNullable<BadgeProps['variant']>> = {
   1: 'success',
@@ -101,10 +41,17 @@ const dateFormatter = new Intl.DateTimeFormat('vi-VN', {
   year: 'numeric',
 });
 
-function formatFileSize(bytes: number | null) {
-  if (bytes === null) return '—';
+function formatFileSize(bytes?: number | null) {
+  if (bytes === undefined || bytes === null) return '—';
   const megabytes = bytes / (1024 * 1024);
   return `${megabytes.toLocaleString('vi-VN', { maximumFractionDigits: 1 })} MB`;
+}
+
+function formatUploadedDate(dateStr?: string) {
+  if (!dateStr) return '—';
+  const timestamp = Date.parse(dateStr);
+  if (Number.isNaN(timestamp)) return '—';
+  return dateFormatter.format(new Date(timestamp));
 }
 
 function ResourceIcon({ fileTypeName }: { fileTypeName: string }) {
@@ -119,33 +66,51 @@ function ResourceIcon({ fileTypeName }: { fileTypeName: string }) {
 
 export interface ResourcesManagerProps {
   items?: MyUploadItemResponse[];
+  loaderData?: ResourcesManagerLoaderData;
+  onRevalidate?: () => void;
+  onDeleteSuccess?: (fileId: string) => void;
 }
 
-export function ResourcesManager({ items = SAMPLE_RESOURCES }: ResourcesManagerProps) {
-  const [selectedStatus, setSelectedStatus] = useState(ALL_STATUSES);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [sortDirection, setSortDirection] = useState<'newest' | 'oldest'>('newest');
-  const [resourceToDelete, setResourceToDelete] = useState<MyUploadItemResponse | null>(null);
-  const [deletedResourceIds, setDeletedResourceIds] = useState<Set<string>>(() => new Set());
+export function ResourcesManager({ items, loaderData, onRevalidate, onDeleteSuccess }: ResourcesManagerProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const managerRef = useRef<HTMLElement>(null);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  // URL search params
+  const urlStatus = searchParams.get('status');
+  const selectedStatus = urlStatus ? Number.parseInt(urlStatus, 10) : ALL_STATUSES;
+  const urlSearch = searchParams.get('search') ?? '';
+  const urlSort = searchParams.get('sort') === 'oldest' ? 'oldest' : 'newest';
+  const urlPage = searchParams.get('page') ? Math.max(1, Number.parseInt(searchParams.get('page')!, 10)) : 1;
 
-  const activeItems = useMemo(
-    () => items.filter((item) => !deletedResourceIds.has(item.id)),
-    [items, deletedResourceIds],
-  );
+  const [searchQuery, setSearchQuery] = useState(urlSearch);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [resourceToDelete, setResourceToDelete] = useState<MyUploadItemResponse | null>(null);
+  const [deletedResourceIds, setDeletedResourceIds] = useState<Set<string>>(() => new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const isServerDriven = Boolean(loaderData && !items);
+
+  const activeItems = useMemo(() => {
+    const raw = items ?? loaderData?.resourcesData.items ?? [];
+    return raw.filter((item) => {
+      const id = item.fileId || item.id || '';
+      return !deletedResourceIds.has(id);
+    });
+  }, [items, loaderData?.resourcesData, deletedResourceIds]);
 
   const statusCounts = useMemo(() => {
+    if (loaderData?.statusCounts) {
+      return loaderData.statusCounts;
+    }
     return {
       all: activeItems.length,
       approved: activeItems.filter((i) => i.fileStatusId === 1).length,
       pending: activeItems.filter((i) => i.fileStatusId === 2).length,
       rejected: activeItems.filter((i) => i.fileStatusId === 3).length,
     };
-  }, [activeItems]);
+  }, [loaderData, activeItems]);
 
   const statusTabs: TabItem<number>[] = [
     { id: ALL_STATUSES, label: 'Tất cả', count: statusCounts.all },
@@ -154,7 +119,17 @@ export function ResourcesManager({ items = SAMPLE_RESOURCES }: ResourcesManagerP
     { id: 3, label: 'Bị từ chối', count: statusCounts.rejected, dotColor: 'bg-danger' },
   ];
 
-  const visibleItems = useMemo(() => {
+  const pageSize = 10;
+
+  const { visibleItems, totalPages, totalCount } = useMemo(() => {
+    if (isServerDriven && loaderData) {
+      return {
+        visibleItems: activeItems,
+        totalPages: loaderData.resourcesData.totalPages,
+        totalCount: loaderData.resourcesData.totalCount,
+      };
+    }
+
     let filtered = activeItems;
 
     if (selectedStatus !== ALL_STATUSES) {
@@ -168,48 +143,143 @@ export function ResourcesManager({ items = SAMPLE_RESOURCES }: ResourcesManagerP
           item.fileName.toLowerCase().includes(q) ||
           item.fileTypeName.toLowerCase().includes(q) ||
           (item.courseName && item.courseName.toLowerCase().includes(q)) ||
-          item.authors.some((a) => a.fullName.toLowerCase().includes(q)),
+          item.authors.some((a) => (a.fullName ?? a.authorName ?? '').toLowerCase().includes(q)),
       );
     }
 
-    return filtered.toSorted((first, second) => {
-      const difference = Date.parse(second.uploadedAt) - Date.parse(first.uploadedAt);
-      return sortDirection === 'newest' ? difference : -difference;
+    filtered = filtered.toSorted((first, second) => {
+      const firstDate = Date.parse(first.createdAt ?? first.uploadedAt ?? '');
+      const secondDate = Date.parse(second.createdAt ?? second.uploadedAt ?? '');
+      const difference = (Number.isNaN(secondDate) ? 0 : secondDate) - (Number.isNaN(firstDate) ? 0 : firstDate);
+      return urlSort === 'newest' ? difference : -difference;
     });
-  }, [activeItems, selectedStatus, searchQuery, sortDirection]);
 
-  const totalPages = Math.max(1, Math.ceil(visibleItems.length / pageSize));
+    const calculatedTotalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+    const start = (urlPage - 1) * pageSize;
+    const paginated = filtered.slice(start, start + pageSize);
 
-  const paginatedItems = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return visibleItems.slice(start, start + pageSize);
-  }, [visibleItems, currentPage, pageSize]);
+    return {
+      visibleItems: paginated,
+      totalPages: calculatedTotalPages,
+      totalCount: filtered.length,
+    };
+  }, [isServerDriven, loaderData, activeItems, selectedStatus, searchQuery, urlSort, urlPage, pageSize]);
 
   const handleStatusSelect = (statusId: number) => {
-    setSelectedStatus(statusId);
+    const nextParams = new URLSearchParams(searchParams);
+    if (statusId === ALL_STATUSES) {
+      nextParams.delete('status');
+    } else {
+      nextParams.set('status', String(statusId));
+    }
+    nextParams.delete('page');
+    setSearchParams(nextParams);
     setIsFilterOpen(false);
-    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    const nextParams = new URLSearchParams(searchParams);
+    if (value.trim()) {
+      nextParams.set('search', value.trim());
+    } else {
+      nextParams.delete('search');
+    }
+    nextParams.delete('page');
+    setSearchParams(nextParams, { replace: true });
   };
 
   const handleSortChange = (newSort: 'newest' | 'oldest') => {
-    setSortDirection(newSort);
-    setCurrentPage(1);
+    const nextParams = new URLSearchParams(searchParams);
+    if (newSort === 'newest') {
+      nextParams.delete('sort');
+    } else {
+      nextParams.set('sort', newSort);
+    }
+    nextParams.delete('page');
+    setSearchParams(nextParams);
   };
 
-  const handleConfirmDelete = () => {
-    if (!resourceToDelete) return;
-    setDeletedResourceIds((current) => new Set(current).add(resourceToDelete.id));
-    setResourceToDelete(null);
+  const handlePageChange = (page: number) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (page <= 1) {
+      nextParams.delete('page');
+    } else {
+      nextParams.set('page', String(page));
+    }
+    setSearchParams(nextParams);
   };
 
   const handleResetFilters = () => {
-    setSelectedStatus(ALL_STATUSES);
     setSearchQuery('');
-    setCurrentPage(1);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('status');
+    nextParams.delete('search');
+    nextParams.delete('sort');
+    nextParams.delete('page');
+    setSearchParams(nextParams);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!resourceToDelete) return;
+    const target = resourceToDelete;
+    const targetId = target.fileId || target.id || '';
+    if (!targetId) return;
+
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+      setDeletedResourceIds((current) => new Set(current).add(targetId));
+      setResourceToDelete(null);
+
+      await resourceService.deleteResource(targetId);
+      onRevalidate?.();
+      onDeleteSuccess?.(targetId);
+    } catch (err: unknown) {
+      setDeletedResourceIds((current) => {
+        const next = new Set(current);
+        next.delete(targetId);
+        return next;
+      });
+      const message = err instanceof Error ? err.message : 'Không thể xóa tài nguyên lúc này.';
+      setDeleteError(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDownload = async (item: MyUploadItemResponse) => {
+    const fileId = item.fileId || item.id || '';
+    if (!fileId) return;
+    try {
+      setDownloadingId(fileId);
+      await resourceService.downloadResourceFile(fileId, item.fileName);
+    } catch (err: unknown) {
+      console.error('Download error:', err);
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   return (
     <section ref={managerRef} tabIndex={-1} className="space-y-4 outline-none" aria-label="Danh sách tài nguyên">
+      {deleteError && (
+        <div
+          role="alert"
+          className="flex items-center justify-between rounded-xl border border-danger/30 bg-danger/5 p-3.5 text-sm text-danger"
+        >
+          <span>{deleteError}</span>
+          <button
+            type="button"
+            onClick={() => setDeleteError(null)}
+            className="font-medium hover:underline cursor-pointer"
+          >
+            Đóng
+          </button>
+        </div>
+      )}
+
       {/* 1. Filter & Search Controls Bar */}
       <div className="rounded-2xl border border-border-subtle bg-surface p-4 sm:p-5 shadow-xs space-y-4 select-none">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -219,10 +289,7 @@ export function ResourcesManager({ items = SAMPLE_RESOURCES }: ResourcesManagerP
               type="search"
               placeholder="Tìm theo tên tài liệu, môn học, tác giả..."
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
+              onChange={handleSearchChange}
               className="pl-9 pr-4"
               aria-label="Tìm kiếm tài nguyên"
             />
@@ -272,7 +339,7 @@ export function ResourcesManager({ items = SAMPLE_RESOURCES }: ResourcesManagerP
               <Select
                 aria-label="Sắp xếp tài nguyên"
                 selectSize="sm"
-                value={sortDirection}
+                value={urlSort}
                 onChange={(e) => handleSortChange(e.target.value === 'oldest' ? 'oldest' : 'newest')}
               >
                 <option value="newest">Sắp xếp: Mới nhất</option>
@@ -310,12 +377,27 @@ export function ResourcesManager({ items = SAMPLE_RESOURCES }: ResourcesManagerP
       {/* 2. Resources Data View */}
       {visibleItems.length === 0 ? (
         <EmptyState
-          title="Không tìm thấy tài nguyên nào"
-          description="Thử thay đổi từ khóa tìm kiếm hoặc chọn bộ lọc trạng thái khác."
+          title={
+            searchQuery.trim().length > 0 || selectedStatus !== ALL_STATUSES
+              ? 'Không tìm thấy tài nguyên phù hợp'
+              : 'Chưa có tài nguyên nào'
+          }
+          description={
+            searchQuery.trim().length > 0 || selectedStatus !== ALL_STATUSES
+              ? 'Không tìm thấy tài nguyên nào phù hợp với bộ lọc hoặc từ khóa tìm kiếm của bạn.'
+              : 'Bạn chưa tải lên tài nguyên nào lên hệ thống. Hãy bắt đầu chia sẻ tài liệu ngay bây giờ.'
+          }
           action={
-            <Button variant="secondary" size="sm" onClick={handleResetFilters}>
-              Đặt lại bộ lọc
-            </Button>
+            searchQuery.trim().length > 0 || selectedStatus !== ALL_STATUSES ? (
+              <Button variant="secondary" size="sm" onClick={handleResetFilters}>
+                Đặt lại bộ lọc
+              </Button>
+            ) : (
+              <Link to={APP_PATHS.RESOURCE_UPLOAD} className={buttonVariants({ variant: 'primary', size: 'sm' })}>
+                <Plus className="size-4 mr-1.5" aria-hidden="true" />
+                Tải lên tài nguyên
+              </Link>
+            )
           }
         />
       ) : (
@@ -338,71 +420,88 @@ export function ResourcesManager({ items = SAMPLE_RESOURCES }: ResourcesManagerP
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedItems.map((item) => (
-                  <TableRow
-                    key={item.id}
-                    className="border-b border-border-subtle text-sm last:border-b-0 hover:bg-background/60 transition-colors"
-                  >
-                    <TableCell className="px-4 py-3.5 sm:px-6">
-                      <div className="flex min-w-56 items-center gap-3">
-                        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                          <ResourceIcon fileTypeName={item.fileTypeName} />
-                        </span>
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold text-sm text-text-main">{item.fileName}</p>
-                          <p className="mt-0.5 truncate text-xs text-text-muted">
-                            {item.courseName ?? item.subMajorName ?? item.majorName}
-                          </p>
+                {visibleItems.map((item) => {
+                  const itemId = item.fileId || item.id || '';
+                  const authorName =
+                    item.authors?.[0]?.fullName ||
+                    item.authors?.[0]?.authorName ||
+                    item.authorNames?.[0] ||
+                    'Chưa cập nhật';
+                  const uploadedDate = item.createdAt || item.uploadedAt;
+                  const fileSize = item.fileSize ?? item.fileSizeBytes ?? null;
+                  const statusName = item.fileStatusName || item.statusName || 'Chưa xác định';
+
+                  return (
+                    <TableRow
+                      key={itemId}
+                      className="border-b border-border-subtle text-sm last:border-b-0 hover:bg-background/60 transition-colors"
+                    >
+                      <TableCell className="px-4 py-3.5 sm:px-6">
+                        <div className="flex min-w-56 items-center gap-3">
+                          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <ResourceIcon fileTypeName={item.fileTypeName} />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-sm text-text-main">{item.fileName}</p>
+                            <p className="mt-0.5 truncate text-xs text-text-muted">
+                              {item.courseName ?? item.subMajorName ?? item.majorName}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-3.5 text-text-main">{item.fileTypeName}</TableCell>
-                    <TableCell className="px-4 py-3.5 text-text-main">
-                      {item.authors[0]?.fullName ?? 'Chưa cập nhật'}
-                    </TableCell>
-                    <TableCell className="px-4 py-3.5">
-                      <Badge variant={statusVariant[item.fileStatusId] ?? 'neutral'}>
-                        {item.fileStatusName ?? 'Chưa xác định'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="px-4 py-3.5 text-text-muted">{formatFileSize(item.fileSizeBytes)}</TableCell>
-                    <TableCell className="px-4 py-3.5 text-text-muted">
-                      {dateFormatter.format(new Date(item.uploadedAt))}
-                    </TableCell>
-                    <TableCell className="px-4 py-3.5 text-right sm:px-6">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          to={APP_PATHS.RESOURCE_EDIT(item.id)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-border-subtle bg-surface px-2.5 py-1 text-xs font-medium text-text-main transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-                          aria-label={`Chỉnh sửa ${item.fileName}`}
-                        >
-                          <Pencil className="size-3.5" aria-hidden="true" />
-                          Chỉnh sửa
-                        </Link>
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1 rounded-lg border border-danger/30 bg-surface px-2.5 py-1 text-xs font-medium text-danger transition-colors hover:bg-danger/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40 cursor-pointer"
-                          aria-label={`Xóa ${item.fileName}`}
-                          onClick={() => setResourceToDelete(item)}
-                        >
-                          <Trash2 className="size-3.5" aria-hidden="true" />
-                          Xóa
-                        </button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell className="px-4 py-3.5 text-text-main">{item.fileTypeName}</TableCell>
+                      <TableCell className="px-4 py-3.5 text-text-main">{authorName}</TableCell>
+                      <TableCell className="px-4 py-3.5">
+                        <Badge variant={statusVariant[item.fileStatusId] ?? 'neutral'}>{statusName}</Badge>
+                      </TableCell>
+                      <TableCell className="px-4 py-3.5 text-text-muted">{formatFileSize(fileSize)}</TableCell>
+                      <TableCell className="px-4 py-3.5 text-text-muted">{formatUploadedDate(uploadedDate)}</TableCell>
+                      <TableCell className="px-4 py-3.5 text-right sm:px-6">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            type="button"
+                            disabled={downloadingId === itemId}
+                            className="inline-flex items-center gap-1 rounded-lg border border-border-subtle bg-surface px-2.5 py-1 text-xs font-medium text-text-main transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:opacity-50 cursor-pointer"
+                            aria-label={`Tải xuống ${item.fileName}`}
+                            onClick={() => handleDownload(item)}
+                          >
+                            <Download className="size-3.5" aria-hidden="true" />
+                            Tải về
+                          </button>
+                          <Link
+                            to={APP_PATHS.RESOURCE_EDIT(itemId)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-border-subtle bg-surface px-2.5 py-1 text-xs font-medium text-text-main transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                            aria-label={`Chỉnh sửa ${item.fileName}`}
+                          >
+                            <Pencil className="size-3.5" aria-hidden="true" />
+                            Chỉnh sửa
+                          </Link>
+                          <button
+                            type="button"
+                            disabled={isDeleting}
+                            className="inline-flex items-center gap-1 rounded-lg border border-danger/30 bg-surface px-2.5 py-1 text-xs font-medium text-danger transition-colors hover:bg-danger/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40 disabled:opacity-50 cursor-pointer"
+                            aria-label={`Xóa ${item.fileName}`}
+                            onClick={() => setResourceToDelete(item)}
+                          >
+                            <Trash2 className="size-3.5" aria-hidden="true" />
+                            Xóa
+                          </button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
 
           {/* Pagination */}
           <Pagination
-            currentPage={currentPage}
+            currentPage={urlPage}
             totalPages={totalPages}
-            totalCount={visibleItems.length}
+            totalCount={totalCount}
             pageSize={pageSize}
-            onPageChange={setCurrentPage}
+            onPageChange={handlePageChange}
             itemLabel="tài nguyên"
           />
         </div>

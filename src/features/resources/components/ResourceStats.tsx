@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock, XCircle, type LucideIcon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import type { ComponentType, SVGProps } from 'react';
 import { StatCard, type StatCardColorVariant } from '@/components/common/StatCard';
 import { StatCardsGroup } from '@/components/common/StatCardsGroup';
@@ -12,32 +12,7 @@ export interface ResourceStat {
   colorVariant?: StatCardColorVariant;
 }
 
-const SAMPLE_RESOURCE_STATS: ResourceStat[] = [
-  {
-    label: 'Đã duyệt',
-    value: 856,
-    icon: CheckCircle2,
-    colorVariant: 'success',
-    iconClassName: 'text-success',
-    badgeBg: 'bg-emerald-50 text-success',
-  },
-  {
-    label: 'Chờ duyệt',
-    value: 142,
-    icon: Clock,
-    colorVariant: 'warning',
-    iconClassName: 'text-warning',
-    badgeBg: 'bg-orange-50 text-warning',
-  },
-  {
-    label: 'Bị từ chối',
-    value: 24,
-    icon: XCircle,
-    colorVariant: 'danger',
-    iconClassName: 'text-danger',
-    badgeBg: 'bg-rose-50 text-danger',
-  },
-];
+import { DEFAULT_RESOURCE_STATS } from '../constants/resourceConstants';
 
 export interface ResourceStatsProps {
   stats?: ResourceStat[];
@@ -47,7 +22,7 @@ export interface ResourceStatsProps {
 }
 
 export function ResourceStats({
-  stats = SAMPLE_RESOURCE_STATS,
+  stats = DEFAULT_RESOURCE_STATS,
   activeStatusId,
   onSelectStatus,
   className,

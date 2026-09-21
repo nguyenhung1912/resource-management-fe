@@ -22,7 +22,7 @@ export function useSourceCodeDetail() {
     });
 
     try {
-      const data = await resourceService.getResourceDetail(fileId);
+      const data = await resourceService.getResourceDetail<SourceCodeDetail>(fileId);
       setDetail(data);
     } catch (err) {
       const message =

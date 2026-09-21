@@ -1,14 +1,24 @@
 import axiosClient from '@/services/axiosClient';
 import type {
+  AddKeywordsRequest,
+  MyUploadFilterRequest,
+  MyUploadItemResponse,
+  PaginatedResponse,
+  ResourceDetailResponse,
+  ResourceKeywordItem,
+  UpdateAuthorsRequest,
+  UpdateResourceRequest,
+  UploadResourceRequest,
+} from '@/features/resources/types/resource.types';
+import type {
   LookupItem,
-  SourceCodeDetail,
   SourceCodePaginatedResult,
   SourceCodeQuery,
   UploadResourceSuccessResponse,
   UploadSourceCodeFormValues,
 } from '@/features/digital-resources/source-code/types/source-code.types';
 
-export function buildUploadResourceFormData(values: UploadSourceCodeFormValues): FormData {
+export function buildUploadResourceFormData(values: UploadResourceRequest | UploadSourceCodeFormValues): FormData {
   const formData = new FormData();
   formData.append('File', values.file);
   formData.append('FileName', values.fileName.trim());
@@ -31,9 +41,12 @@ export function buildUploadResourceFormData(values: UploadSourceCodeFormValues):
     formData.append('BannerImage', values.bannerImage);
   }
 
-  values.authorIds.forEach((authorId) => {
-    if (authorId.trim()) {
-      formData.append('AuthorIds', authorId.trim());
+  // Luồng tài liệu dùng tên tác giả; giữ hợp đồng hiện tại của form mã nguồn.
+  const authorField = 'authorNames' in values ? 'AuthorNames' : 'AuthorIds';
+  const authors = 'authorNames' in values ? values.authorNames : values.authorIds;
+  authors.forEach((author) => {
+    if (author.trim()) {
+      formData.append(authorField, author.trim());
     }
   });
 
@@ -84,8 +97,8 @@ export const resourceService = {
   },
 
   // GET /api/Resources/{fileId}
-  async getResourceDetail(fileId: string): Promise<SourceCodeDetail> {
-    const response = await axiosClient.get<SourceCodeDetail>(`/api/Resources/${encodeURIComponent(fileId)}`);
+  async getResourceDetail<T = ResourceDetailResponse>(fileId: string): Promise<T> {
+    const response = await axiosClient.get<T>(`/api/Resources/${encodeURIComponent(fileId)}`);
 
     return response.data;
   },
@@ -139,7 +152,9 @@ export const resourceService = {
   },
 
   // POST /api/Resources
-  async uploadResource(payload: FormData | UploadSourceCodeFormValues): Promise<UploadResourceSuccessResponse> {
+  async uploadResource(
+    payload: FormData | UploadResourceRequest | UploadSourceCodeFormValues,
+  ): Promise<UploadResourceSuccessResponse> {
     const formData = payload instanceof FormData ? payload : buildUploadResourceFormData(payload);
 
     const response = await axiosClient.post<UploadResourceSuccessResponse>('/api/Resources', formData, {
@@ -148,6 +163,85 @@ export const resourceService = {
       },
     });
 
+    return response.data;
+  },
+
+  // GET /api/Resources/my-uploads
+  async getMyUploads(filter: MyUploadFilterRequest = {}): Promise<PaginatedResponse<MyUploadItemResponse>> {
+    const params: Record<string, string | number> = {
+      PageNumber: filter.pageNumber ?? 1,
+      PageSize: filter.pageSize ?? 10,
+    };
+
+    if (filter.search?.trim()) {
+      params.Search = filter.search.trim();
+    }
+    if (filter.fileStatusId !== undefined && filter.fileStatusId > 0) {
+      params.FileStatusId = filter.fileStatusId;
+    }
+    if (filter.fileTypeId !== undefined && filter.fileTypeId > 0) {
+      params.FileTypeId = filter.fileTypeId;
+    }
+    if (filter.sortBy?.trim()) {
+      params.SortBy = filter.sortBy.trim();
+    }
+    if (filter.sortDirection) {
+      params.SortDirection = filter.sortDirection;
+    }
+
+    const response = await axiosClient.get<PaginatedResponse<MyUploadItemResponse>>('/api/Resources/my-uploads', {
+      params,
+    });
+
+    return response.data;
+  },
+
+  // DELETE /api/Resources/{fileId}
+  async deleteResource(fileId: string): Promise<{ message: string }> {
+    const response = await axiosClient.delete<{ message: string }>(`/api/Resources/${encodeURIComponent(fileId)}`);
+    return response.data;
+  },
+
+  // PUT /api/ResourcesUpdate/{fileId}
+  async updateResource(fileId: string, payload: UpdateResourceRequest): Promise<{ message?: string }> {
+    const response = await axiosClient.put<{ message?: string }>(
+      `/api/ResourcesUpdate/${encodeURIComponent(fileId)}`,
+      payload,
+    );
+    return response.data;
+  },
+
+  // PUT /api/Resources/{fileId}/authors
+  async updateAuthors(fileId: string, authorNames: string[]): Promise<{ message?: string }> {
+    const response = await axiosClient.put<{ message?: string }>(
+      `/api/Resources/${encodeURIComponent(fileId)}/authors`,
+      { authorNames } satisfies UpdateAuthorsRequest,
+    );
+    return response.data;
+  },
+
+  // POST /api/Resources/{fileId}/keywords
+  async addKeywords(fileId: string, keywords: string[]): Promise<{ message?: string }> {
+    const response = await axiosClient.post<{ message?: string }>(
+      `/api/Resources/${encodeURIComponent(fileId)}/keywords`,
+      { keywords } satisfies AddKeywordsRequest,
+    );
+    return response.data;
+  },
+
+  // GET /api/Resources/{fileId}/keywords
+  async getResourceKeywords(fileId: string): Promise<ResourceKeywordItem[]> {
+    const response = await axiosClient.get<ResourceKeywordItem[]>(
+      `/api/Resources/${encodeURIComponent(fileId)}/keywords`,
+    );
+    return response.data;
+  },
+
+  // DELETE /api/Resources/{fileId}/keywords/{keywordId}
+  async deleteKeyword(fileId: string, keywordId: string): Promise<{ message?: string }> {
+    const response = await axiosClient.delete<{ message?: string }>(
+      `/api/Resources/${encodeURIComponent(fileId)}/keywords/${encodeURIComponent(keywordId)}`,
+    );
     return response.data;
   },
 };

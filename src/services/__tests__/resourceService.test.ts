@@ -13,6 +13,8 @@ vi.mock('@/services/axiosClient', () => ({
   default: {
     get: vi.fn(),
     post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
@@ -259,6 +261,72 @@ describe('resourceService', () => {
   });
 
   describe('buildUploadResourceFormData utility', () => {
+    it('gửi tên tác giả và các trường của UploadResourceRequest theo đúng hợp đồng backend', () => {
+      const file = new File(['document'], 'report.pdf', { type: 'application/pdf' });
+      const bannerImage = new File(['image'], 'banner.png', { type: 'image/png' });
+      const values = {
+        file,
+        fileName: '  Báo cáo nghiên cứu  ',
+        fileDescription: '  Mô tả báo cáo  ',
+        fileTypeId: 1,
+        subMajorCode: '  SE  ',
+        courseCode: '  PRN222  ',
+        yearCompleted: 2025,
+        authorNames: ['  Nguyễn Văn An  ', 'Trần Minh Bình', '   '],
+        githubLink: '  https://github.com/example/report  ',
+        bannerImage,
+      };
+
+      const formData = buildUploadResourceFormData(values);
+
+      expect(Array.from(formData.keys()).sort()).toEqual([
+        'AuthorNames',
+        'AuthorNames',
+        'BannerImage',
+        'CourseCode',
+        'File',
+        'FileDescription',
+        'FileName',
+        'FileTypeId',
+        'GithubLink',
+        'SubMajorCode',
+        'YearCompleted',
+      ]);
+      expect(formData.get('File')).toBe(file);
+      expect(formData.get('FileName')).toBe('Báo cáo nghiên cứu');
+      expect(formData.get('FileDescription')).toBe('Mô tả báo cáo');
+      expect(formData.get('FileTypeId')).toBe('1');
+      expect(formData.get('SubMajorCode')).toBe('SE');
+      expect(formData.get('CourseCode')).toBe('PRN222');
+      expect(formData.get('YearCompleted')).toBe('2025');
+      expect(formData.getAll('AuthorNames')).toEqual(['Nguyễn Văn An', 'Trần Minh Bình']);
+      expect(formData.get('GithubLink')).toBe('https://github.com/example/report');
+      expect(formData.get('BannerImage')).toBe(bannerImage);
+    });
+
+    it('không gửi null hoặc chuỗi trắng cho các trường upload tùy chọn', () => {
+      const formData = buildUploadResourceFormData({
+        file: new File(['document'], 'report.pdf', { type: 'application/pdf' }),
+        fileName: 'Báo cáo',
+        fileDescription: '  ',
+        fileTypeId: 1,
+        subMajorCode: 'SE',
+        courseCode: null,
+        yearCompleted: null,
+        authorNames: ['Nguyễn Văn An'],
+        githubLink: null,
+        bannerImage: null,
+      });
+
+      expect(Array.from(formData.keys()).sort()).toEqual([
+        'AuthorNames',
+        'File',
+        'FileName',
+        'FileTypeId',
+        'SubMajorCode',
+      ]);
+    });
+
     it('đóng gói đúng các trường cơ bản và mảng tác giả vào FormData', () => {
       const mockFile = new File(['content'], 'project.zip', { type: 'application/zip' });
       const mockBanner = new File(['image'], 'banner.png', { type: 'image/png' });
@@ -367,6 +435,163 @@ describe('resourceService', () => {
           'Content-Type': 'multipart/form-data',
         },
       });
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('getMyUploads', () => {
+    it('gọi GET /api/Resources/my-uploads với tham số mặc định', async () => {
+      const mockResult = {
+        items: [],
+        totalCount: 0,
+        pageNumber: 1,
+        pageSize: 10,
+        totalPages: 0,
+      };
+
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: mockResult });
+
+      const result = await resourceService.getMyUploads();
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/Resources/my-uploads', {
+        params: {
+          PageNumber: 1,
+          PageSize: 10,
+        },
+      });
+      expect(result).toEqual(mockResult);
+    });
+
+    it('gửi đầy đủ các tham số lọc khi được truyền', async () => {
+      const mockResult = {
+        items: [
+          {
+            fileId: 'FIL_001',
+            fileName: 'Báo cáo thực tập.pdf',
+            fileTypeName: 'Báo cáo',
+            fileStatusId: 1,
+            fileStatusName: 'Đã duyệt',
+            majorId: 'CNTT',
+            majorName: 'Công nghệ thông tin',
+            subMajorName: 'Kỹ thuật phần mềm',
+            courseName: 'Thực tập tốt nghiệp',
+            keywords: ['thực tập'],
+            authors: [{ id: 'USR_1', fullName: 'Nguyễn Văn A' }],
+          },
+        ],
+        totalCount: 1,
+        pageNumber: 2,
+        pageSize: 5,
+        totalPages: 1,
+      };
+
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: mockResult });
+
+      const result = await resourceService.getMyUploads({
+        search: '  thực tập  ',
+        fileStatusId: 1,
+        fileTypeId: 2,
+        pageNumber: 2,
+        pageSize: 5,
+        sortBy: 'CreatedAt',
+        sortDirection: 'desc',
+      });
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/Resources/my-uploads', {
+        params: {
+          Search: 'thực tập',
+          FileStatusId: 1,
+          FileTypeId: 2,
+          PageNumber: 2,
+          PageSize: 5,
+          SortBy: 'CreatedAt',
+          SortDirection: 'desc',
+        },
+      });
+      expect(result).toEqual(mockResult);
+      expect(result.items).toHaveLength(1);
+    });
+  });
+
+  describe('deleteResource', () => {
+    it('gọi DELETE /api/Resources/{fileId} với fileId được mã hóa an toàn', async () => {
+      const mockResponse = { message: 'Xóa tài nguyên thành công.' };
+      vi.mocked(axiosClient.delete).mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await resourceService.deleteResource('res/special#1');
+
+      expect(axiosClient.delete).toHaveBeenCalledWith('/api/Resources/res%2Fspecial%231');
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('updateResource', () => {
+    it('gọi PUT /api/ResourcesUpdate/{fileId} với payload hợp lệ', async () => {
+      const mockResponse = { message: 'Cập nhật thành công.' };
+      vi.mocked(axiosClient.put).mockResolvedValueOnce({ data: mockResponse });
+
+      const payload = {
+        fileName: 'Tài liệu cập nhật',
+        fileDescription: 'Mô tả mới',
+        fileTypeId: 2,
+        subMajorCode: 'SE',
+        courseCode: 'SWR302',
+        yearCompleted: 2024,
+      };
+
+      const result = await resourceService.updateResource('res/123', payload);
+
+      expect(axiosClient.put).toHaveBeenCalledWith('/api/ResourcesUpdate/res%2F123', payload);
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('updateAuthors', () => {
+    it('gọi PUT /api/Resources/{fileId}/authors với danh sách tác giả', async () => {
+      const mockResponse = { message: 'Cập nhật tác giả thành công.' };
+      vi.mocked(axiosClient.put).mockResolvedValueOnce({ data: mockResponse });
+
+      const authorNames = ['Tác giả 1', 'Tác giả 2'];
+      const result = await resourceService.updateAuthors('res-1', authorNames);
+
+      expect(axiosClient.put).toHaveBeenCalledWith('/api/Resources/res-1/authors', {
+        authorNames,
+      });
+      expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('keyword methods', () => {
+    it('addKeywords gọi POST /api/Resources/{fileId}/keywords', async () => {
+      const mockResponse = { message: 'Cập nhật từ khóa thành công.' };
+      vi.mocked(axiosClient.post).mockResolvedValueOnce({ data: mockResponse });
+
+      const keywords = ['AI', 'Machine Learning'];
+      const result = await resourceService.addKeywords('res-1', keywords);
+
+      expect(axiosClient.post).toHaveBeenCalledWith('/api/Resources/res-1/keywords', {
+        keywords,
+      });
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('getResourceKeywords gọi GET /api/Resources/{fileId}/keywords', async () => {
+      const mockKeywords = [{ fileKeywordId: 'kw-1', keyword: 'React' }];
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: mockKeywords });
+
+      const result = await resourceService.getResourceKeywords('res-1');
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/Resources/res-1/keywords');
+      expect(result).toEqual(mockKeywords);
+    });
+
+    it('deleteKeyword gọi DELETE /api/Resources/{fileId}/keywords/{keywordId}', async () => {
+      const mockResponse = { message: 'Đã xóa từ khóa.' };
+      vi.mocked(axiosClient.delete).mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await resourceService.deleteKeyword('res-1', 'kw/special#1');
+
+      expect(axiosClient.delete).toHaveBeenCalledWith('/api/Resources/res-1/keywords/kw%2Fspecial%231');
       expect(result).toEqual(mockResponse);
     });
   });

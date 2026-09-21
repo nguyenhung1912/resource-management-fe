@@ -3,7 +3,7 @@ export interface SelectOption<TValue extends string | number> {
   label: string;
 }
 
-export interface UploadResourceFormValues {
+export interface UploadResourceRequest {
   file: File;
   fileName: string;
   fileDescription: string | null;
@@ -12,9 +12,12 @@ export interface UploadResourceFormValues {
   courseCode: string | null;
   yearCompleted: number | null;
   authorNames: string[];
-  keywords: string[];
-  sourceCodeUrl: string | null;
+  githubLink: string | null;
   bannerImage: File | null;
+}
+
+export interface UploadResourceFormValues extends Omit<UploadResourceRequest, 'githubLink'> {
+  sourceCodeUrl: string | null;
 }
 
 export interface ModifyResourceInitialValues {
@@ -44,17 +47,51 @@ export interface ModifyResourceFormValues {
   bannerImage: File | null;
 }
 
+export interface MyUploadFilterRequest {
+  search?: string;
+  fileStatusId?: number;
+  fileTypeId?: number;
+  pageNumber?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc' | string;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 export interface ResourceAuthorResponse {
-  id: string;
-  fullName: string;
+  id?: string;
+  fullName?: string;
+  authorName?: string;
 }
 
 export interface ResourceResponse {
-  id: string;
+  id?: string;
+  fileId?: string;
   fileName: string;
+  fileDescription?: string | null;
+  fileUrl?: string | null;
+  fileTypeId?: number;
   fileTypeName: string;
-  fileSizeBytes: number | null;
-  uploadedAt: string;
+  subMajorCode?: string | null;
+  courseCode?: string | null;
+  yearCompleted?: number | null;
+  authorNames?: string[];
+  githubLink?: string | null;
+  bannerImage?: string | null;
+  fileSize?: number | null;
+  fileSizeBytes?: number | null;
+  createdAt?: string;
+  uploadedAt?: string;
+  updatedAt?: string;
+  uploadBy?: string | null;
+  statusName?: string | null;
 }
 
 export interface MyUploadItemResponse extends ResourceResponse {
@@ -65,5 +102,58 @@ export interface MyUploadItemResponse extends ResourceResponse {
   subMajorName: string | null;
   courseName: string | null;
   keywords: string[];
+  authors: ResourceAuthorResponse[];
+}
+
+export interface UpdateResourceRequest {
+  fileName?: string | null;
+  fileDescription?: string | null;
+  fileTypeId?: number | null;
+  majorID?: string | null;
+  subMajorCode?: string | null;
+  courseCode?: string | null;
+  yearCompleted?: number | null;
+  gitHubLink?: string | null;
+  fileBannerImage?: string | null;
+}
+
+export interface UpdateAuthorsRequest {
+  authorNames: string[];
+}
+
+export interface AddKeywordsRequest {
+  keywords: string[];
+}
+
+export interface ResourceKeywordItem {
+  fileKeywordId: string;
+  keyword: string;
+}
+
+export interface ResourceDetailResponse {
+  fileId: string;
+  fileName: string;
+  fileDescription?: string | null;
+  fileUrl?: string | null;
+  fileTypeId: number;
+  fileTypeName?: string | null;
+  fileStatusId: number;
+  fileStatusName?: string | null;
+  majorId?: string | null;
+  majorName?: string | null;
+  subMajorCode?: string | null;
+  subMajorName?: string | null;
+  courseCode?: string | null;
+  courseName?: string | null;
+  yearCompleted?: number | null;
+  uploadUserId?: string | null;
+  uploadUserName?: string | null;
+  githubLink?: string | null;
+  bannerImage?: string | null;
+  fileSize: number;
+  createdAt: string;
+  updatedAt?: string | null;
+  keywords: string[];
+  authorNames: string[];
   authors: ResourceAuthorResponse[];
 }

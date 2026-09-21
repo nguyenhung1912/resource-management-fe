@@ -1,7 +1,10 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLoaderData, useNavigate, useParams, useRevalidator } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
 import { ModifyResourceModal } from '@/features/resources/components/ModifyResourceModal';
-import type { ModifyResourceInitialValues, SelectOption } from '@/features/resources/types/resource.types';
+import { useModifyResource } from '@/features/resources/hooks/useModifyResource';
+import type { ModifyResourceLoaderData } from './modifyResourceLoader';
+import { createFallbackResource } from './modifyResourceLoader';
+import type { ModifyResourceFormValues, SelectOption } from '@/features/resources/types/resource.types';
 
 const previewFileTypes: SelectOption<number>[] = [
   { value: 1, label: 'Báo cáo nghiên cứu' },
@@ -20,41 +23,65 @@ const previewCourses: SelectOption<string>[] = [
   { value: 'SWR302', label: 'Kiến trúc và thiết kế phần mềm' },
 ];
 
-function createPreviewResource(resourceId: string): ModifyResourceInitialValues {
-  return {
-    id: resourceId,
-    documentFileName: 'Báo cáo thực tập_Final.pdf',
-    documentFileTypeName: 'PDF',
-    documentFileSizeBytes: 2_516_582,
-    fileName: 'Báo cáo thực tập',
-    fileDescription: 'Báo cáo tổng kết quá trình thực tập doanh nghiệp.',
-    fileTypeId: 1,
-    subMajorCode: 'SE',
-    courseCode: 'SWR302',
-    yearCompleted: 2024,
-    authorNames: ['Nguyễn Văn A'],
-    keywords: ['thực tập', 'báo cáo'],
-  };
-}
-
 export function ModifyResourcePage() {
   const navigate = useNavigate();
+  const revalidator = useRevalidator();
   const { resourceId = 'resource-1' } = useParams();
-  const previewResource = createPreviewResource(resourceId);
+  const loaderData = useLoaderData() as ModifyResourceLoaderData | undefined;
+  const { isSubmitting, apiError, modifyResource } = useModifyResource();
+
+  const resource = loaderData?.resource ?? createFallbackResource(resourceId);
+  const catalog = loaderData?.catalog;
+
+  const rawFileTypes = catalog?.fileTypes;
+  const rawSubMajors = catalog?.subMajors;
+  const rawCourses = catalog?.courses;
+
+  const fileTypes: SelectOption<number>[] = rawFileTypes?.length
+    ? rawFileTypes.map((ft) => ({
+        value: Number(ft.id),
+        label: ft.name,
+      }))
+    : previewFileTypes;
+
+  const subMajors: SelectOption<string>[] = rawSubMajors?.length
+    ? rawSubMajors.map((sm) => ({
+        value: sm.subMajorCode,
+        label: `${sm.subMajorName} (${sm.subMajorCode})`,
+      }))
+    : previewSubMajors;
+
+  const courses: SelectOption<string>[] = rawCourses?.length
+    ? rawCourses.map((c) => ({
+        value: c.courseCode,
+        label: `${c.courseCode} - ${c.courseName}`,
+      }))
+    : previewCourses;
 
   const closeModify = () => {
     void navigate(APP_PATHS.RESOURCES_MANAGER);
   };
 
+  const handleSubmit = async (values: ModifyResourceFormValues) => {
+    const targetFileId = resource.id || resourceId;
+    const isUpdated = await modifyResource(targetFileId, values);
+    if (isUpdated) {
+      revalidator.revalidate();
+      closeModify();
+    }
+  };
+
   return (
     <ModifyResourceModal
       isOpen
-      resource={previewResource}
-      fileTypes={previewFileTypes}
-      subMajors={previewSubMajors}
-      courses={previewCourses}
+      isSubmitting={isSubmitting}
+      apiError={apiError}
+      resource={resource}
+      fileTypes={fileTypes}
+      subMajors={subMajors}
+      courses={courses}
       onClose={closeModify}
-      onSubmit={closeModify}
+      onSubmit={handleSubmit}
     />
   );
 }
