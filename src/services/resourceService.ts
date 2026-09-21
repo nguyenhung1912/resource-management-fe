@@ -1,4 +1,5 @@
 import axiosClient from '@/services/axiosClient';
+import type { UploadResourceRequest } from '@/features/resources/types/resource.types';
 import type {
   LookupItem,
   SourceCodeDetail,
@@ -8,7 +9,7 @@ import type {
   UploadSourceCodeFormValues,
 } from '@/features/digital-resources/source-code/types/source-code.types';
 
-export function buildUploadResourceFormData(values: UploadSourceCodeFormValues): FormData {
+export function buildUploadResourceFormData(values: UploadResourceRequest | UploadSourceCodeFormValues): FormData {
   const formData = new FormData();
   formData.append('File', values.file);
   formData.append('FileName', values.fileName.trim());
@@ -31,9 +32,12 @@ export function buildUploadResourceFormData(values: UploadSourceCodeFormValues):
     formData.append('BannerImage', values.bannerImage);
   }
 
-  values.authorIds.forEach((authorId) => {
-    if (authorId.trim()) {
-      formData.append('AuthorIds', authorId.trim());
+  // Luồng tài liệu dùng tên tác giả; giữ hợp đồng hiện tại của form mã nguồn.
+  const authorField = 'authorNames' in values ? 'AuthorNames' : 'AuthorIds';
+  const authors = 'authorNames' in values ? values.authorNames : values.authorIds;
+  authors.forEach((author) => {
+    if (author.trim()) {
+      formData.append(authorField, author.trim());
     }
   });
 
@@ -139,7 +143,9 @@ export const resourceService = {
   },
 
   // POST /api/Resources
-  async uploadResource(payload: FormData | UploadSourceCodeFormValues): Promise<UploadResourceSuccessResponse> {
+  async uploadResource(
+    payload: FormData | UploadResourceRequest | UploadSourceCodeFormValues,
+  ): Promise<UploadResourceSuccessResponse> {
     const formData = payload instanceof FormData ? payload : buildUploadResourceFormData(payload);
 
     const response = await axiosClient.post<UploadResourceSuccessResponse>('/api/Resources', formData, {

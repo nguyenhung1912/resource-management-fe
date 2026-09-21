@@ -3,7 +3,7 @@ export interface SelectOption<TValue extends string | number> {
   label: string;
 }
 
-export interface UploadResourceFormValues {
+export interface UploadResourceRequest {
   file: File;
   fileName: string;
   fileDescription: string | null;
@@ -12,9 +12,12 @@ export interface UploadResourceFormValues {
   courseCode: string | null;
   yearCompleted: number | null;
   authorNames: string[];
-  keywords: string[];
-  sourceCodeUrl: string | null;
+  githubLink: string | null;
   bannerImage: File | null;
+}
+
+export interface UploadResourceFormValues extends Omit<UploadResourceRequest, 'githubLink'> {
+  sourceCodeUrl: string | null;
 }
 
 export interface ModifyResourceInitialValues {

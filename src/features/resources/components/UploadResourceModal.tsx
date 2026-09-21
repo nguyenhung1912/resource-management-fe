@@ -8,7 +8,6 @@ import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import type { SelectOption, UploadResourceFormValues } from '@/features/resources/types/resource.types';
 import { AuthorInput } from './AuthorInput';
-import { KeywordInput } from './KeywordInput';
 import { ResourceFileDropzone } from './ResourceFileDropzone';
 
 const MAX_RESOURCE_FILE_SIZE = 50 * 1024 * 1024;
@@ -37,7 +36,6 @@ interface FormState {
   courseCode: string;
   yearCompleted: string;
   authorNames: string[];
-  keywords: string[];
   sourceCodeUrl: string;
   bannerImage: File | null;
 }
@@ -56,7 +54,6 @@ const initialFormState: FormState = {
   courseCode: '',
   yearCompleted: '',
   authorNames: [],
-  keywords: [],
   sourceCodeUrl: '',
   bannerImage: null,
 };
@@ -121,8 +118,10 @@ export function UploadResourceModal({
   const authorsError = isSubmitted && form.authorNames.length === 0 ? 'Vui lòng nhập ít nhất một tác giả.' : undefined;
   const trimmedSourceCodeUrl = form.sourceCodeUrl.trim();
   const hasInvalidSourceCodeUrl = Boolean(trimmedSourceCodeUrl) && !isValidHttpUrl(trimmedSourceCodeUrl);
-  const sourceCodeUrlError =
-    isSubmitted && hasInvalidSourceCodeUrl
+  const hasLongSourceCodeUrl = trimmedSourceCodeUrl.length > 500;
+  const sourceCodeUrlError = hasLongSourceCodeUrl
+    ? 'Liên kết mã nguồn không được vượt quá 500 ký tự.'
+    : isSubmitted && hasInvalidSourceCodeUrl
       ? 'Liên kết mã nguồn phải là URL hợp lệ sử dụng giao thức http:// hoặc https://.'
       : undefined;
   const numericYear = form.yearCompleted ? Number(form.yearCompleted) : null;
@@ -157,6 +156,8 @@ export function UploadResourceModal({
   };
 
   const resetAndClose = () => {
+    if (isSubmitting) return;
+
     setForm(initialFormState);
     setFileErrors({});
     setIsSubmitted(false);
@@ -176,6 +177,7 @@ export function UploadResourceModal({
       !form.subMajorCode ||
       form.authorNames.length === 0 ||
       hasInvalidSourceCodeUrl ||
+      hasLongSourceCodeUrl ||
       Boolean(resourceFileError) ||
       Boolean(fileErrors.banner) ||
       Boolean(yearError);
@@ -191,7 +193,6 @@ export function UploadResourceModal({
       courseCode: form.courseCode || null,
       yearCompleted: numericYear,
       authorNames: form.authorNames,
-      keywords: form.keywords,
       sourceCodeUrl: trimmedSourceCodeUrl || null,
       bannerImage: form.bannerImage,
     });
@@ -222,14 +223,15 @@ export function UploadResourceModal({
       maxWidth="2xl"
       closeOnBackdropClick={!isSubmitting}
       closeOnEscape={!isSubmitting}
+      showCloseButton={!isSubmitting}
       fullScreenOnMobile
       footer={footer}
     >
-      <form id="upload-resource-form" noValidate className="space-y-5" onSubmit={handleSubmit}>
+      <form id="upload-resource-form" noValidate aria-busy={isSubmitting} className="space-y-5" onSubmit={handleSubmit}>
         {apiError ? (
           <div
             role="alert"
-            className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 p-3.5 text-xs leading-relaxed text-danger"
+            className="flex items-start gap-2.5 rounded-lg border border-danger/20 bg-danger/5 p-3.5 text-xs leading-relaxed text-danger"
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             <div>
@@ -375,16 +377,6 @@ export function UploadResourceModal({
           />
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="resource-keywords">Từ khóa</Label>
-          <KeywordInput
-            id="resource-keywords"
-            keywords={form.keywords}
-            disabled={isSubmitting}
-            onChange={(keywords) => updateField('keywords', keywords)}
-          />
-        </div>
-
         <div className="space-y-2">
           <Label htmlFor="resource-source-code-url" error={Boolean(sourceCodeUrlError)}>
             Đính kèm mã nguồn (Không bắt buộc)
@@ -392,6 +384,7 @@ export function UploadResourceModal({
           <Input
             id="resource-source-code-url"
             type="url"
+            maxLength={501}
             placeholder="https://github.com/... hoặc https://gitlab.com/..."
             value={form.sourceCodeUrl}
             error={sourceCodeUrlError}

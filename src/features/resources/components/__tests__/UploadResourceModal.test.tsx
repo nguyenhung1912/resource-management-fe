@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { UploadResourceModal } from '../UploadResourceModal';
+import type { UploadResourceModalProps } from '../UploadResourceModal';
 
 const defaultProps = {
   isOpen: true,
@@ -17,7 +18,7 @@ const defaultProps = {
   onSubmit: vi.fn(),
 };
 
-function renderModal(overrides: Partial<typeof defaultProps> = {}) {
+function renderModal(overrides: Partial<UploadResourceModalProps> = {}) {
   return render(<UploadResourceModal {...defaultProps} {...overrides} />);
 }
 
@@ -116,6 +117,43 @@ describe('UploadResourceModal', () => {
     expect(screen.getByLabelText(/tên tài nguyên/i)).toHaveValue('bao-cao-nghien-cuu');
   });
 
+  it.each([500, 501])('kiểm tra giới hạn GithubLink với URL dài %i ký tự', (length) => {
+    const handleSubmit = vi.fn();
+    renderModal({ onSubmit: handleSubmit });
+    chooseMainFile(new File(['noi dung'], 'resource.pdf', { type: 'application/pdf' }));
+    fireEvent.change(screen.getByLabelText(/loại tài nguyên/i), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText(/chuyên ngành/i), { target: { value: 'SE' } });
+    const authorInput = screen.getByRole('textbox', { name: /nhập tác giả/i });
+    fireEvent.change(authorInput, { target: { value: 'Nguyễn Văn An' } });
+    fireEvent.keyDown(authorInput, { key: 'Enter' });
+    const prefix = 'https://github.com/';
+    fireEvent.change(screen.getByLabelText(/đính kèm mã nguồn/i), {
+      target: { value: prefix + 'a'.repeat(length - prefix.length) },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
+
+    if (length === 500) {
+      expect(handleSubmit).toHaveBeenCalledTimes(1);
+    } else {
+      expect(handleSubmit).not.toHaveBeenCalled();
+      expect(screen.getByRole('alert')).toHaveTextContent('500');
+    }
+  });
+
+  it('chặn các thao tác đóng modal trong lúc đang tải lên', () => {
+    const onClose = vi.fn();
+    renderModal({ isSubmitting: true, onClose });
+
+    const closeButton = screen.queryByRole('button', { name: 'Đóng' });
+    if (closeButton) fireEvent.click(closeButton);
+    fireEvent.click(screen.getByRole('button', { name: 'Hủy' }));
+    fireEvent.click(screen.getByRole('presentation'));
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Đang tải lên…' })).toBeDisabled();
+  });
+
   it.each(['doc', 'docx', 'ppt', 'pptx'])('nhận tệp tài liệu định dạng %s', (extension) => {
     renderModal();
 
@@ -193,11 +231,6 @@ describe('UploadResourceModal', () => {
     fireEvent.keyDown(authorInput, { key: 'Enter' });
     fireEvent.change(authorInput, { target: { value: 'Trần Minh Bình' } });
     fireEvent.keyDown(authorInput, { key: 'Enter' });
-    const keywordInput = screen.getByRole('textbox', { name: 'Nhập từ khóa' });
-    fireEvent.change(keywordInput, { target: { value: 'React' } });
-    fireEvent.keyDown(keywordInput, { key: 'Enter' });
-    fireEvent.change(keywordInput, { target: { value: 'TypeScript' } });
-    fireEvent.keyDown(keywordInput, { key: 'Enter' });
     fireEvent.change(screen.getByLabelText(/đính kèm mã nguồn/i), {
       target: { value: '  https://github.com/example/source-code  ' },
     });
@@ -213,7 +246,6 @@ describe('UploadResourceModal', () => {
       courseCode: 'PRN222',
       yearCompleted: 2025,
       authorNames: ['Nguyễn Văn An', 'Trần Minh Bình'],
-      keywords: ['React', 'TypeScript'],
       sourceCodeUrl: 'https://github.com/example/source-code',
       bannerImage,
     });

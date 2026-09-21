@@ -259,6 +259,72 @@ describe('resourceService', () => {
   });
 
   describe('buildUploadResourceFormData utility', () => {
+    it('gửi tên tác giả và các trường của UploadResourceRequest theo đúng hợp đồng backend', () => {
+      const file = new File(['document'], 'report.pdf', { type: 'application/pdf' });
+      const bannerImage = new File(['image'], 'banner.png', { type: 'image/png' });
+      const values = {
+        file,
+        fileName: '  Báo cáo nghiên cứu  ',
+        fileDescription: '  Mô tả báo cáo  ',
+        fileTypeId: 1,
+        subMajorCode: '  SE  ',
+        courseCode: '  PRN222  ',
+        yearCompleted: 2025,
+        authorNames: ['  Nguyễn Văn An  ', 'Trần Minh Bình', '   '],
+        githubLink: '  https://github.com/example/report  ',
+        bannerImage,
+      };
+
+      const formData = buildUploadResourceFormData(values);
+
+      expect(Array.from(formData.keys()).sort()).toEqual([
+        'AuthorNames',
+        'AuthorNames',
+        'BannerImage',
+        'CourseCode',
+        'File',
+        'FileDescription',
+        'FileName',
+        'FileTypeId',
+        'GithubLink',
+        'SubMajorCode',
+        'YearCompleted',
+      ]);
+      expect(formData.get('File')).toBe(file);
+      expect(formData.get('FileName')).toBe('Báo cáo nghiên cứu');
+      expect(formData.get('FileDescription')).toBe('Mô tả báo cáo');
+      expect(formData.get('FileTypeId')).toBe('1');
+      expect(formData.get('SubMajorCode')).toBe('SE');
+      expect(formData.get('CourseCode')).toBe('PRN222');
+      expect(formData.get('YearCompleted')).toBe('2025');
+      expect(formData.getAll('AuthorNames')).toEqual(['Nguyễn Văn An', 'Trần Minh Bình']);
+      expect(formData.get('GithubLink')).toBe('https://github.com/example/report');
+      expect(formData.get('BannerImage')).toBe(bannerImage);
+    });
+
+    it('không gửi null hoặc chuỗi trắng cho các trường upload tùy chọn', () => {
+      const formData = buildUploadResourceFormData({
+        file: new File(['document'], 'report.pdf', { type: 'application/pdf' }),
+        fileName: 'Báo cáo',
+        fileDescription: '  ',
+        fileTypeId: 1,
+        subMajorCode: 'SE',
+        courseCode: null,
+        yearCompleted: null,
+        authorNames: ['Nguyễn Văn An'],
+        githubLink: null,
+        bannerImage: null,
+      });
+
+      expect(Array.from(formData.keys()).sort()).toEqual([
+        'AuthorNames',
+        'File',
+        'FileName',
+        'FileTypeId',
+        'SubMajorCode',
+      ]);
+    });
+
     it('đóng gói đúng các trường cơ bản và mảng tác giả vào FormData', () => {
       const mockFile = new File(['content'], 'project.zip', { type: 'application/zip' });
       const mockBanner = new File(['image'], 'banner.png', { type: 'image/png' });
