@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import axiosClient from '../axiosClient';
 import { reportService } from '../reportService';
 import type {
+  CreateReportPayload,
   PagedReportResponse,
   ReportDetailResponse,
   ReportMutationResponse,
@@ -268,6 +269,130 @@ describe('reportService', () => {
 
       expect(axiosClient.put).toHaveBeenCalledWith('/api/Report/RPT_001/status', payload);
       expect(result).toEqual(mockResponse);
+    });
+  });
+
+  describe('createReport', () => {
+    it('gửi báo cáo tài liệu (File) thành công với cấu trúc payload kép tương thích BE và Swagger', async () => {
+      const payload: CreateReportPayload = {
+        reportTypeId: 1,
+        reportContent: 'Tài liệu sao chép toàn bộ từ khóa luận 2024.',
+        fileId: 'FIL_001',
+      };
+
+      const mockResponse: ReportMutationResponse = {
+        message: 'Gửi báo cáo thành công.',
+        data: {
+          reportId: 'RPT_NEW_01',
+          reporterUid: 'USR_001',
+          reporterName: 'Sinh viên A',
+          targetType: 'File',
+          targetId: 'FIL_001',
+          reportTypeId: 1,
+          reportTypeName: 'Vi phạm bản quyền',
+          reason: 'Tài liệu sao chép toàn bộ từ khóa luận 2024.',
+          status: 'Pending',
+          createdAt: '2026-09-22T10:00:00Z',
+        },
+      };
+
+      vi.mocked(axiosClient.post).mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await reportService.createReport(payload);
+
+      expect(axiosClient.post).toHaveBeenCalledWith('/api/Report', {
+        reportTypeId: 1,
+        reportContent: 'Tài liệu sao chép toàn bộ từ khóa luận 2024.',
+        reason: 'Tài liệu sao chép toàn bộ từ khóa luận 2024.',
+        fileId: 'FIL_001',
+        targetType: 'File',
+        targetId: 'FIL_001',
+      });
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('gửi báo cáo bình luận (Comment) thành công với commentId', async () => {
+      const payload: CreateReportPayload = {
+        reportTypeId: '2',
+        reportContent: 'Bình luận chứa từ ngữ thù địch xúc phạm người khác.',
+        commentId: 'COM_001',
+        fileId: 'FIL_001',
+      };
+
+      const mockResponse: ReportMutationResponse = {
+        message: 'Gửi báo cáo thành công.',
+      };
+
+      vi.mocked(axiosClient.post).mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await reportService.createReport(payload);
+
+      expect(axiosClient.post).toHaveBeenCalledWith('/api/Report', {
+        reportTypeId: '2',
+        reportContent: 'Bình luận chứa từ ngữ thù địch xúc phạm người khác.',
+        reason: 'Bình luận chứa từ ngữ thù địch xúc phạm người khác.',
+        commentId: 'COM_001',
+        fileId: 'FIL_001',
+        targetType: 'Comment',
+        targetId: 'COM_001',
+      });
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('gửi báo cáo người dùng (User) thành công với uidtarget', async () => {
+      const payload: CreateReportPayload = {
+        reportTypeId: '3',
+        reportContent: 'Tài khoản mạo danh sinh viên khác để phát tán tài liệu giả.',
+        uidtarget: 'USR_TARGET_01',
+      };
+
+      const mockResponse: ReportMutationResponse = {
+        message: 'Gửi báo cáo thành công.',
+      };
+
+      vi.mocked(axiosClient.post).mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await reportService.createReport(payload);
+
+      expect(axiosClient.post).toHaveBeenCalledWith('/api/Report', {
+        reportTypeId: '3',
+        reportContent: 'Tài khoản mạo danh sinh viên khác để phát tán tài liệu giả.',
+        reason: 'Tài khoản mạo danh sinh viên khác để phát tán tài liệu giả.',
+        uidtarget: 'USR_TARGET_01',
+        targetType: 'User',
+        targetId: 'USR_TARGET_01',
+      });
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('bắt lỗi khi API ném ra lỗi 409 Conflict (báo cáo đã tồn tại và đang chờ duyệt)', async () => {
+      const payload: CreateReportPayload = {
+        reportTypeId: 1,
+        reportContent: 'Báo cáo trùng lặp',
+        fileId: 'FIL_DUPLICATE',
+      };
+
+      const conflictError = new Error('Bạn đã gửi báo cáo cho đối tượng này và báo cáo đang chờ xử lý.');
+      vi.mocked(axiosClient.post).mockRejectedValueOnce(conflictError);
+
+      await expect(reportService.createReport(payload)).rejects.toThrow(
+        'Bạn đã gửi báo cáo cho đối tượng này và báo cáo đang chờ xử lý.',
+      );
+    });
+
+    it('bắt lỗi khi API ném ra lỗi 400 Bad Request (lỗi validation)', async () => {
+      const payload: CreateReportPayload = {
+        reportTypeId: 1,
+        reportContent: 'Ngắn',
+        fileId: 'FIL_001',
+      };
+
+      const badRequestError = new Error('Nội dung báo cáo là bắt buộc và tối đa 4000 ký tự.');
+      vi.mocked(axiosClient.post).mockRejectedValueOnce(badRequestError);
+
+      await expect(reportService.createReport(payload)).rejects.toThrow(
+        'Nội dung báo cáo là bắt buộc và tối đa 4000 ký tự.',
+      );
     });
   });
 });
