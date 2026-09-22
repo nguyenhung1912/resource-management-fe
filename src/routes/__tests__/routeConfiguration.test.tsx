@@ -93,6 +93,7 @@ describe('dashboard route configuration', () => {
 
   it.each([
     APP_PATHS.DASHBOARD,
+    APP_PATHS.ALL_RESOURCES,
     APP_PATHS.RESOURCES_MANAGER,
     APP_PATHS.RESOURCE_UPLOAD,
     APP_PATHS.MODERATION_DETAIL('FIL_TEST'),
@@ -115,6 +116,18 @@ describe('dashboard route configuration', () => {
 
     await waitFor(() => {
       expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCES_MANAGER);
+    });
+  });
+
+  it('redirects legacy digital resource category route to /dashboard/resources', async () => {
+    const router = createMemoryRouter(dashboardRoutes, {
+      initialEntries: [APP_PATHS.LECTURES],
+    });
+
+    render(<RouterProvider router={router} />);
+
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe(APP_PATHS.ALL_RESOURCES);
     });
   });
 
