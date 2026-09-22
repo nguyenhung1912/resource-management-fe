@@ -1,5 +1,7 @@
 import axiosClient from './axiosClient';
 import type {
+  CreateReportPayload,
+  CreateReportRequestBody,
   GetReportsParams,
   PagedReportResponse,
   ReportDetailResponse,
@@ -92,6 +94,46 @@ export const reportService = {
       `/api/Report/${encodeURIComponent(reportId)}/status`,
       payload,
     );
+    return response.data;
+  },
+
+  // POST /api/Report
+  async createReport(payload: CreateReportPayload): Promise<ReportMutationResponse> {
+    const reportContent = payload.reportContent.trim();
+    const reason = (payload.reason ?? payload.reportContent).trim();
+
+    const requestBody: CreateReportRequestBody = {
+      reportTypeId: payload.reportTypeId,
+      reportContent,
+      reason,
+    };
+
+    if (payload.fileId) {
+      requestBody.fileId = payload.fileId;
+      requestBody.targetType = payload.targetType ?? 'File';
+      requestBody.targetId = payload.targetId ?? payload.fileId;
+    }
+
+    if (payload.commentId) {
+      requestBody.commentId = payload.commentId;
+      requestBody.targetType = payload.targetType ?? 'Comment';
+      requestBody.targetId = payload.targetId ?? payload.commentId;
+    }
+
+    if (payload.uidtarget) {
+      requestBody.uidtarget = payload.uidtarget;
+      requestBody.targetType = payload.targetType ?? 'User';
+      requestBody.targetId = payload.targetId ?? payload.uidtarget;
+    }
+
+    if (!requestBody.targetType && payload.targetType) {
+      requestBody.targetType = payload.targetType;
+    }
+    if (!requestBody.targetId && payload.targetId) {
+      requestBody.targetId = payload.targetId;
+    }
+
+    const response = await axiosClient.post<ReportMutationResponse>('/api/Report', requestBody);
     return response.data;
   },
 };
