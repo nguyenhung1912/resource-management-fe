@@ -103,6 +103,116 @@ describe('reportService', () => {
     });
   });
 
+  describe('getMyReports', () => {
+    it('gọi GET /api/Report/me với đầy đủ query params', async () => {
+      const mockPagedResponse: PagedReportResponse = {
+        items: [
+          {
+            reportId: 'RPT_MY_001',
+            reporterUid: 'USR_ME',
+            reporterName: 'Tôi',
+            targetType: 'File',
+            targetId: 'FIL_123',
+            reportTypeId: 1,
+            reportTypeName: 'Vi phạm bản quyền',
+            reason: 'Tài liệu sao chép nghiên cứu của tôi',
+            status: 'Pending',
+            createdAt: '2026-09-18T08:00:00Z',
+          },
+        ],
+        pageIndex: 1,
+        pageSize: 10,
+        totalCount: 1,
+        totalPages: 1,
+        hasPreviousPage: false,
+        hasNextPage: false,
+      };
+
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: mockPagedResponse });
+
+      const result = await reportService.getMyReports({
+        status: 'Pending',
+        pageNumber: 1,
+        pageSize: 10,
+        reportTypeId: 1,
+      });
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/Report/me', {
+        params: {
+          Status: 'Pending',
+          PageNumber: 1,
+          PageIndex: 1,
+          PageSize: 10,
+          ReportTypeId: 1,
+        },
+      });
+      expect(result).toEqual(mockPagedResponse);
+    });
+
+    it('chuẩn hóa totalItems thành totalCount khi backend trả về DTO C#', async () => {
+      const backendDtoResponse = {
+        items: [
+          {
+            reportId: 'RPT_MY_002',
+            reporterUid: 'USR_ME',
+            reporterName: 'Tôi',
+            targetType: 'Comment',
+            targetId: 'CMT_456',
+            reportTypeId: 2,
+            reportTypeName: 'Spam',
+            reason: 'Bình luận rác',
+            status: 'Resolved',
+            handlingNotes: 'Đã ẩn bình luận',
+            createdAt: '2026-09-18T09:00:00Z',
+          },
+        ],
+        totalItems: 15,
+        pageIndex: 2,
+        pageSize: 10,
+      };
+
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: backendDtoResponse });
+
+      const result = await reportService.getMyReports({
+        pageIndex: 2,
+        pageSize: 10,
+      });
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/Report/me', {
+        params: {
+          PageNumber: 2,
+          PageIndex: 2,
+          PageSize: 10,
+        },
+      });
+      expect(result.totalCount).toBe(15);
+      expect(result.totalPages).toBe(2);
+      expect(result.hasPreviousPage).toBe(true);
+      expect(result.hasNextPage).toBe(false);
+    });
+
+    it('gọi GET /api/Report/me khi không truyền params', async () => {
+      const mockPagedResponse: PagedReportResponse = {
+        items: [],
+        pageIndex: 1,
+        pageSize: 10,
+        totalCount: 0,
+        totalPages: 0,
+        hasPreviousPage: false,
+        hasNextPage: false,
+      };
+
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: mockPagedResponse });
+
+      const result = await reportService.getMyReports();
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/Report/me', {
+        params: {},
+      });
+      expect(result).toEqual(mockPagedResponse);
+    });
+  });
+
   describe('getReportById', () => {
     it('gọi GET /api/Report/{reportId} với param đã encode', async () => {
       const mockDetail: ReportDetailResponse = {
