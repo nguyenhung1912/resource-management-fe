@@ -1,7 +1,7 @@
 import { hasAnyRole } from '@/features/auth/utils/roleUtils';
 import type { DashboardFunction, DashboardMenuResponse } from '@/features/dashboard/types/dashboard-menu.types';
 
-const ALWAYS_VISIBLE_IDS = new Set(['profile']);
+const ALWAYS_VISIBLE_IDS = new Set(['homepage', 'profile']);
 
 /**
  * Xây dựng danh sách menu dashboard dựa trên:

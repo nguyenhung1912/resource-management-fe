@@ -10,6 +10,13 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
       allowedRoles: ['Student', 'Lecturer', 'Admin'],
       functions: [
         {
+          functionId: 'homepage',
+          functionName: 'Trang chủ',
+          functionUrl: APP_PATHS.DASHBOARD,
+          functionDescription: 'Quay về trang chủ dashboard',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
+        },
+        {
           functionId: 'profile',
           functionName: 'Hồ sơ',
           functionUrl: APP_PATHS.PROFILE,
@@ -85,21 +92,21 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
           functionName: 'Quản lý người dùng',
           functionUrl: APP_PATHS.ADMIN_USERS,
           functionDescription: 'Xem và quản lý danh sách người dùng',
-          allowedRoles: ['Admin']
+          allowedRoles: ['Admin'],
         },
         {
           functionId: 'F012',
           functionName: 'Quản lý Role',
           functionUrl: APP_PATHS.ADMIN_ROLES,
           functionDescription: 'Xem và quản lý các Role trong hệ thống',
-          allowedRoles: ['Admin']
+          allowedRoles: ['Admin'],
         },
         {
           functionId: 'F013',
           functionName: 'Phân quyền chức năng',
           functionUrl: APP_PATHS.ADMIN_FUNCTIONS,
           functionDescription: 'Quản lý chức năng và phân quyền chức năng cho Role',
-          allowedRoles: ['Admin']
+          allowedRoles: ['Admin'],
         },
       ],
     },

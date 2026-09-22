@@ -7,6 +7,18 @@ import type { DashboardMenuResponse } from '@/features/dashboard/types/dashboard
 const menuData: DashboardMenuResponse = {
   groups: [
     {
+      groupId: 'personal',
+      groupName: 'Trang cá nhân',
+      functions: [
+        {
+          functionId: 'homepage',
+          functionName: 'Trang chủ',
+          functionUrl: '/dashboard',
+          functionDescription: 'Quay về trang chủ dashboard',
+        },
+      ],
+    },
+    {
       groupId: 'resource-management',
       groupName: 'Quản lý tài nguyên',
       functions: [
@@ -28,7 +40,7 @@ const menuData: DashboardMenuResponse = {
 };
 
 function renderMenu(initialPath = '/dashboard/resources-manager', onNavigate = vi.fn()) {
-  render(
+  const renderResult = render(
     <MemoryRouter initialEntries={[initialPath]}>
       <DashboardMenu
         menuData={menuData}
@@ -38,10 +50,25 @@ function renderMenu(initialPath = '/dashboard/resources-manager', onNavigate = v
     </MemoryRouter>,
   );
 
-  return { onNavigate };
+  return { onNavigate, ...renderResult };
 }
 
 describe('DashboardMenu', () => {
+  it('hiển thị Trang chủ với icon Home và chỉ active tại /dashboard', () => {
+    const { unmount } = renderMenu('/dashboard');
+    const homepageLink = screen.getByRole('link', { name: 'Trang chủ' });
+
+    expect(homepageLink).toHaveAttribute('href', '/dashboard');
+    expect(homepageLink).toHaveAttribute('aria-current', 'page');
+    expect(homepageLink.querySelector('svg')).toHaveClass('lucide-house');
+
+    unmount();
+    renderMenu('/dashboard/resources-manager');
+
+    expect(screen.getByRole('link', { name: 'Trang chủ' })).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('button', { name: 'Trang cá nhân' })).not.toHaveClass('bg-primary/10');
+  });
+
   it('uses Essential UI group headers and active route styles', () => {
     renderMenu();
 

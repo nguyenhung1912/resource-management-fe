@@ -71,7 +71,7 @@ function getGroupIcon(groupId: string): LucideIcon {
 function getFunctionIcon(functionUrl: string): LucideIcon {
   const normalizedUrl = functionUrl.toLowerCase();
 
-  if (normalizedUrl === '/' || normalizedUrl.includes('/home')) return Home;
+  if (normalizedUrl === APP_PATHS.HOME || normalizedUrl === APP_PATHS.DASHBOARD) return Home;
   if (normalizedUrl.includes('/profile')) return UserRound;
   if (normalizedUrl.includes('/notification')) return Bell;
 
@@ -133,8 +133,8 @@ export function DashboardMenu({ menuData, user, logoUrl = logoQnu, onNavigate, c
   };
 
   const isChildActive = (itemUrl: string) => {
-    if (itemUrl === APP_PATHS.HOME) {
-      return currentPath === APP_PATHS.HOME;
+    if (itemUrl === APP_PATHS.HOME || itemUrl === APP_PATHS.DASHBOARD) {
+      return currentPath === itemUrl;
     }
     return currentPath === itemUrl || currentPath.startsWith(`${itemUrl}/`);
   };

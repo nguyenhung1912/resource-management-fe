@@ -58,7 +58,7 @@ describe('main route configuration', () => {
   });
 
   it('renders the server error page when a child loader throws', async () => {
-    const rootRoute = mainRoutes[0] as NonIndexRouteObject;
+    const rootRoute = dashboardRoutes[0] as NonIndexRouteObject;
     const routesWithFailure: RouteObject[] = [
       {
         ...rootRoute,
@@ -73,7 +73,7 @@ describe('main route configuration', () => {
       },
     ];
     const router = createMemoryRouter(routesWithFailure, {
-      initialEntries: [APP_PATHS.HOME],
+      initialEntries: [APP_PATHS.DASHBOARD],
     });
 
     render(<RouterProvider router={router} />);
@@ -106,15 +106,25 @@ describe('dashboard route configuration', () => {
     expect(matchRoutes(dashboardRoutes, path)).not.toBeNull();
   });
 
-  it('redirects from /dashboard to /dashboard/resources-manager', async () => {
+  it('renders the dashboard home content for an authenticated user', async () => {
     const router = createMemoryRouter(dashboardRoutes, {
       initialEntries: [APP_PATHS.DASHBOARD],
     });
 
     render(<RouterProvider router={router} />);
 
+    expect(await screen.findByRole('heading', { name: 'Cổng Quản lý Tài nguyên Học liệu Số' })).toBeInTheDocument();
+  });
+
+  it('redirects the original home URL to the dashboard home page', async () => {
+    const router = createMemoryRouter([...mainRoutes, ...dashboardRoutes], {
+      initialEntries: [APP_PATHS.HOME],
+    });
+
+    render(<RouterProvider router={router} />);
+
     await waitFor(() => {
-      expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCES_MANAGER);
+      expect(router.state.location.pathname).toBe(APP_PATHS.DASHBOARD);
     });
   });
 

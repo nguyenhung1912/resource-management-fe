@@ -1,4 +1,4 @@
-import { Link, Navigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   BookOpen,
@@ -17,7 +17,6 @@ import { Badge } from '@/components/ui/Badge';
 import { buttonVariants } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { APP_PATHS } from '@/constants/path';
-import { useAuthStore } from '@/store/authStore';
 
 const QUICK_ACTIONS = [
   {
@@ -98,12 +97,6 @@ const PLATFORM_METRICS = [
 ];
 
 export default function App() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-
-  if (isAuthenticated) {
-    return <Navigate to={APP_PATHS.DASHBOARD} replace />;
-  }
-
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* 1. Welcome Hero Banner */}

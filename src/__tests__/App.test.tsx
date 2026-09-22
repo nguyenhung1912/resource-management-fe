@@ -1,11 +1,11 @@
 import { render, screen, within } from '@testing-library/react';
-import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 import App from '@/App';
 import { APP_PATHS } from '@/constants/path';
 import { useAuthStore } from '@/store/authStore';
 
-describe('App (Guest Landing Page & Auth Forwarding)', () => {
+describe('App dashboard home page', () => {
   afterEach(() => {
     useAuthStore.setState({
       user: null,
@@ -36,7 +36,7 @@ describe('App (Guest Landing Page & Auth Forwarding)', () => {
     );
   });
 
-  it('redirects to APP_PATHS.DASHBOARD when user is logged in', () => {
+  it('renders the dashboard home content when user is logged in', () => {
     useAuthStore.setState({
       user: {
         uid: 'user-123',
@@ -52,26 +52,13 @@ describe('App (Guest Landing Page & Auth Forwarding)', () => {
       isLoading: false,
     });
 
-    const router = createMemoryRouter(
-      [
-        {
-          path: APP_PATHS.HOME,
-          element: <App />,
-        },
-        {
-          path: APP_PATHS.DASHBOARD,
-          element: <h1>Dashboard Hub</h1>,
-        },
-      ],
-      {
-        initialEntries: [APP_PATHS.HOME],
-      },
+    render(
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>,
     );
 
-    render(<RouterProvider router={router} />);
-
-    expect(screen.getByRole('heading', { name: 'Dashboard Hub' })).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe(APP_PATHS.DASHBOARD);
+    expect(screen.getByRole('heading', { name: 'Cổng Quản lý Tài nguyên Học liệu Số' })).toBeInTheDocument();
   });
 
   it('renders all 6 quick action cards connecting to main domain workflows', () => {

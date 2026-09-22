@@ -1,38 +1,10 @@
-/* eslint-disable react-refresh/only-export-components */
-import { lazy, Suspense } from 'react';
-import type { RouteObject } from 'react-router-dom';
-import { PageLoadingState } from '@/components/common/PageLoadingState';
+import { Navigate, type RouteObject } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
-import { MainLayout } from '@/layouts/MainLayout';
-
-const HomePage = lazy(() => import('@/App'));
-const ServerErrorPage = lazy(() =>
-  import('@/features/errors/pages/ErrorPages').then((module) => ({ default: module.ServerErrorPage })),
-);
-
-const serverErrorElement = (
-  <Suspense fallback={<PageLoadingState />}>
-    <ServerErrorPage />
-  </Suspense>
-);
 
 export const mainRoutes: RouteObject[] = [
   {
     path: APP_PATHS.HOME,
-    element: <MainLayout />,
-    errorElement: serverErrorElement,
-    children: [
-      {
-        index: true,
-        element: <HomePage />,
-        handle: {
-          meta: {
-            title: 'Trang chủ',
-            breadcrumb: 'Trang chủ',
-          },
-        },
-      },
-    ],
+    element: <Navigate to={APP_PATHS.DASHBOARD} replace />,
   },
 ];
 
