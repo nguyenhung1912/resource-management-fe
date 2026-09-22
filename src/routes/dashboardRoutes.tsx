@@ -9,6 +9,7 @@ import {
   appealRoutes,
   changePasswordRoutes,
   moderationRoutes,
+  myReportRoutes,
   notificationRoutes,
   profileRoutes,
   reportRoutes,
@@ -55,7 +56,7 @@ export const dashboardRoutes: RouteObject[] = [
       </ProtectedRoute>
     ),
     errorElement: serverErrorElement,
-    children: [...appealRoutes, ...profileRoutes, ...notificationRoutes, ...changePasswordRoutes],
+    children: [...appealRoutes, ...profileRoutes, ...notificationRoutes, ...changePasswordRoutes, ...myReportRoutes],
   },
 ];
 

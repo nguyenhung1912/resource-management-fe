@@ -23,6 +23,13 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
           functionDescription: 'Theo dõi các thông báo mới',
           allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
+        {
+          functionId: 'my-reports',
+          functionName: 'Báo cáo của tôi',
+          functionUrl: APP_PATHS.MY_REPORTS,
+          functionDescription: 'Theo dõi tiến trình xử lý báo cáo vi phạm đã gửi',
+          allowedRoles: ['Student', 'Lecturer', 'Admin'],
+        },
       ],
     },
 
