@@ -17,6 +17,10 @@ import type {
   UploadResourceSuccessResponse,
   UploadSourceCodeFormValues,
 } from '@/features/digital-resources/source-code/types/source-code.types';
+import type {
+  LibraryResourceQuery,
+  RecommendedResourceItem,
+} from '@/features/digital-resources/all-resources/types/all-resources.types';
 
 export function buildUploadResourceFormData(values: UploadResourceRequest | UploadSourceCodeFormValues): FormData {
   const formData = new FormData();
@@ -67,7 +71,7 @@ export function triggerFileDownload(blob: Blob, fileName: string): void {
 
 export const resourceService = {
   // GET /api/ResourcesSearch
-  async searchResources(query: SourceCodeQuery): Promise<SourceCodePaginatedResult> {
+  async searchResources<T = SourceCodePaginatedResult>(query: SourceCodeQuery | LibraryResourceQuery): Promise<T> {
     const params: Record<string, string | number> = {
       PageNumber: query.pageNumber ?? 1,
       PageSize: query.pageSize ?? 12,
@@ -89,8 +93,17 @@ export const resourceService = {
       params.StatusId = query.statusId;
     }
 
-    const response = await axiosClient.get<SourceCodePaginatedResult>('/api/ResourcesSearch', {
+    const response = await axiosClient.get<T>('/api/ResourcesSearch', {
       params,
+    });
+
+    return response.data;
+  },
+
+  // GET /api/Recommendation
+  async getRecommendations(limit = 10): Promise<RecommendedResourceItem[]> {
+    const response = await axiosClient.get<RecommendedResourceItem[]>('/api/Recommendation', {
+      params: { limit },
     });
 
     return response.data;
