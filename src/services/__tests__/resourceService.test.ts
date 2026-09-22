@@ -595,4 +595,54 @@ describe('resourceService', () => {
       expect(result).toEqual(mockResponse);
     });
   });
+
+  describe('getRecommendations', () => {
+    it('gọi GET /api/Recommendation với limit mặc định là 10', async () => {
+      const mockRecommendations = [
+        {
+          fileId: 'FIL_REC_01',
+          fileName: 'Hệ thống Khuyến nghị Tài liệu',
+          fileDescription: 'Mô tả chi tiết',
+          fileUrl: 'https://example.com/rec.pdf',
+          fileTypeName: 'Khóa luận',
+          subMajorCode: 'CNTT_KTPM',
+          courseName: 'Trí tuệ nhân tạo',
+          bannerUrl: 'https://example.com/banner.jpg',
+          averageScore: 4.8,
+          totalReviews: 25,
+          createdAt: '2026-09-10T14:30:00Z',
+        },
+      ];
+
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: mockRecommendations });
+
+      const result = await resourceService.getRecommendations();
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/Recommendation', {
+        params: { limit: 10 },
+      });
+      expect(result).toEqual(mockRecommendations);
+    });
+
+    it('gọi GET /api/Recommendation với custom limit khi được truyền', async () => {
+      const mockRecommendations = [
+        {
+          fileId: 'FIL_REC_02',
+          fileName: 'Machine Learning trong Y tế',
+          fileDescription: 'Báo cáo',
+          fileUrl: 'https://example.com/ml.pdf',
+          createdAt: '2026-09-11T14:30:00Z',
+        },
+      ];
+
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: mockRecommendations });
+
+      const result = await resourceService.getRecommendations(15);
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/Recommendation', {
+        params: { limit: 15 },
+      });
+      expect(result).toEqual(mockRecommendations);
+    });
+  });
 });

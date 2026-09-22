@@ -33,44 +33,16 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
       functions: [
         {
           functionId: 'all-resources',
-          functionName: 'Tất cả tài nguyên',
+          functionName: 'Thư viện tài nguyên',
           functionUrl: APP_PATHS.ALL_RESOURCES,
-          functionDescription: 'Duyệt toàn bộ tài nguyên số của nhà trường',
-          allowedRoles: ['Student', 'Lecturer', 'Admin'],
-        },
-        {
-          functionId: 'lectures',
-          functionName: 'Bài giảng',
-          functionUrl: APP_PATHS.LECTURES,
-          functionDescription: 'Tìm kiếm giáo trình và tài liệu bài giảng',
-          allowedRoles: ['Student', 'Lecturer', 'Admin'],
-        },
-        {
-          functionId: 'graduation-theses',
-          functionName: 'Khóa luận tốt nghiệp',
-          functionUrl: APP_PATHS.THESES,
-          functionDescription: 'Duyệt kho khóa luận tốt nghiệp xuất sắc',
-          allowedRoles: ['Student', 'Lecturer', 'Admin'],
-        },
-        {
-          functionId: 'course-reports',
-          functionName: 'Báo cáo môn học',
-          functionUrl: APP_PATHS.COURSE_REPORTS,
-          functionDescription: 'Duyệt báo cáo và đồ án môn học',
+          functionDescription: 'Khám phá và tra cứu toàn bộ tài nguyên số của nhà trường',
           allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
         {
           functionId: 'source-code',
-          functionName: 'Mã nguồn',
+          functionName: 'Kho mã nguồn',
           functionUrl: APP_PATHS.SOURCE_CODE,
           functionDescription: 'Tìm kiếm tài nguyên mã nguồn và dự án mẫu',
-          allowedRoles: ['Student', 'Lecturer', 'Admin'],
-        },
-        {
-          functionId: 'other-resources',
-          functionName: 'Tài nguyên khác',
-          functionUrl: APP_PATHS.OTHER_RESOURCES,
-          functionDescription: 'Duyệt các loại tài liệu tham khảo khác',
           allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
       ],
@@ -85,21 +57,21 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
           functionName: 'Quản lý người dùng',
           functionUrl: APP_PATHS.ADMIN_USERS,
           functionDescription: 'Xem và quản lý danh sách người dùng',
-          allowedRoles: ['Admin']
+          allowedRoles: ['Admin'],
         },
         {
           functionId: 'F012',
           functionName: 'Quản lý Role',
           functionUrl: APP_PATHS.ADMIN_ROLES,
           functionDescription: 'Xem và quản lý các Role trong hệ thống',
-          allowedRoles: ['Admin']
+          allowedRoles: ['Admin'],
         },
         {
           functionId: 'F013',
           functionName: 'Phân quyền chức năng',
           functionUrl: APP_PATHS.ADMIN_FUNCTIONS,
           functionDescription: 'Quản lý chức năng và phân quyền chức năng cho Role',
-          allowedRoles: ['Admin']
+          allowedRoles: ['Admin'],
         },
       ],
     },

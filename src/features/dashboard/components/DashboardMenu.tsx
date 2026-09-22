@@ -10,7 +10,6 @@ import {
   Compass,
   FileSpreadsheet,
   FileText,
-  Files,
   FolderKanban,
   FolderOpen,
   Gavel,
@@ -81,7 +80,7 @@ function getFunctionIcon(functionUrl: string): LucideIcon {
   if (normalizedUrl.includes('/course-reports')) return FileSpreadsheet;
   if (normalizedUrl.includes('/source-code')) return Code2;
   if (normalizedUrl.includes('/other-resources')) return Layers;
-  if (normalizedUrl.endsWith('/resources') || normalizedUrl.includes('/resources/all')) return Files;
+  if (normalizedUrl.endsWith('/resources') || normalizedUrl.includes('/resources/all')) return Library;
 
   // Resource Management
   if (normalizedUrl.includes('/upload')) return CloudUpload;
