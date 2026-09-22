@@ -28,6 +28,7 @@ export interface PagedReportResponse {
   pageIndex: number;
   pageSize: number;
   totalCount: number;
+  totalItems?: number;
   totalPages: number;
   hasPreviousPage: boolean;
   hasNextPage: boolean;
@@ -52,7 +53,9 @@ export interface ReportMutationResponse {
 export interface GetReportsParams {
   status?: ReportStatus | string;
   pageNumber?: number;
+  pageIndex?: number;
   pageSize?: number;
+  reportTypeId?: number | string;
 }
 
 export interface ReportOverviewStats {
@@ -64,6 +67,18 @@ export interface ReportOverviewStats {
 }
 
 export interface ReportsLoaderResult {
+  reports: PagedReportResponse;
+  stats: ReportOverviewStats;
+  reportTypes: ReportTypeResponse[];
+  currentStatus?: ReportStatus;
+  currentTargetType?: ReportTargetType;
+  currentReportTypeId?: number;
+  searchQuery: string;
+  currentPage: number;
+  pageSize: number;
+}
+
+export interface MyReportsLoaderResult {
   reports: PagedReportResponse;
   stats: ReportOverviewStats;
   reportTypes: ReportTypeResponse[];
