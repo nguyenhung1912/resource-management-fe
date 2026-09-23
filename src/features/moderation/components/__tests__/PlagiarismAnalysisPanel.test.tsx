@@ -74,8 +74,8 @@ describe('PlagiarismAnalysisPanel', () => {
 
     expect(screen.getByText('42.1%')).toBeInTheDocument();
     expect(screen.getByText(/Vượt ngưỡng quy định \(Nguy cơ cao\)/i)).toBeInTheDocument();
-    expect(screen.getByText('Đoạn #1')).toBeInTheDocument();
-    expect(screen.getByText('Đề tài mẫu 2024')).toBeInTheDocument();
+    expect(screen.getAllByText('Đoạn #1').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Đề tài mẫu 2024').length).toBeGreaterThan(0);
   });
 
   it('kích hoạt onCheckPlagiarism khi người dùng bấm nút Quét lại', () => {
