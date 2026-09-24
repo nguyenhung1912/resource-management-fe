@@ -2,7 +2,7 @@ import { Clock, ExternalLink, RefreshCw, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { PlagiarismMatchedChunksList } from './PlagiarismMatchedChunksList';
+import { PlagiarismMatchedChunksTable } from './match-table/PlagiarismMatchedChunksTable';
 import type { PlagiarismCheckResponse } from '../types/moderation.types';
 import { APP_PATHS } from '@/constants/path';
 import { formatDateTime } from '@/utils/date';
@@ -249,8 +249,8 @@ export function PlagiarismAnalysisPanel({
             )}
           </div>
 
-          {/* Matched Chunks List (with expand/collapse built in) */}
-          <PlagiarismMatchedChunksList matchedChunks={plagiarismCheck?.matchedChunks} />
+          {/* Matched Chunks Table (Bảng chi tiết các đoạn trùng lặp) */}
+          <PlagiarismMatchedChunksTable matchedChunks={plagiarismCheck?.matchedChunks} />
         </div>
       )}
     </div>
