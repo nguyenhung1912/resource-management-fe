@@ -1,11 +1,14 @@
 import { useCallback, useState } from 'react';
-import { resourceService } from '@/services/resourceService';
+import type { PagedCommentResponse } from '@/features/comments/types/comment.types';
 import type { ResourceDetailResponse } from '@/features/resources/types/resource.types';
+import { commentService } from '@/services/commentService';
+import { resourceService } from '@/services/resourceService';
 
 export function useLibraryResourceDetail() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [detail, setDetail] = useState<ResourceDetailResponse | null>(null);
+  const [commentsData, setCommentsData] = useState<PagedCommentResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,8 +25,13 @@ export function useLibraryResourceDetail() {
     });
 
     try {
-      const data = await resourceService.getResourceDetail<ResourceDetailResponse>(fileId);
-      setDetail(data);
+      // Nạp song song thông tin tài liệu và bình luận ban đầu (không tạo waterfall)
+      const [resourceDetail, initialComments] = await Promise.all([
+        resourceService.getResourceDetail<ResourceDetailResponse>(fileId),
+        commentService.getCommentsByFile(fileId).catch(() => null),
+      ]);
+      setDetail(resourceDetail);
+      setCommentsData(initialComments);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Không thể tải thông tin chi tiết tài liệu thư viện.';
       setError(message);
@@ -36,6 +44,7 @@ export function useLibraryResourceDetail() {
     setIsOpen(false);
     setSelectedFileId(null);
     setDetail(null);
+    setCommentsData(null);
     setError(null);
   }, []);
 
@@ -54,6 +63,7 @@ export function useLibraryResourceDetail() {
     isOpen,
     selectedFileId,
     detail,
+    commentsData,
     isLoading,
     isDownloading,
     error,

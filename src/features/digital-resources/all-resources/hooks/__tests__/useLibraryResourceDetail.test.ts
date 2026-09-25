@@ -12,6 +12,20 @@ vi.mock('@/services/resourceService', () => ({
   },
 }));
 
+vi.mock('@/services/commentService', () => ({
+  commentService: {
+    getCommentsByFile: vi.fn().mockResolvedValue({
+      items: [],
+      pageIndex: 1,
+      pageSize: 10,
+      totalCount: 0,
+      totalPages: 1,
+      hasPreviousPage: false,
+      hasNextPage: false,
+    }),
+  },
+}));
+
 describe('useLibraryResourceDetail', () => {
   beforeEach(() => {
     vi.clearAllMocks();
