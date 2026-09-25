@@ -31,8 +31,18 @@ export function AllResourcesPage() {
     handleResetFilters,
   } = useAllResourcesFilters();
 
-  const { isOpen, selectedFileId, detail, isLoading, isDownloading, error, openDetail, closeDetail, handleDownload } =
-    useLibraryResourceDetail();
+  const {
+    isOpen,
+    selectedFileId,
+    detail,
+    commentsData,
+    isLoading,
+    isDownloading,
+    error,
+    openDetail,
+    closeDetail,
+    handleDownload,
+  } = useLibraryResourceDetail();
 
   const totalPages = Math.ceil(resourcesResult.totalCount / filters.pageSize) || 1;
   const activeCategory = fileTypes.find((ft) => Number(ft.id) === filters.fileTypeId);
@@ -113,6 +123,7 @@ export function AllResourcesPage() {
         isLoading={isLoading}
         isDownloading={isDownloading}
         detail={detail}
+        initialComments={commentsData}
         error={error}
         onClose={closeDetail}
         onDownload={handleDownload}
