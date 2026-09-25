@@ -89,7 +89,7 @@ describe('CommentForm component', () => {
     expect(textarea).toHaveValue('');
   });
 
-  it('hỗ trợ phím tắt Ctrl + Enter để submit form nhanh', async () => {
+  it('hỗ trợ phím Enter để submit form tự động', async () => {
     const handleSubmit = vi.fn().mockResolvedValue(true);
 
     render(
@@ -100,14 +100,46 @@ describe('CommentForm component', () => {
 
     const textarea = screen.getByPlaceholderText(/viết bình luận/i);
     act(() => {
-      fireEvent.change(textarea, { target: { value: 'Bình luận qua phím tắt' } });
+      fireEvent.change(textarea, { target: { value: 'Bình luận qua Enter' } });
     });
 
     await act(async () => {
-      fireEvent.keyDown(textarea, { key: 'Enter', ctrlKey: true });
+      fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: false });
     });
 
-    expect(handleSubmit).toHaveBeenCalledWith('Bình luận qua phím tắt');
+    expect(handleSubmit).toHaveBeenCalledWith('Bình luận qua Enter');
+  });
+
+  it('cho phép Shift + Enter để xuống hàng mà không submit form', async () => {
+    const handleSubmit = vi.fn().mockResolvedValue(true);
+
+    render(
+      <MemoryRouter>
+        <CommentForm onSubmit={handleSubmit} />
+      </MemoryRouter>,
+    );
+
+    const textarea = screen.getByPlaceholderText(/viết bình luận/i);
+    act(() => {
+      fireEvent.change(textarea, { target: { value: 'Dòng 1' } });
+    });
+
+    await act(async () => {
+      fireEvent.keyDown(textarea, { key: 'Enter', shiftKey: true });
+    });
+
+    expect(handleSubmit).not.toHaveBeenCalled();
+  });
+
+  it('không hiển thị văn bản hướng dẫn phím tắt trên giao diện', () => {
+    render(
+      <MemoryRouter>
+        <CommentForm onSubmit={vi.fn()} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText(/nhấn/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/ctrl/i)).not.toBeInTheDocument();
   });
 
   it('hiển thị ở chế độ reply với chỉ báo tác giả và nút Hủy', () => {

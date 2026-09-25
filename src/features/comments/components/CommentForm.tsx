@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
-import { Check, CornerDownRight, Edit3, Loader2, LogIn, Send, X } from 'lucide-react';
+import { Check, CornerDownRight, Edit3, Loader2, LogIn, SendHorizontal, X } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
@@ -97,12 +97,16 @@ export function CommentForm({
         return;
       }
 
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      // Enter without Shift triggers submit, Shift+Enter creates a new line
+      if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.nativeEvent.isComposing || e.keyCode === 229) return;
         e.preventDefault();
-        void handleSubmit();
+        if (canSubmit) {
+          void handleSubmit();
+        }
       }
     },
-    [handleSubmit, onCancel],
+    [canSubmit, handleSubmit, onCancel],
   );
 
   // If user is guest and trying to write a root comment, show polite login card
@@ -247,26 +251,6 @@ export function CommentForm({
           >
             {content.length}/{MAX_COMMENT_LENGTH}
           </span>
-          <span className="hidden sm:inline text-[11px] text-text-muted/70">
-            {mode === 'edit' ? (
-              <>
-                (Nhấn <kbd className="px-1 py-0.5 bg-slate-100 rounded text-[10px]">Ctrl</kbd> +{' '}
-                <kbd className="px-1 py-0.5 bg-slate-100 rounded text-[10px]">Enter</kbd> để lưu,{' '}
-                <kbd className="px-1 py-0.5 bg-slate-100 rounded text-[10px]">Esc</kbd> để hủy)
-              </>
-            ) : mode === 'reply' ? (
-              <>
-                (Nhấn <kbd className="px-1 py-0.5 bg-slate-100 rounded text-[10px]">Ctrl</kbd> +{' '}
-                <kbd className="px-1 py-0.5 bg-slate-100 rounded text-[10px]">Enter</kbd> để gửi,{' '}
-                <kbd className="px-1 py-0.5 bg-slate-100 rounded text-[10px]">Esc</kbd> để hủy)
-              </>
-            ) : (
-              <>
-                (Nhấn <kbd className="px-1 py-0.5 bg-slate-100 rounded text-[10px]">Ctrl</kbd> +{' '}
-                <kbd className="px-1 py-0.5 bg-slate-100 rounded text-[10px]">Enter</kbd> để gửi)
-              </>
-            )}
-          </span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -283,30 +267,43 @@ export function CommentForm({
             </Button>
           )}
 
-          <Button
-            type="submit"
-            variant="primary"
-            size="sm"
-            disabled={!canSubmit}
-            className="text-xs h-7.5 px-3 gap-1.5 shadow-xs cursor-pointer"
-          >
-            {isSubmitting ? (
-              <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
-            ) : mode === 'edit' ? (
-              <Check className="size-3.5" aria-hidden="true" />
-            ) : (
-              <Send className="size-3.5" aria-hidden="true" />
-            )}
-            <span>
-              {isSubmitting
-                ? 'Đang gửi...'
-                : mode === 'edit'
-                  ? 'Lưu thay đổi'
-                  : mode === 'reply'
-                    ? 'Trả lời'
-                    : 'Bình luận'}
-            </span>
-          </Button>
+          {mode === 'edit' ? (
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={!canSubmit}
+              aria-label={isSubmitting ? 'Đang gửi...' : 'Lưu thay đổi'}
+              title={isSubmitting ? 'Đang gửi...' : 'Lưu thay đổi'}
+              className="text-xs h-7.5 px-3 gap-1.5 shadow-xs cursor-pointer"
+            >
+              {isSubmitting ? (
+                <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+              ) : (
+                <Check className="size-3.5" aria-hidden="true" />
+              )}
+              <span>{isSubmitting ? 'Đang gửi...' : 'Lưu thay đổi'}</span>
+            </Button>
+          ) : (
+            <Button
+              type="submit"
+              variant="primary"
+              size="icon-sm"
+              disabled={!canSubmit}
+              aria-label={isSubmitting ? 'Đang gửi...' : mode === 'reply' ? 'Trả lời' : 'Bình luận'}
+              title={isSubmitting ? 'Đang gửi...' : mode === 'reply' ? 'Gửi trả lời' : 'Gửi bình luận'}
+              className="size-7.5 rounded-lg shadow-xs cursor-pointer shrink-0"
+            >
+              {isSubmitting ? (
+                <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+              ) : (
+                <SendHorizontal className="size-3.5" aria-hidden="true" />
+              )}
+              <span className="sr-only">
+                {isSubmitting ? 'Đang gửi...' : mode === 'reply' ? 'Trả lời' : 'Bình luận'}
+              </span>
+            </Button>
+          )}
         </div>
       </div>
     </form>
