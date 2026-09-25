@@ -1,6 +1,6 @@
-import { useDeferredValue, useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLoaderData, useSubmit, useSearchParams } from 'react-router-dom';
 import { buttonVariants } from '@/components/ui/Button';
 import { PageHeader } from '@/components/common/PageHeader';
 import { APP_PATHS } from '@/constants/path';
@@ -9,41 +9,69 @@ import { SearchAiTab } from '../components/search/SearchAiTab';
 import { SearchAuthorsTab } from '../components/search/SearchAuthorsTab';
 import { SearchOmnibox } from '../components/search/SearchOmnibox';
 import { SearchResourceListTab } from '../components/search/SearchResourceListTab';
-import { MOCK_RESOURCES } from '../constants/search.constants';
-import type { SearchTab } from '../types/search.types';
+import type { SearchResourceItem, SearchTab } from '../types/search.types';
+import type { SearchResponse, SearchResultItem } from '@/features/resources/types/search.types';
 
 export function SearchHubPage() {
+  const apiData = useLoaderData() as SearchResponse;
+  const submit = useSubmit();
+  const [searchParams] = useSearchParams();
+
+  // 1. Ánh xạ dữ liệu từ API sang UI
+  const mappedResources: SearchResourceItem[] = useMemo(() => {
+    if (!apiData?.items) return [];
+    return apiData.items.map((item: SearchResultItem) => ({
+      id: item.fileId,
+      title: item.fileName || 'Chưa cập nhật',
+      category: item.fileTypeName || 'Khác',
+      author: item.uploadBy || 'Ẩn danh',
+      faculty: item.subMajorCode || 'Chưa phân khoa',
+      year: item.yearCompleted ? item.yearCompleted.toString() : new Date(item.createdAt).getFullYear().toString(),
+      format: 'PDF',
+      downloads: 0,
+    }));
+  }, [apiData]);
+
+  // 2. Khởi tạo State từ URL Params để không mất dữ liệu khi F5
   const [activeTab, setActiveTab] = useState<SearchTab>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFaculty, setSelectedFaculty] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [selectedFaculty, setSelectedFaculty] = useState(searchParams.get('subMajorCode') || 'all');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('fileTypeId') || 'all');
 
-  const deferredQuery = useDeferredValue(searchQuery.trim().toLowerCase());
+  // State cho tab Lọc Nâng Cao
+  const [selectedYear, setSelectedYear] = useState(searchParams.get('yearCompleted') || '');
+  const [selectedFormat, setSelectedFormat] = useState(searchParams.get('fileTypeId') || 'all');
 
-  const filteredResources = useMemo(() => {
-    return MOCK_RESOURCES.filter((item) => {
-      const matchesQuery =
-        !deferredQuery ||
-        item.title.toLowerCase().includes(deferredQuery) ||
-        item.author.toLowerCase().includes(deferredQuery) ||
-        item.faculty.toLowerCase().includes(deferredQuery);
+  const deferredQuery = useDeferredValue(searchQuery.trim());
 
-      const matchesFaculty = selectedFaculty === 'all' || item.faculty === selectedFaculty;
-      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+  // 3. Tự động đẩy dữ liệu lên URL khi State thay đổi
+  useEffect(() => {
+    const params = new URLSearchParams();
 
-      return matchesQuery && matchesFaculty && matchesCategory;
-    });
-  }, [deferredQuery, selectedFaculty, selectedCategory]);
+    if (deferredQuery) params.set('q', deferredQuery);
+    if (selectedFaculty !== 'all') params.set('subMajorCode', selectedFaculty);
+    if (selectedYear) params.set('yearCompleted', selectedYear);
 
+    // Gộp logic fileTypeId: Ưu tiên selectedFormat (từ tab Nâng cao) nếu nó thay đổi, ngược lại dùng selectedCategory
+    const finalFileTypeId =
+      selectedFormat !== 'all' ? selectedFormat : selectedCategory !== 'all' ? selectedCategory : null;
+    if (finalFileTypeId) params.set('fileTypeId', finalFileTypeId);
+
+    // Gọi lại Loader với tham số mới
+    submit(params, { replace: true });
+  }, [deferredQuery, selectedFaculty, selectedCategory, selectedFormat, selectedYear, submit]);
+
+  // 4. đặt lại filter
   const handleResetFilters = () => {
     setSelectedFaculty('all');
     setSelectedCategory('all');
+    setSelectedFormat('all');
+    setSelectedYear('');
     setSearchQuery('');
   };
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* 1. Page Header */}
       <PageHeader
         title="Trung tâm Tra cứu Tài nguyên Số"
         description="Tra cứu tài liệu học tập, giáo trình, khóa luận, mã nguồn và tìm kiếm ngữ nghĩa thông minh với Trợ lý AI."
@@ -55,19 +83,17 @@ export function SearchHubPage() {
         }
       />
 
-      {/* 2. Omnibox Search Bar & Sub-tabs */}
       <SearchOmnibox
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        resourceCount={filteredResources.length}
+        resourceCount={apiData?.totalCount || 0}
       />
 
-      {/* 3. Tab Content Panels with Ternary Rendering */}
       {activeTab === 'all' ? (
         <SearchResourceListTab
-          resources={filteredResources}
+          resources={mappedResources}
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
         />
@@ -86,6 +112,10 @@ export function SearchHubPage() {
         <SearchAdvancedFilterTab
           selectedFaculty={selectedFaculty}
           onFacultyChange={setSelectedFaculty}
+          selectedYear={selectedYear}
+          onYearChange={setSelectedYear}
+          selectedFormat={selectedFormat}
+          onFormatChange={setSelectedFormat}
           onReset={handleResetFilters}
           onApply={() => setActiveTab('all')}
         />

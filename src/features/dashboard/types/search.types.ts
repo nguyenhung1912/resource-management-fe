@@ -10,7 +10,7 @@ export interface SearchTabConfig {
   showCount?: boolean;
 }
 
-export interface MockResourceItem {
+export interface SearchResourceItem {
   id: string;
   title: string;
   category: string;

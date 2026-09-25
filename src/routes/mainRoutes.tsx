@@ -6,6 +6,7 @@ import { APP_PATHS } from '@/constants/path';
 import { MainLayout } from '@/layouts/MainLayout';
 import { appealRoutes, notificationRoutes, profileRoutes, changePasswordRoutes } from './domains';
 import { ProtectedRoute } from './guards/ProtectedRoute';
+// import SearchHubPage from '@/features/dashboard/pages/SearchHubPage';
 
 const HomePage = lazy(() => import('@/App'));
 const ServerErrorPage = lazy(() =>
@@ -38,6 +39,16 @@ export const mainRoutes: RouteObject[] = [
         element: <ProtectedRoute />,
         children: [...notificationRoutes, ...appealRoutes, ...profileRoutes, ...changePasswordRoutes],
       },
+      // {
+      //   path: ROUTE_SEGMENTS.SEARCH,
+      //       element: <SearchHubPage />,
+      //       handle: {
+      //         meta: {
+      //           title: 'Tra cứu tài nguyên',
+      //           breadcrumb: 'Tra cứu',
+      //         },
+      //       },
+      // }
     ],
   },
 ];

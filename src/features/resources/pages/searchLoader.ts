@@ -42,6 +42,7 @@ export async function searchLoader({ request }: LoaderFunctionArgs) {
   params.pageSize = pageSize ? Number(pageSize) || 10 : 10;
 
   const result = await searchResources(params);
+
   return result;
 }
 

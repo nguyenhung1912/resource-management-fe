@@ -2,30 +2,41 @@
 import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { ROUTE_SEGMENTS } from '@/constants/path';
+import searchLoader from '@/features/resources/pages/searchLoader';
 
-const SearchHubPage = lazy(() => import('@/features/dashboard/pages/SearchHubPage'));
+// const SearchHubPage = lazy(() => import('@/features/dashboard/pages/SearchHubPage'));
 const PlaceholderFeaturePage = lazy(() => import('@/features/dashboard/pages/PlaceholderFeaturePage'));
 
 export const searchRoutes: RouteObject[] = [
   {
     path: ROUTE_SEGMENTS.SEARCH,
-    element: <SearchHubPage />,
+    // element: <SearchHubPage />,
+    lazy: async () => {
+      const { SearchHubPage } = await import('@/features/dashboard/pages/SearchHubPage');
+      return { Component: SearchHubPage };
+    },
     handle: {
       meta: {
         title: 'Tra cứu tài nguyên',
         breadcrumb: 'Tra cứu',
       },
     },
+    loader: searchLoader,
   },
   {
     path: ROUTE_SEGMENTS.RESOURCES,
-    element: <SearchHubPage />,
+    // element: <SearchHubPage />,
+    lazy: async () => {
+      const { SearchHubPage } = await import('@/features/dashboard/pages/SearchHubPage');
+      return { Component: SearchHubPage };
+    },
     handle: {
       meta: {
         title: 'Tất cả tài nguyên',
         breadcrumb: 'Tất cả tài nguyên',
       },
     },
+    loader: searchLoader,
   },
   {
     path: ROUTE_SEGMENTS.LECTURES,
