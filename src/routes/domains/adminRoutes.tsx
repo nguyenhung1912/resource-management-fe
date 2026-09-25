@@ -8,6 +8,7 @@ import { ROUTE_SEGMENTS } from '@/constants/path';
 import { adminAccountsLoader } from '@/features/admin/accounts/pages/adminAccountsLoader';
 import { adminRolesLoader } from '@/features/admin/roles/pages/adminRolesLoader';
 import { adminPermissionsLoader } from '@/features/admin/permissions/pages/adminPermissionsLoader';
+import { academicManagementLoader } from '@/features/admin/academic/pages/academicManagementLoader';
 
 import { RoleGuard } from '../guards/RoleGuard';
 
@@ -16,6 +17,8 @@ const AdminAccountsPage = lazy(() => import('@/features/admin/accounts/pages/Adm
 const AdminRolesPage = lazy(() => import('@/features/admin/roles/pages/AdminRolesPage'));
 
 const AdminPermissionsPage = lazy(() => import('@/features/admin/permissions/pages/AdminPermissionsPage'));
+
+const AcademicManagementPage = lazy(() => import('@/features/admin/academic/pages/AcademicManagementPage'));
 
 const PlaceholderFeaturePage = lazy(() => import('@/features/dashboard/pages/PlaceholderFeaturePage'));
 
@@ -90,12 +93,10 @@ export const adminRoutes: RouteObject[] = [
       // Quản lý học vụ
       {
         path: ROUTE_SEGMENTS.ACADEMIC,
+        loader: academicManagementLoader,
         element: (
           <RoleGuard allowedRoles={['Admin', 'Lecturer']}>
-            <PlaceholderFeaturePage
-              title="Quản lý Học vụ"
-              description="Quản lý thông tin khoa, ngành đào tạo, học kỳ và học phần giảng dạy."
-            />
+            <AcademicManagementPage />
           </RoleGuard>
         ),
         handle: {
