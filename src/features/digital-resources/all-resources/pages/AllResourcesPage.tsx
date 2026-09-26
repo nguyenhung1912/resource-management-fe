@@ -36,6 +36,8 @@ export function AllResourcesPage() {
     selectedFileId,
     detail,
     commentsData,
+    ratingSummary,
+    ratingsData,
     isLoading,
     isDownloading,
     error,
@@ -124,6 +126,8 @@ export function AllResourcesPage() {
         isDownloading={isDownloading}
         detail={detail}
         initialComments={commentsData}
+        initialRatingSummary={ratingSummary}
+        initialRatings={ratingsData}
         error={error}
         onClose={closeDetail}
         onDownload={handleDownload}
