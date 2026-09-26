@@ -26,6 +26,25 @@ vi.mock('@/services/commentService', () => ({
   },
 }));
 
+vi.mock('@/services/ratingService', () => ({
+  ratingService: {
+    getRatingSummary: vi.fn().mockResolvedValue({
+      fileId: 'FIL_TEST_01',
+      averageRating: 4.5,
+      totalRatings: 10,
+      starDistribution: { 1: 0, 2: 0, 3: 0, 4: 5, 5: 5 },
+      currentUserRating: 5,
+    }),
+    getRatingsList: vi.fn().mockResolvedValue({
+      items: [],
+      totalItems: 0,
+      pageIndex: 1,
+      pageSize: 10,
+      totalPages: 0,
+    }),
+  },
+}));
+
 describe('useLibraryResourceDetail', () => {
   beforeEach(() => {
     vi.clearAllMocks();

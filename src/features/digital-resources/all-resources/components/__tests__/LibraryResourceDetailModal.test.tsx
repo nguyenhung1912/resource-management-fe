@@ -110,7 +110,12 @@ describe('LibraryResourceDetailModal', () => {
     expect(screen.getByText('Spring Boot')).toBeInTheDocument();
     expect(screen.getByText(/xem kho mã nguồn trên github/i)).toBeInTheDocument();
 
-    // Khung bình luận bên cạnh
+    // Tabs Đánh giá & Thảo luận
+    expect(screen.getByRole('tab', { name: /đánh giá/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /thảo luận/i })).toBeInTheDocument();
+
+    // Chuyển sang Tab Thảo luận để kiểm tra khung bình luận
+    fireEvent.click(screen.getByRole('tab', { name: /thảo luận/i }));
     expect(screen.getByText('Bình luận & Thảo luận')).toBeInTheDocument();
     expect(screen.getByRole('region', { name: /khu vực bình luận và thảo luận tài liệu/i })).toBeInTheDocument();
   });

@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
   BookOpen,
@@ -12,14 +14,20 @@ import {
   Hash,
   Library,
   Loader2,
+  MessageSquare,
+  Star,
   Tag,
   User,
 } from 'lucide-react';
 import { BaseModal } from '@/components/common/BaseModal';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Tabs } from '@/components/ui/Tabs';
+import { APP_PATHS } from '@/constants/path';
 import { DocumentDiscussionPanel } from '@/features/comments/components/DocumentDiscussionPanel';
 import type { PagedCommentResponse } from '@/features/comments/types/comment.types';
+import { DocumentRatingPanel } from '@/features/ratings/components/DocumentRatingPanel';
+import type { PagedRatingResponse, RatingSummaryResponse } from '@/features/ratings/types/rating.types';
 import type { ResourceDetailResponse } from '@/features/resources/types/resource.types';
 import { cn } from '@/utils/cn';
 import { formatDateTime } from '@/utils/date';
@@ -31,6 +39,8 @@ export interface LibraryResourceDetailModalProps {
   isDownloading?: boolean;
   detail: ResourceDetailResponse | null;
   initialComments?: PagedCommentResponse | null;
+  initialRatingSummary?: RatingSummaryResponse | null;
+  initialRatings?: PagedRatingResponse | null;
   error?: string | null;
   onClose: () => void;
   onDownload: (fileId: string, fileName?: string) => void;
@@ -42,10 +52,15 @@ export function LibraryResourceDetailModal({
   isDownloading = false,
   detail,
   initialComments = null,
+  initialRatingSummary = null,
+  initialRatings = null,
   error,
   onClose,
   onDownload,
 }: LibraryResourceDetailModalProps) {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'ratings' | 'discussion'>('ratings');
+
   if (!isOpen) return null;
 
   const formattedSize = detail ? formatFileSize(detail.fileSize) : '';
@@ -91,6 +106,21 @@ export function LibraryResourceDetailModal({
                 <CheckCircle2 className="size-3" aria-hidden="true" />
                 {detail.fileStatusName}
               </Badge>
+            )}
+            {initialRatingSummary && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('ratings')}
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200/60 hover:bg-amber-100/70 transition-colors text-xs font-semibold cursor-pointer"
+                title="Xem đánh giá của tài liệu"
+                data-testid="snapshot-rating-btn"
+              >
+                <Star className="size-3 fill-amber-400 text-amber-400 shrink-0" aria-hidden="true" />
+                <span className="tabular-nums">
+                  {initialRatingSummary.averageRating > 0 ? initialRatingSummary.averageRating.toFixed(1) : '0.0'}
+                </span>
+                <span className="text-[11px] font-normal text-amber-700">({initialRatingSummary.totalRatings})</span>
+              </button>
             )}
           </span>
         ) : undefined
@@ -292,9 +322,42 @@ export function LibraryResourceDetailModal({
             )}
           </div>
 
-          {/* CỘT PHẢI (40%): KHUNG THẢO LUẬN & BÌNH LUẬN BÊN CẠNH TÀI LIỆU */}
-          <div className="lg:col-span-5 pt-6 lg:pt-0 lg:pl-6 min-h-100">
-            <DocumentDiscussionPanel fileId={detail.fileId} initialComments={initialComments} />
+          {/* CỘT PHẢI (40%): TABS ĐÁNH GIÁ & THẢO LUẬN BÊN CẠNH TÀI LIỆU */}
+          <div className="lg:col-span-5 pt-6 lg:pt-0 lg:pl-6 min-h-100 space-y-4">
+            <Tabs
+              variant="segmented"
+              items={[
+                {
+                  id: 'ratings',
+                  label: 'Đánh giá',
+                  count: initialRatingSummary?.totalRatings,
+                  icon: Star,
+                },
+                {
+                  id: 'discussion',
+                  label: 'Thảo luận',
+                  count: initialComments?.totalCount,
+                  icon: MessageSquare,
+                },
+              ]}
+              activeValue={activeTab}
+              onChange={(tab) => setActiveTab(tab as 'ratings' | 'discussion')}
+              className="w-full"
+            />
+
+            {activeTab === 'ratings' ? (
+              <DocumentRatingPanel
+                fileId={detail.fileId}
+                initialSummary={initialRatingSummary}
+                initialRatings={initialRatings}
+                onRequireLogin={() => {
+                  onClose();
+                  navigate(APP_PATHS.LOGIN);
+                }}
+              />
+            ) : (
+              <DocumentDiscussionPanel fileId={detail.fileId} initialComments={initialComments} />
+            )}
           </div>
         </div>
       )}
