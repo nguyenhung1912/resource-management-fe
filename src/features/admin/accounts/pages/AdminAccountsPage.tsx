@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
-
+import { CreateUserModal } from '../components/CreateUserModal';
 import { EditUserModal } from '@/features/admin/accounts/components/EditUserModal';
 
 import type { AdminUser, PaginatedResponse, Role } from '@/features/admin/accounts/types/admin-account.types';
@@ -31,6 +31,8 @@ export function AdminAccountsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [processingUid, setProcessingUid] = useState<string | null>(null);
+
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const [deletingUid, setDeletingUid] = useState<string | null>(null);
 
@@ -161,7 +163,7 @@ export function AdminAccountsPage() {
           <p className="mt-1 text-sm text-text-muted">Quản lý thông tin, trạng thái và tài khoản người dùng.</p>
         </div>
 
-        <Button type="button" iconLeft={<UserPlus className="size-4" />}>
+        <Button type="button" iconLeft={<UserPlus className="size-4" />} onClick={() => setShowCreateModal(true)}>
           Tạo tài khoản
         </Button>
       </div>
@@ -421,6 +423,17 @@ export function AdminAccountsPage() {
           revalidator.revalidate();
         }}
       />
+
+      {showCreateModal && (
+        <CreateUserModal
+          roles={roles}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={() => {
+            setShowCreateModal(false);
+            revalidator.revalidate();
+          }}
+        />
+      )}
     </div>
   );
 }

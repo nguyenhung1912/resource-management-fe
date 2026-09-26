@@ -9,7 +9,6 @@ type RedirectToErrorPage = (path: string) => void;
 type GetCurrentPath = () => string;
 
 const ERROR_PATH_BY_STATUS: Readonly<Partial<Record<number, string>>> = {
-  401: APP_PATHS.UNAUTHORIZED,
   403: APP_PATHS.FORBIDDEN,
   500: APP_PATHS.SERVER_ERROR,
 };
