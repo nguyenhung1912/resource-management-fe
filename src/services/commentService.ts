@@ -25,6 +25,22 @@ function buildCommentFilterParams(query?: CommentFilterQuery): Record<string, st
   return params;
 }
 
+function normalizeCommentItem(item: unknown): CommentItemResponse {
+  if (!item || typeof item !== 'object') {
+    return item as CommentItemResponse;
+  }
+  const raw = item as Record<string, unknown>;
+  const content =
+    (typeof raw.content === 'string' && raw.content.length > 0 ? raw.content : '') ||
+    (typeof raw.commentContent === 'string' && raw.commentContent.length > 0 ? raw.commentContent : '') ||
+    (typeof raw.CommentContent === 'string' && raw.CommentContent.length > 0 ? raw.CommentContent : '');
+
+  return {
+    ...(raw as unknown as CommentItemResponse),
+    content,
+  };
+}
+
 export const commentService = {
   // GET /api/Comment/file/{fileId}
   async getCommentsByFile(fileId: string, query?: CommentFilterQuery): Promise<PagedCommentResponse> {
@@ -32,7 +48,14 @@ export const commentService = {
     const response = await axiosClient.get<PagedCommentResponse>(`/api/Comment/file/${encodeURIComponent(fileId)}`, {
       params,
     });
-    return response.data;
+    const data = response.data;
+    if (data && Array.isArray(data.items)) {
+      return {
+        ...data,
+        items: data.items.map(normalizeCommentItem),
+      };
+    }
+    return data;
   },
 
   // GET /api/Comment/{commentId}/replies
@@ -42,31 +65,50 @@ export const commentService = {
       `/api/Comment/${encodeURIComponent(commentId)}/replies`,
       { params },
     );
-    return response.data;
+    const data = response.data;
+    if (data && Array.isArray(data.items)) {
+      return {
+        ...data,
+        items: data.items.map(normalizeCommentItem),
+      };
+    }
+    return data;
   },
 
   // GET /api/Comment/{commentId}
   async getCommentById(commentId: string): Promise<CommentItemResponse> {
     const response = await axiosClient.get<CommentItemResponse>(`/api/Comment/${encodeURIComponent(commentId)}`);
-    return response.data;
+    return normalizeCommentItem(response.data);
   },
 
   // POST /api/Comment
   async createComment(payload: CreateCommentRequest): Promise<CommentMutationResponse> {
+    const content = payload.content.trim();
     const response = await axiosClient.post<CommentMutationResponse>('/api/Comment', {
       fileId: payload.fileId,
-      content: payload.content.trim(),
+      content,
+      commentContent: content,
+      CommentContent: content,
       parentCommentId: payload.parentCommentId?.trim() || null,
     });
-    return response.data;
+    return {
+      ...response.data,
+      data: normalizeCommentItem(response.data?.data),
+    };
   },
 
   // PUT /api/Comment/{commentId}
   async updateComment(commentId: string, payload: UpdateCommentRequest): Promise<CommentMutationResponse> {
+    const content = payload.content.trim();
     const response = await axiosClient.put<CommentMutationResponse>(`/api/Comment/${encodeURIComponent(commentId)}`, {
-      content: payload.content.trim(),
+      content,
+      commentContent: content,
+      CommentContent: content,
     });
-    return response.data;
+    return {
+      ...response.data,
+      data: normalizeCommentItem(response.data?.data),
+    };
   },
 
   // DELETE /api/Comment/{commentId}
