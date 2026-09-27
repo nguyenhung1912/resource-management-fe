@@ -150,7 +150,7 @@ describe('allResourcesRoutes integration', () => {
     ).toBeInTheDocument();
   }, 15000);
 
-  it('đảm bảo APP_PATHS.SEARCH vẫn dùng SearchHubPage độc lập không bị ảnh hưởng', async () => {
+  it('đảm bảo APP_PATHS.SEARCH chuyển hướng sang ALL_RESOURCES (Thư viện Tài nguyên Số)', async () => {
     const router = createMemoryRouter(appRoutes, {
       initialEntries: [APP_PATHS.SEARCH],
     });
@@ -158,7 +158,7 @@ describe('allResourcesRoutes integration', () => {
     render(<RouterProvider router={router} />);
 
     expect(
-      await screen.findByRole('heading', { name: 'Trung tâm Tra cứu Tài nguyên Số' }, { timeout: 10000 }),
+      await screen.findByRole('heading', { name: 'Thư viện Tài nguyên Số' }, { timeout: 10000 }),
     ).toBeInTheDocument();
   }, 15000);
 });

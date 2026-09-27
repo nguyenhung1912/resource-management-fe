@@ -28,9 +28,9 @@ const DEFAULT_LABELS: Record<number, string> = {
 };
 
 const inputSizeClasses: Record<StarInputSize, { star: string; btn: string; text: string; gap: string }> = {
-  sm: { star: 'size-4.5', btn: 'p-1', text: 'text-xs', gap: 'gap-1' },
-  md: { star: 'size-6', btn: 'p-1.5', text: 'text-sm', gap: 'gap-1.5' },
-  lg: { star: 'size-8', btn: 'p-2', text: 'text-base', gap: 'gap-2' },
+  sm: { star: 'size-4', btn: 'p-0.5', text: 'text-xs', gap: 'gap-0.5' },
+  md: { star: 'size-5', btn: 'p-0.5', text: 'text-xs', gap: 'gap-1' },
+  lg: { star: 'size-6', btn: 'p-1', text: 'text-sm', gap: 'gap-1.5' },
 };
 
 export const StarRatingInput = memo(function StarRatingInput({
@@ -147,9 +147,8 @@ export const StarRatingInput = memo(function StarRatingInput({
               onClick={() => handleStarClick(star)}
               onMouseEnter={() => handleMouseEnter(star)}
               className={cn(
-                'group relative rounded-md transition-all duration-150 inline-flex items-center justify-center cursor-pointer outline-none',
+                'relative rounded-sm inline-flex items-center justify-center cursor-pointer outline-none transition-colors',
                 sizeConfig.btn,
-                isInteractive && 'hover:scale-115 active:scale-95',
                 disabled && 'cursor-not-allowed',
                 readOnly && 'cursor-default pointer-events-none',
               )}
@@ -158,10 +157,8 @@ export const StarRatingInput = memo(function StarRatingInput({
               <Star
                 className={cn(
                   sizeConfig.star,
-                  'transition-colors duration-150 shrink-0',
-                  isFilled
-                    ? 'text-amber-400 fill-amber-400 drop-shadow-[0_1px_2px_rgba(251,191,36,0.4)]'
-                    : 'text-gray-300 fill-gray-100 hover:text-amber-200 hover:fill-amber-50',
+                  'shrink-0',
+                  isFilled ? 'text-amber-400 fill-amber-400' : 'text-slate-300 fill-slate-100',
                 )}
                 aria-hidden="true"
               />
@@ -173,7 +170,7 @@ export const StarRatingInput = memo(function StarRatingInput({
       {showLabels && (
         <span
           className={cn(
-            'font-medium transition-opacity duration-150 min-h-5 inline-flex items-center',
+            'font-medium min-h-5 inline-flex items-center whitespace-nowrap shrink-0',
             sizeConfig.text,
             activeScore > 0 ? 'text-amber-600 font-semibold' : 'text-text-muted',
           )}

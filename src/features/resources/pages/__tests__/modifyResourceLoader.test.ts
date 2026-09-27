@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { LoaderFunctionArgs } from 'react-router-dom';
 import { resourceService } from '@/services/resourceService';
 import * as uploadLoaderModule from '../uploadResourceLoader';
-import { createFallbackResource, mapDetailToInitialValues, modifyResourceLoader } from '../modifyResourceLoader';
+import { mapDetailToInitialValues, modifyResourceLoader } from '../modifyResourceLoader';
 import type { ResourceDetailResponse } from '@/features/resources/types/resource.types';
 
 describe('modifyResourceLoader', () => {
@@ -64,20 +64,16 @@ describe('modifyResourceLoader', () => {
     expect(result.catalog).toEqual(mockCatalog);
   });
 
-  it('dự phòng về fallback resource khi backend trả về lỗi hoặc null', async () => {
+  it('ném Response 404 khi backend trả về lỗi hoặc không tìm thấy tài nguyên', async () => {
     vi.spyOn(resourceService, 'getResourceDetail').mockRejectedValue(new Error('Network error'));
     vi.spyOn(uploadLoaderModule, 'uploadResourceLoader').mockResolvedValue(mockCatalog);
 
     const args = {
-      params: { resourceId: 'res-fallback' },
-      request: new Request('http://localhost:5173/dashboard/resources-manager/res-fallback/edit'),
+      params: { resourceId: 'res-not-found' },
+      request: new Request('http://localhost:5173/dashboard/resources-manager/res-not-found/edit'),
     } as unknown as LoaderFunctionArgs;
 
-    const result = await modifyResourceLoader(args);
-
-    expect(result.resource.id).toBe('res-fallback');
-    expect(result.resource.documentFileName).toBe('Báo cáo thực tập_Final.pdf');
-    expect(result.catalog).toEqual(mockCatalog);
+    await expect(modifyResourceLoader(args)).rejects.toThrow();
   });
 
   it('mapDetailToInitialValues chuyển đổi authors array khi authorNames trống', () => {
@@ -89,11 +85,5 @@ describe('modifyResourceLoader', () => {
 
     const initialValues = mapDetailToInitialValues('res-1', detailWithAuthors);
     expect(initialValues.authorNames).toEqual(['Hoàng Văn D']);
-  });
-
-  it('createFallbackResource trả về dữ liệu mẫu với đúng id', () => {
-    const fallback = createFallbackResource('test-id');
-    expect(fallback.id).toBe('test-id');
-    expect(fallback.fileName).toBe('Báo cáo thực tập');
   });
 });

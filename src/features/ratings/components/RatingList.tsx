@@ -39,14 +39,16 @@ export const RatingList = memo(function RatingList({
   return (
     <div className={cn('space-y-4', className)} data-testid="rating-list-container">
       {/* Star Filter Tabs */}
-      <div className="flex items-center justify-between gap-3 border-b border-border-subtle pb-2.5">
-        <RatingFilterTabs
-          selectedStar={selectedStar}
-          counts={starCounts}
-          totalCount={totalItems}
-          onSelectStar={onSelectStar}
-        />
-      </div>
+      {(totalItems > 0 || selectedStar !== null) && (
+        <div className="flex items-center justify-between gap-3 border-b border-border-subtle pb-2.5">
+          <RatingFilterTabs
+            selectedStar={selectedStar}
+            counts={starCounts}
+            totalCount={totalItems}
+            onSelectStar={onSelectStar}
+          />
+        </div>
+      )}
 
       {/* Error state */}
       {error && (
@@ -87,7 +89,7 @@ export const RatingList = memo(function RatingList({
               ? 'Tài liệu chưa nhận được đánh giá nào ở mức sao này. Bạn có thể chọn mức sao khác hoặc quay lại xem tất cả.'
               : 'Hãy là người đầu tiên chia sẻ cảm nhận và đánh giá về tài liệu này.'
           }
-          className="py-10"
+          className="py-6 sm:py-7"
         />
       ) : (
         /* List of Ratings */

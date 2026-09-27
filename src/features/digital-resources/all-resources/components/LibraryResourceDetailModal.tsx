@@ -76,17 +76,17 @@ export function LibraryResourceDetailModal({
       maxWidth="6xl"
       title={
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="size-8.5 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+          <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
             <BookOpen className="size-4.5" aria-hidden="true" />
           </div>
-          <span className="truncate text-base sm:text-lg font-bold text-text-main">
+          <span className="truncate text-base sm:text-lg font-bold text-text-main" title={detail?.fileName}>
             {detail?.fileName || 'Chi tiết tài liệu thư viện'}
           </span>
         </div>
       }
       description={
         detail ? (
-          <span className="flex flex-wrap items-center gap-2 pt-1">
+          <div className="flex flex-wrap items-center gap-2 pt-1.5">
             {detail.fileTypeName && (
               <span
                 className={cn(
@@ -97,12 +97,15 @@ export function LibraryResourceDetailModal({
                 {detail.fileTypeName}
               </span>
             )}
-            <span className="inline-flex items-center gap-1 text-xs text-text-muted font-mono bg-slate-100 px-2 py-0.5 rounded-md">
-              <Hash className="size-3" aria-hidden="true" />
-              {detail.fileId}
+            <span
+              className="inline-flex items-center gap-1 text-xs text-text-muted font-mono bg-slate-100 px-2 py-0.5 rounded-md border border-border-subtle"
+              title={`Mã tệp: ${detail.fileId}`}
+            >
+              <Hash className="size-3 text-text-muted" aria-hidden="true" />
+              <span>{detail.fileId.length > 16 ? `${detail.fileId.slice(0, 8)}...` : detail.fileId}</span>
             </span>
             {detail.fileStatusName && (
-              <Badge variant="success" className="gap-1 font-medium">
+              <Badge variant="success" className="gap-1 font-medium text-xs">
                 <CheckCircle2 className="size-3" aria-hidden="true" />
                 {detail.fileStatusName}
               </Badge>
@@ -122,7 +125,7 @@ export function LibraryResourceDetailModal({
                 <span className="text-[11px] font-normal text-amber-700">({initialRatingSummary.totalRatings})</span>
               </button>
             )}
-          </span>
+          </div>
         ) : undefined
       }
       footer={
@@ -137,7 +140,7 @@ export function LibraryResourceDetailModal({
               size="md"
               onClick={() => onDownload(detail.fileId, detail.fileName)}
               disabled={isDownloading}
-              className="gap-2 shadow-xs cursor-pointer"
+              className="gap-2 shadow-xs cursor-pointer font-semibold"
               aria-label={`Tải xuống tài liệu ${detail.fileName}`}
             >
               {isDownloading ? (
@@ -173,11 +176,11 @@ export function LibraryResourceDetailModal({
         </div>
       )}
 
-      {/* Detail Content with Split-View: Left: Document Details, Right: Comments Side Panel */}
+      {/* Detail Content with Modern Split-View */}
       {!isLoading && !error && detail && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start divide-y lg:divide-y-0 lg:divide-x divide-border-subtle py-2">
-          {/* CỘT TRÁI (60%): Thông tin chi tiết học thuật & Metadata tài liệu */}
-          <div className="lg:col-span-7 space-y-5 lg:pr-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start py-1">
+          {/* CỘT TRÁI (58%): Thông tin chi tiết học thuật & Metadata tài liệu */}
+          <div className="lg:col-span-7 space-y-4">
             {/* Banner cover preview if available */}
             {detail.bannerImage && (
               <div className="relative h-44 sm:h-52 w-full rounded-xl overflow-hidden bg-slate-100 border border-border-subtle shadow-2xs">
@@ -186,81 +189,104 @@ export function LibraryResourceDetailModal({
             )}
 
             {/* Abstract / Description */}
-            <div className="space-y-1.5">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">Mô tả / Tóm tắt học liệu</h4>
-              <p className="text-sm text-text-main leading-relaxed bg-slate-50/80 p-3.5 rounded-xl border border-border-subtle">
+            <div className="rounded-xl border border-border-subtle bg-surface p-4 sm:p-5 shadow-2xs space-y-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+                <BookOpen className="size-3.5 text-primary" aria-hidden="true" />
+                <span>Mô tả / Tóm tắt học liệu</span>
+              </h4>
+              <p className="text-sm text-text-main leading-relaxed bg-slate-50/80 p-3.5 rounded-lg border-l-3 border-l-primary border border-border-subtle">
                 {detail.fileDescription || 'Tài liệu này hiện chưa có mô tả chi tiết.'}
               </p>
             </div>
 
             {/* Academic & System Metadata Grid */}
-            <div className="space-y-1.5">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                Thông tin học thuật & Phân loại
+            <div className="rounded-xl border border-border-subtle bg-surface p-4 sm:p-5 shadow-2xs space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+                <GraduationCap className="size-4 text-primary shrink-0" aria-hidden="true" />
+                <span>Thông tin học thuật & Phân loại</span>
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-surface p-4 rounded-xl border border-border-subtle text-xs">
-                <div className="flex items-start gap-2">
-                  <GraduationCap className="size-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <span className="text-text-muted block">Chuyên ngành:</span>
-                    <span className="font-semibold text-text-main">
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50/70 border border-border-subtle/80">
+                  <div className="size-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                    <GraduationCap className="size-4" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-medium text-text-muted block">Chuyên ngành:</span>
+                    <span className="font-semibold text-text-main block truncate">
                       {detail.subMajorName || detail.subMajorCode || 'Chưa phân loại'}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2">
-                  <Library className="size-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <span className="text-text-muted block">Khoa / Ngành:</span>
-                    <span className="font-semibold text-text-main">
+                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50/70 border border-border-subtle/80">
+                  <div className="size-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                    <Library className="size-4" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-medium text-text-muted block">Khoa / Ngành:</span>
+                    <span className="font-semibold text-text-main block truncate">
                       {detail.majorName || 'Khoa Công nghệ Thông tin'}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2">
-                  <BookOpen className="size-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <span className="text-text-muted block">Học phần:</span>
-                    <span className="font-semibold text-text-main">
+                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50/70 border border-border-subtle/80">
+                  <div className="size-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                    <BookOpen className="size-4" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-medium text-text-muted block">Học phần:</span>
+                    <span className="font-semibold text-text-main block truncate">
                       {detail.courseName || detail.courseCode || 'Học liệu chung'}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2">
-                  <Calendar className="size-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <span className="text-text-muted block">Năm hoàn thành:</span>
-                    <span className="font-semibold text-text-main">{detail.yearCompleted || 'Không rõ'}</span>
+                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50/70 border border-border-subtle/80">
+                  <div className="size-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                    <Calendar className="size-4" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-medium text-text-muted block">Năm hoàn thành:</span>
+                    <span className="font-semibold text-text-main block truncate">
+                      {detail.yearCompleted || 'Không rõ'}
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2">
-                  <User className="size-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <span className="text-text-muted block">Người tải lên:</span>
-                    <span className="font-semibold text-text-main">
+                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50/70 border border-border-subtle/80">
+                  <div className="size-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                    <User className="size-4" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-medium text-text-muted block">Người tải lên:</span>
+                    <span className="font-semibold text-text-main block truncate">
                       {detail.uploadUserName || detail.uploadUserId || 'Hệ thống'}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2">
-                  <Clock className="size-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <span className="text-text-muted block">Ngày tải lên:</span>
-                    <span className="font-semibold text-text-main">{formatDateTime(detail.createdAt)}</span>
+                <div className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50/70 border border-border-subtle/80">
+                  <div className="size-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                    <Clock className="size-4" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-medium text-text-muted block">Ngày tải lên:</span>
+                    <span className="font-semibold text-text-main block truncate">
+                      {formatDateTime(detail.createdAt)}
+                    </span>
                   </div>
                 </div>
 
                 {formattedSize && (
-                  <div className="flex items-start gap-2 sm:col-span-2">
-                    <HardDrive className="size-4 text-primary shrink-0 mt-0.5" aria-hidden="true" />
-                    <div>
-                      <span className="text-text-muted block">Dung lượng tệp:</span>
-                      <span className="font-semibold text-text-main">{formattedSize}</span>
+                  <div className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50/70 border border-border-subtle/80 sm:col-span-2">
+                    <div className="size-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                      <HardDrive className="size-4" aria-hidden="true" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[11px] font-medium text-text-muted block">Dung lượng tệp:</span>
+                      <span className="font-semibold text-text-main block">{formattedSize}</span>
                     </div>
                   </div>
                 )}
@@ -269,15 +295,16 @@ export function LibraryResourceDetailModal({
 
             {/* Authors List */}
             {authorList.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                  Tác giả / Nhóm nghiên cứu
+              <div className="rounded-xl border border-border-subtle bg-surface p-4 sm:p-5 shadow-2xs space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+                  <User className="size-3.5 text-primary" aria-hidden="true" />
+                  <span>Tác giả / Nhóm nghiên cứu</span>
                 </h4>
                 <div className="flex flex-wrap items-center gap-2">
                   {authorList.map((author, index) => (
                     <span
                       key={`${author}-${index}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-xs font-medium text-text-main border border-border-subtle"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 hover:bg-slate-200/70 transition-colors text-xs font-medium text-text-main border border-border-subtle"
                     >
                       <User className="size-3 text-text-muted" aria-hidden="true" />
                       {author}
@@ -289,13 +316,16 @@ export function LibraryResourceDetailModal({
 
             {/* Keywords / Tags */}
             {detail.keywords && detail.keywords.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">Từ khóa tìm kiếm (Tags)</h4>
+              <div className="rounded-xl border border-border-subtle bg-surface p-4 sm:p-5 shadow-2xs space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+                  <Tag className="size-3.5 text-primary" aria-hidden="true" />
+                  <span>Từ khóa tìm kiếm (Tags)</span>
+                </h4>
                 <div className="flex flex-wrap items-center gap-1.5">
                   {detail.keywords.map((kw, index) => (
                     <span
                       key={`${kw}-${index}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50/70 text-primary border border-blue-100 text-xs font-medium"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50/70 text-primary border border-blue-100 text-xs font-medium hover:bg-blue-100/60 transition-colors"
                     >
                       <Tag className="size-3" aria-hidden="true" />
                       {kw}
@@ -312,52 +342,61 @@ export function LibraryResourceDetailModal({
                   href={detail.githubLink}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 transition-colors shadow-xs"
+                  className="inline-flex items-center justify-between w-full sm:w-auto gap-3 px-4 py-2.5 rounded-xl bg-surface border border-border-subtle hover:border-primary/40 hover:bg-primary/5 text-text-main hover:text-primary transition-all shadow-2xs group cursor-pointer"
                 >
-                  <GitBranch className="size-4" aria-hidden="true" />
-                  <span>Xem kho mã nguồn trên GitHub</span>
-                  <ExternalLink className="size-3 text-slate-400" aria-hidden="true" />
+                  <div className="flex items-center gap-2.5">
+                    <div className="size-7 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0">
+                      <GitBranch className="size-4" aria-hidden="true" />
+                    </div>
+                    <span className="text-xs font-semibold">Xem kho mã nguồn trên GitHub</span>
+                  </div>
+                  <ExternalLink
+                    className="size-3.5 text-text-muted group-hover:text-primary transition-colors"
+                    aria-hidden="true"
+                  />
                 </a>
               </div>
             )}
           </div>
 
-          {/* CỘT PHẢI (40%): TABS ĐÁNH GIÁ & THẢO LUẬN BÊN CẠNH TÀI LIỆU */}
-          <div className="lg:col-span-5 pt-6 lg:pt-0 lg:pl-6 min-h-100 space-y-4">
-            <Tabs
-              variant="segmented"
-              items={[
-                {
-                  id: 'ratings',
-                  label: 'Đánh giá',
-                  count: initialRatingSummary?.totalRatings,
-                  icon: Star,
-                },
-                {
-                  id: 'discussion',
-                  label: 'Thảo luận',
-                  count: initialComments?.totalCount,
-                  icon: MessageSquare,
-                },
-              ]}
-              activeValue={activeTab}
-              onChange={(tab) => setActiveTab(tab as 'ratings' | 'discussion')}
-              className="w-full"
-            />
-
-            {activeTab === 'ratings' ? (
-              <DocumentRatingPanel
-                fileId={detail.fileId}
-                initialSummary={initialRatingSummary}
-                initialRatings={initialRatings}
-                onRequireLogin={() => {
-                  onClose();
-                  navigate(APP_PATHS.LOGIN);
-                }}
+          {/* CỘT PHẢI (42%): TABS ĐÁNH GIÁ & THẢO LUẬN BÊN CẠNH TÀI LIỆU */}
+          <div className="lg:col-span-5 space-y-4">
+            <div className="rounded-2xl border border-border-subtle bg-slate-50/50 p-3 sm:p-4 shadow-2xs space-y-4">
+              <Tabs
+                variant="segmented"
+                items={[
+                  {
+                    id: 'ratings',
+                    label: 'Đánh giá',
+                    count: initialRatingSummary?.totalRatings,
+                    icon: Star,
+                  },
+                  {
+                    id: 'discussion',
+                    label: 'Thảo luận',
+                    count: initialComments?.totalCount,
+                    icon: MessageSquare,
+                  },
+                ]}
+                activeValue={activeTab}
+                onChange={(tab) => setActiveTab(tab as 'ratings' | 'discussion')}
+                className="w-full"
               />
-            ) : (
-              <DocumentDiscussionPanel fileId={detail.fileId} initialComments={initialComments} />
-            )}
+
+              {activeTab === 'ratings' ? (
+                <DocumentRatingPanel
+                  fileId={detail.fileId}
+                  initialSummary={initialRatingSummary}
+                  initialRatings={initialRatings}
+                  onRequireLogin={() => {
+                    onClose();
+                    navigate(APP_PATHS.LOGIN);
+                  }}
+                />
+              ) : (
+                <DocumentDiscussionPanel fileId={detail.fileId} initialComments={initialComments} />
+              )}
+            </div>
           </div>
         </div>
       )}

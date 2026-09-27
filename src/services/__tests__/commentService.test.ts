@@ -129,6 +129,8 @@ describe('commentService', () => {
       expect(axiosClient.post).toHaveBeenCalledWith('/api/Comment', {
         fileId: 'FIL_001',
         content: 'Bình luận mới có khoảng trắng',
+        commentContent: 'Bình luận mới có khoảng trắng',
+        CommentContent: 'Bình luận mới có khoảng trắng',
         parentCommentId: null,
       });
       expect(result).toEqual(mockResponse);
@@ -152,6 +154,8 @@ describe('commentService', () => {
       expect(axiosClient.post).toHaveBeenCalledWith('/api/Comment', {
         fileId: 'FIL_001',
         content: 'Câu trả lời con',
+        commentContent: 'Câu trả lời con',
+        CommentContent: 'Câu trả lời con',
         parentCommentId: 'CMT_PARENT',
       });
       expect(result).toEqual(mockResponse);
@@ -174,6 +178,8 @@ describe('commentService', () => {
 
       expect(axiosClient.put).toHaveBeenCalledWith('/api/Comment/CMT_001', {
         content: 'Nội dung đã sửa',
+        commentContent: 'Nội dung đã sửa',
+        CommentContent: 'Nội dung đã sửa',
       });
       expect(result).toEqual(mockResponse);
     });

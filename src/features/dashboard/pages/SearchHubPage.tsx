@@ -9,8 +9,9 @@ import { SearchAiTab } from '../components/search/SearchAiTab';
 import { SearchAuthorsTab } from '../components/search/SearchAuthorsTab';
 import { SearchOmnibox } from '../components/search/SearchOmnibox';
 import { SearchResourceListTab } from '../components/search/SearchResourceListTab';
-import { MOCK_RESOURCES } from '../constants/search.constants';
-import type { SearchTab } from '../types/search.types';
+import type { SearchResultItem, SearchTab } from '../types/search.types';
+
+const emptyResources: SearchResultItem[] = [];
 
 export function SearchHubPage() {
   const [activeTab, setActiveTab] = useState<SearchTab>('all');
@@ -21,7 +22,7 @@ export function SearchHubPage() {
   const deferredQuery = useDeferredValue(searchQuery.trim().toLowerCase());
 
   const filteredResources = useMemo(() => {
-    return MOCK_RESOURCES.filter((item) => {
+    return emptyResources.filter((item) => {
       const matchesQuery =
         !deferredQuery ||
         item.title.toLowerCase().includes(deferredQuery) ||

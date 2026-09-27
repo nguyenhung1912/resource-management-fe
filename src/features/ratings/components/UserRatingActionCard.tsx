@@ -1,6 +1,5 @@
 import { memo, useCallback, useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2, Loader2, LogIn, Send, Star, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { StarRatingInput } from '@/components/ui/StarRatingInput';
 import { useRatingMutations } from '../hooks/useRatingMutations';
@@ -113,19 +112,15 @@ export const UserRatingActionCard = memo(function UserRatingActionCard({
         data-testid="user-rating-action-card"
       >
         {/* Header row */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div className="size-7 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
-              <Star className="size-4 fill-amber-400 text-amber-400" aria-hidden="true" />
-            </div>
-            <span className="text-sm font-bold text-text-main">Đánh giá của bạn</span>
-          </div>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <span className="text-sm font-bold text-text-main">Đánh giá của bạn</span>
 
           {hasRated && (
-            <div className="flex items-center gap-2">
-              <Badge variant="warning" showDot className="text-xs font-semibold">
-                Đã đánh giá: {currentUserScore}★
-              </Badge>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200/80 whitespace-nowrap">
+                <span className="size-1.5 rounded-full bg-amber-500 shrink-0" />
+                <span>Đã đánh giá: {currentUserScore}★</span>
+              </span>
 
               <button
                 type="button"
@@ -133,23 +128,23 @@ export const UserRatingActionCard = memo(function UserRatingActionCard({
                   clearMutationStatus();
                   setIsDeleteDialogOpen(true);
                 }}
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold text-danger hover:bg-danger/10 hover:text-danger active:scale-95 transition-all cursor-pointer"
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs font-medium text-danger hover:bg-danger/10 transition-colors cursor-pointer whitespace-nowrap"
                 title="Hủy đánh giá của bạn trên tài liệu này"
                 data-testid="open-delete-rating-dialog-btn"
               >
-                <Trash2 className="size-3.5" aria-hidden="true" />
-                <span className="hidden sm:inline">Hủy đánh giá</span>
+                <Trash2 className="size-3 shrink-0" aria-hidden="true" />
+                <span>Hủy đánh giá</span>
               </button>
             </div>
           )}
         </div>
 
         {/* Star Input row */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+        <div className="flex items-center justify-between gap-3 pt-0.5 flex-wrap sm:flex-nowrap">
           <StarRatingInput
             value={selectedScore}
             onChange={handleScoreChange}
-            size="lg"
+            size="md"
             disabled={isSubmitting || isDeleting}
             id={`user-rating-${fileId}`}
           />
@@ -157,15 +152,15 @@ export const UserRatingActionCard = memo(function UserRatingActionCard({
           <Button
             type="button"
             variant="primary"
-            size="md"
+            size="sm"
             disabled={!canSubmit}
             onClick={handleSubmit}
-            className="shrink-0 self-end sm:self-auto font-semibold"
+            className="shrink-0 font-semibold text-xs px-3 py-1.5 whitespace-nowrap"
             data-testid="submit-rating-btn"
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="size-4 mr-1.5 animate-spin" aria-hidden="true" />
+                <Loader2 className="size-3.5 mr-1.5 animate-spin" aria-hidden="true" />
                 Đang lưu...
               </>
             ) : (

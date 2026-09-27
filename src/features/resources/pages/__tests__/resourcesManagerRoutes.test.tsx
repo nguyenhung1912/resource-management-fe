@@ -156,6 +156,28 @@ describe('resources manager routes', () => {
       pageSize: 10,
       totalPages: 0,
     });
+    vi.spyOn(resourceService, 'getResourceDetail').mockResolvedValue({
+      fileId: 'resource-1',
+      fileName: 'Báo cáo thực tập_Final.pdf',
+      fileDescription: 'Báo cáo thực tập',
+      fileUrl: 'https://example.com/report.pdf',
+      fileTypeId: 1,
+      fileTypeName: 'PDF',
+      fileStatusId: 1,
+      fileStatusName: 'Đã duyệt',
+      majorId: 'CNTT',
+      majorName: 'Công nghệ thông tin',
+      subMajorCode: 'SE',
+      subMajorName: 'Kỹ thuật phần mềm',
+      courseCode: 'SWR302',
+      courseName: 'Kiến trúc phần mềm',
+      yearCompleted: 2024,
+      fileSize: 2516582,
+      createdAt: '2024-01-01T00:00:00Z',
+      authorNames: ['Nguyễn Văn A'],
+      keywords: ['thực tập', 'báo cáo'],
+      authors: [],
+    });
 
     const router = createMemoryRouter(appRoutes, { initialEntries: [APP_PATHS.RESOURCE_EDIT('resource-1')] });
 
@@ -176,6 +198,28 @@ describe('resources manager routes', () => {
       pageNumber: 1,
       pageSize: 10,
       totalPages: 0,
+    });
+    vi.spyOn(resourceService, 'getResourceDetail').mockResolvedValue({
+      fileId: 'resource-1',
+      fileName: 'Báo cáo thực tập_Final.pdf',
+      fileDescription: 'Báo cáo thực tập',
+      fileUrl: 'https://example.com/report.pdf',
+      fileTypeId: 1,
+      fileTypeName: 'PDF',
+      fileStatusId: 1,
+      fileStatusName: 'Đã duyệt',
+      majorId: 'CNTT',
+      majorName: 'Công nghệ thông tin',
+      subMajorCode: 'SE',
+      subMajorName: 'Kỹ thuật phần mềm',
+      courseCode: 'SWR302',
+      courseName: 'Kiến trúc phần mềm',
+      yearCompleted: 2024,
+      fileSize: 2516582,
+      createdAt: '2024-01-01T00:00:00Z',
+      authorNames: ['Nguyễn Văn A'],
+      keywords: ['thực tập', 'báo cáo'],
+      authors: [],
     });
     const updateResourceSpy = vi.spyOn(resourceService, 'updateResource').mockResolvedValue({ message: 'OK' });
     vi.spyOn(resourceService, 'updateAuthors').mockResolvedValue({ message: 'OK' });

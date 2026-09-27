@@ -12,31 +12,10 @@ export interface ModifyResourceLoaderData {
   catalog: UploadResourceLoaderData;
 }
 
-export function createFallbackResource(resourceId: string): ModifyResourceInitialValues {
-  return {
-    id: resourceId,
-    documentFileName: 'Báo cáo thực tập_Final.pdf',
-    documentFileTypeName: 'PDF',
-    documentFileSizeBytes: 2_516_582,
-    fileName: 'Báo cáo thực tập',
-    fileDescription: 'Báo cáo tổng kết quá trình thực tập doanh nghiệp.',
-    fileTypeId: 1,
-    subMajorCode: 'SE',
-    courseCode: 'SWR302',
-    yearCompleted: 2024,
-    authorNames: ['Nguyễn Văn A'],
-    keywords: ['thực tập', 'báo cáo'],
-  };
-}
-
 export function mapDetailToInitialValues(
   resourceId: string,
-  detail: ResourceDetailResponse | null | undefined,
+  detail: ResourceDetailResponse,
 ): ModifyResourceInitialValues {
-  if (!detail) {
-    return createFallbackResource(resourceId);
-  }
-
   const documentFileName =
     detail.fileName?.trim() || (detail.fileUrl ? detail.fileUrl.split('/').pop() || 'Tài liệu' : 'Tài liệu');
 
@@ -71,22 +50,19 @@ export function mapDetailToInitialValues(
 export async function modifyResourceLoader({ params }: LoaderFunctionArgs): Promise<ModifyResourceLoaderData> {
   const resourceId = params.resourceId || 'resource-1';
 
-  try {
-    const [detailRes, catalog] = await Promise.all([
-      resourceService.getResourceDetail<ResourceDetailResponse>(resourceId).catch(() => null),
-      uploadResourceLoader().catch(() => initialUploadResourceCatalogData),
-    ]);
+  const [detailRes, catalog] = await Promise.all([
+    resourceService.getResourceDetail<ResourceDetailResponse>(resourceId).catch(() => null),
+    uploadResourceLoader().catch(() => initialUploadResourceCatalogData),
+  ]);
 
-    return {
-      resource: mapDetailToInitialValues(resourceId, detailRes),
-      catalog,
-    };
-  } catch {
-    return {
-      resource: createFallbackResource(resourceId),
-      catalog: initialUploadResourceCatalogData,
-    };
+  if (!detailRes) {
+    throw new Response('Không tìm thấy tài liệu', { status: 404, statusText: 'Not Found' });
   }
+
+  return {
+    resource: mapDetailToInitialValues(resourceId, detailRes),
+    catalog,
+  };
 }
 
 export default modifyResourceLoader;
