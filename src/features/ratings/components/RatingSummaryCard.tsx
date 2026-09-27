@@ -65,25 +65,25 @@ export const RatingSummaryCard = memo(function RatingSummaryCard({
       )}
       data-testid="rating-summary-card"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
         {/* Left Column: Big Score & Overview */}
-        <div className="flex flex-col items-start sm:items-center justify-center sm:border-r sm:border-border-subtle sm:pr-6 shrink-0">
+        <div className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-slate-50/80 border border-border-subtle/80 sm:w-36 shrink-0 text-center">
           <div className="flex items-baseline gap-1">
             <span
-              className="text-3.5xl sm:text-4xl font-extrabold text-text-main tabular-nums leading-none tracking-tight"
+              className="text-3xl sm:text-3.5xl font-extrabold text-text-main tabular-nums leading-none tracking-tight"
               data-testid="summary-average-score"
             >
               {averageRating > 0 ? averageRating.toFixed(1) : '0.0'}
             </span>
-            <span className="text-sm font-medium text-text-muted">/ 5</span>
+            <span className="text-xs font-semibold text-text-muted">/ 5</span>
+          </div>
+
+          <div className="mt-1.5">
+            <StarRatingDisplay rating={averageRating} size="sm" />
           </div>
 
           <div className="mt-2">
-            <StarRatingDisplay rating={averageRating} size="md" />
-          </div>
-
-          <div className="mt-2.5">
-            <Badge variant="neutral" showDot={false} className="text-xs px-2.5 py-0.5 font-medium">
+            <Badge variant="neutral" showDot={false} className="text-[11px] px-2 py-0.5 font-medium">
               <span data-testid="summary-total-ratings">{totalRatings.toLocaleString('vi-VN')}</span>
               <span className="ml-1 text-text-muted">lượt đánh giá</span>
             </Badge>
@@ -101,14 +101,14 @@ export const RatingSummaryCard = memo(function RatingSummaryCard({
                 type="button"
                 onClick={() => onSelectStar?.(isSelected ? null : star)}
                 className={cn(
-                  'group flex items-center gap-2.5 w-full text-left rounded-lg px-2 py-1 transition-colors duration-150 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+                  'group flex items-center gap-2 w-full text-left rounded-lg px-2 py-0.5 transition-colors duration-150 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                   isSelected ? 'bg-primary/5 ring-1 ring-primary/20' : 'hover:bg-slate-50',
                 )}
                 aria-label={`Lọc ${star} sao: ${count} đánh giá (${percentage}%)`}
                 data-testid={`star-dist-row-${star}`}
               >
                 {/* Star label */}
-                <div className="flex items-center gap-1 w-8 shrink-0 text-xs font-semibold text-text-main group-hover:text-primary transition-colors">
+                <div className="flex items-center gap-1 w-7 shrink-0 text-xs font-semibold text-text-main group-hover:text-primary transition-colors">
                   <span>{star}</span>
                   <Star className="size-3 text-amber-400 fill-amber-400 shrink-0" aria-hidden="true" />
                 </div>
@@ -128,7 +128,7 @@ export const RatingSummaryCard = memo(function RatingSummaryCard({
                 {/* Count badge */}
                 <span
                   className={cn(
-                    'text-[11px] font-medium tabular-nums min-w-9 text-right',
+                    'text-[11px] font-medium tabular-nums min-w-8 text-right',
                     isSelected ? 'text-primary font-bold' : 'text-text-muted group-hover:text-text-main',
                   )}
                   data-testid={`star-dist-count-${star}`}
@@ -142,9 +142,10 @@ export const RatingSummaryCard = memo(function RatingSummaryCard({
       </div>
 
       {totalRatings === 0 && (
-        <p className="mt-3.5 pt-3 border-t border-border-subtle text-xs text-text-muted text-center italic">
-          Tài liệu này chưa có đánh giá nào. Hãy là người đầu tiên chia sẻ cảm nhận của bạn!
-        </p>
+        <div className="mt-3 pt-3 border-t border-border-subtle text-xs text-text-muted text-center flex items-center justify-center gap-1.5">
+          <Star className="size-3.5 text-amber-400 fill-amber-400/20 shrink-0" aria-hidden="true" />
+          <span>Tài liệu này chưa có đánh giá nào. Hãy là người đầu tiên chia sẻ cảm nhận của bạn!</span>
+        </div>
       )}
     </div>
   );

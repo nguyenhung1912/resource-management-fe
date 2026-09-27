@@ -4,6 +4,37 @@ import { describe, expect, it, vi } from 'vitest';
 import type { ResourceDetailResponse } from '@/features/resources/types/resource.types';
 import { LibraryResourceDetailModal } from '../LibraryResourceDetailModal';
 
+vi.mock('@/services/ratingService', () => ({
+  ratingService: {
+    getRatingSummary: vi.fn().mockResolvedValue(null),
+    getRatingsList: vi.fn().mockResolvedValue({
+      items: [],
+      totalItems: 0,
+      totalPages: 0,
+      pageIndex: 1,
+      pageSize: 10,
+    }),
+    getMyRating: vi.fn().mockResolvedValue(null),
+    upsertRating: vi.fn().mockResolvedValue({ message: 'Success' }),
+    deleteRating: vi.fn().mockResolvedValue({ message: 'Success' }),
+  },
+}));
+
+vi.mock('@/services/commentService', () => ({
+  commentService: {
+    getCommentsByFile: vi.fn().mockResolvedValue({
+      items: [],
+      totalCount: 0,
+      pageIndex: 1,
+      pageSize: 10,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    }),
+    createComment: vi.fn().mockResolvedValue({ message: 'Success', data: {} }),
+  },
+}));
+
 describe('LibraryResourceDetailModal', () => {
   const mockDetail: ResourceDetailResponse = {
     fileId: 'FIL_MODAL_001',
@@ -91,6 +122,7 @@ describe('LibraryResourceDetailModal', () => {
           isOpen={true}
           isLoading={false}
           detail={mockDetail}
+          initialRatings={{ items: [], totalItems: 0, pageIndex: 1, pageSize: 10, totalPages: 0 }}
           onClose={vi.fn()}
           onDownload={vi.fn()}
         />
@@ -128,6 +160,7 @@ describe('LibraryResourceDetailModal', () => {
           isOpen={true}
           isLoading={false}
           detail={mockDetail}
+          initialRatings={{ items: [], totalItems: 0, pageIndex: 1, pageSize: 10, totalPages: 0 }}
           onClose={handleClose}
           onDownload={vi.fn()}
         />
@@ -147,6 +180,7 @@ describe('LibraryResourceDetailModal', () => {
           isOpen={true}
           isLoading={false}
           detail={mockDetail}
+          initialRatings={{ items: [], totalItems: 0, pageIndex: 1, pageSize: 10, totalPages: 0 }}
           onClose={vi.fn()}
           onDownload={handleDownload}
         />

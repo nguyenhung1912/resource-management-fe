@@ -176,9 +176,9 @@ export function BaseModal({
                   </h2>
                 )}
                 {description && (
-                  <p id={descriptionId} className="mt-1 text-xs text-text-muted leading-relaxed">
+                  <div id={descriptionId} className="mt-1 text-xs text-text-muted leading-relaxed">
                     {description}
-                  </p>
+                  </div>
                 )}
               </div>
             </div>
