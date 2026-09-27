@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { AlertBanner } from '@/components/common/AlertBanner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 
 import { academicService } from '@/services/academicService';
@@ -33,6 +34,8 @@ export function DepartmentsTab({ departments }: DepartmentsTabProps) {
 
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   const [isDeleting, setIsDeleting] = useState(false);
 
   const filteredDepartments = useMemo(() => {
@@ -45,9 +48,11 @@ export function DepartmentsTab({ departments }: DepartmentsTabProps) {
     return departments.filter((department) => department.departmentName.toLowerCase().includes(keyword));
   }, [departments, search]);
 
-  const handleSuccess = () => {
+  const handleSuccess = (message: string) => {
     setIsCreateOpen(false);
     setEditingDepartment(null);
+
+    setSuccessMessage(message);
 
     revalidator.revalidate();
   };
@@ -64,6 +69,8 @@ export function DepartmentsTab({ departments }: DepartmentsTabProps) {
       await academicService.deleteDepartment(deletingDepartment.departmentId);
 
       setDeletingDepartment(null);
+
+      setSuccessMessage('Xóa khoa thành công.');
 
       revalidator.revalidate();
     } catch (error) {
@@ -105,6 +112,10 @@ export function DepartmentsTab({ departments }: DepartmentsTabProps) {
             Thêm khoa
           </Button>
         </div>
+
+        {successMessage && (
+          <AlertBanner type="success" message={successMessage} onClose={() => setSuccessMessage(null)} />
+        )}
 
         {filteredDepartments.length === 0 ? (
           <EmptyState
@@ -170,7 +181,13 @@ export function DepartmentsTab({ departments }: DepartmentsTabProps) {
           </>
         )}
 
-        {isCreateOpen && <DepartmentModal isOpen onClose={() => setIsCreateOpen(false)} onSuccess={handleSuccess} />}
+        {isCreateOpen && (
+          <DepartmentModal
+            isOpen
+            onClose={() => setIsCreateOpen(false)}
+            onSuccess={() => handleSuccess('Thêm khoa thành công.')}
+          />
+        )}
 
         {editingDepartment && (
           <DepartmentModal
@@ -178,7 +195,7 @@ export function DepartmentsTab({ departments }: DepartmentsTabProps) {
             isOpen
             department={editingDepartment}
             onClose={() => setEditingDepartment(null)}
-            onSuccess={handleSuccess}
+            onSuccess={() => handleSuccess('Cập nhật khoa thành công.')}
           />
         )}
 

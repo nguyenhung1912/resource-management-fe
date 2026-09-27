@@ -42,6 +42,8 @@ export function SubMajorsTab({ departments }: SubMajorsTabProps) {
 
   const [deletingSubMajor, setDeletingSubMajor] = useState<SubMajor | null>(null);
 
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [isDeleting, setIsDeleting] = useState(false);
@@ -112,9 +114,11 @@ export function SubMajorsTab({ departments }: SubMajorsTabProps) {
     return subMajors.filter((subMajor) => subMajor.subMajorName.toLowerCase().includes(keyword));
   }, [search, subMajors]);
 
-  const handleSuccess = async () => {
+  const handleSuccess = async (message: string) => {
     setIsCreateOpen(false);
     setEditingSubMajor(null);
+
+    setSuccessMessage(message);
 
     await loadSubMajors(majorId);
   };
@@ -131,6 +135,8 @@ export function SubMajorsTab({ departments }: SubMajorsTabProps) {
       await academicService.deleteSubMajor(deletingSubMajor.subMajorCode);
 
       setDeletingSubMajor(null);
+
+      setSuccessMessage('Xóa chuyên ngành thành công.');
 
       await loadSubMajors(majorId);
     } catch (error) {
@@ -189,6 +195,9 @@ export function SubMajorsTab({ departments }: SubMajorsTabProps) {
         </div>
 
         {loadError && <AlertBanner type="danger" message={loadError} />}
+        {successMessage && (
+          <AlertBanner type="success" message={successMessage} onClose={() => setSuccessMessage(null)} />
+        )}
 
         {!departmentId ? (
           <EmptyState icon={Network} title="Chọn khoa" description="Vui lòng chọn khoa trước." />
@@ -262,7 +271,7 @@ export function SubMajorsTab({ departments }: SubMajorsTabProps) {
             majors={majors}
             defaultMajorId={majorId}
             onClose={() => setIsCreateOpen(false)}
-            onSuccess={handleSuccess}
+            onSuccess={() => void handleSuccess('Thêm chuyên ngành thành công.')}
           />
         )}
 
@@ -273,7 +282,7 @@ export function SubMajorsTab({ departments }: SubMajorsTabProps) {
             majors={majors}
             subMajor={editingSubMajor}
             onClose={() => setEditingSubMajor(null)}
-            onSuccess={handleSuccess}
+            onSuccess={() => void handleSuccess('Thêm chuyên ngành thành công.')}
           />
         )}
 

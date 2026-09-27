@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { AlertBanner } from '@/components/common/AlertBanner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 
 import type { AdminUser, PaginatedResponse, Role } from '@/features/admin/accounts/types/admin-account.types';
@@ -27,18 +28,12 @@ export function AdminRolesPage() {
 
   const [searchParams, setSearchParams] = useSearchParams();
 
-  /**
-   * Chỉ lưu những Role mà người dùng
-   * đang thay đổi trên giao diện.
-   *
-   * Không copy toàn bộ role từ loader vào state,
-   * nên không cần useEffect.
-   */
   const [pendingRoles, setPendingRoles] = useState<Record<string, number>>({});
 
   const [savingUid, setSavingUid] = useState<string | null>(null);
 
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const updateQuery = (key: string, value?: string) => {
     const next = new URLSearchParams(searchParams);
@@ -124,7 +119,11 @@ export function AdminRolesPage() {
 
       setError(null);
 
+      setSuccessMessage(null);
+
       await adminRoleService.updateUserRole(user.uid, roleId);
+
+      setSuccessMessage(`Cập nhật Role của ${user.fullName} thành ${role.roleName} thành công.`);
 
       /**
        * Xóa thay đổi tạm sau khi lưu.
@@ -174,9 +173,10 @@ export function AdminRolesPage() {
         <p className="mt-1 text-sm text-text-muted">Phân công vai trò Admin, Lecturer hoặc Student cho người dùng.</p>
       </div>
 
-      {/* ERROR */}
-      {error && (
-        <div className="rounded-lg border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">{error}</div>
+      {error && <AlertBanner type="danger" message={error} onClose={() => setError(null)} />}
+
+      {successMessage && (
+        <AlertBanner type="success" message={successMessage} onClose={() => setSuccessMessage(null)} />
       )}
 
       <Card>

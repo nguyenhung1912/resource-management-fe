@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
+import { AlertBanner } from '@/components/common/AlertBanner';
 
 import { adminAccountService } from '@/services/adminAccountService';
 
@@ -108,11 +109,7 @@ function EditUserModalForm({ user, onClose, onSuccess }: EditUserModalFormProps)
 
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div className="rounded-lg border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">
-                {error}
-              </div>
-            )}
+            {error && <AlertBanner type="danger" message={error} onClose={() => setError('')} />}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">

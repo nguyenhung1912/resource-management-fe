@@ -40,6 +40,8 @@ export function CoursesTab({ departments }: CoursesTabProps) {
 
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
@@ -145,10 +147,11 @@ export function CoursesTab({ departments }: CoursesTabProps) {
     return courses.filter((course) => course.courseName.toLowerCase().includes(keyword));
   }, [courses, search]);
 
-  const handleSuccess = async () => {
+  const handleSuccess = async (message: string) => {
     setIsCreateOpen(false);
     setEditingCourse(null);
 
+    setSuccessMessage(message);
     await loadCourses(subMajorCode);
   };
 
@@ -164,6 +167,8 @@ export function CoursesTab({ departments }: CoursesTabProps) {
       await academicService.deleteCourse(deletingCourse.courseCode);
 
       setDeletingCourse(null);
+
+      setSuccessMessage('Xóa học phần thành công.');
 
       await loadCourses(subMajorCode);
     } catch (error) {
@@ -239,6 +244,10 @@ export function CoursesTab({ departments }: CoursesTabProps) {
 
         {loadError && <AlertBanner type="danger" message={loadError} />}
 
+        {successMessage && (
+          <AlertBanner type="success" message={successMessage} onClose={() => setSuccessMessage(null)} />
+        )}
+
         {!departmentId ? (
           <EmptyState icon={BookOpen} title="Chọn khoa" description="Vui lòng chọn khoa trước." />
         ) : !majorId ? (
@@ -313,7 +322,7 @@ export function CoursesTab({ departments }: CoursesTabProps) {
             subMajors={subMajors}
             defaultSubMajorCode={subMajorCode}
             onClose={() => setIsCreateOpen(false)}
-            onSuccess={handleSuccess}
+            onSuccess={() => void handleSuccess('Thêm học phần thành công.')}
           />
         )}
 
@@ -324,7 +333,7 @@ export function CoursesTab({ departments }: CoursesTabProps) {
             course={editingCourse}
             subMajors={subMajors}
             onClose={() => setEditingCourse(null)}
-            onSuccess={handleSuccess}
+            onSuccess={() => void handleSuccess('Cập nhật học phần thành công.')}
           />
         )}
 
