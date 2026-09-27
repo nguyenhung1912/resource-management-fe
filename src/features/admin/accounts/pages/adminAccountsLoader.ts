@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs } from 'react-router-dom';
 
 import { adminAccountService } from '@/services/adminAccountService';
+import { academicService } from '@/services/academicService';
 
 export async function adminAccountsLoader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
@@ -19,7 +20,7 @@ export async function adminAccountsLoader({ request }: LoaderFunctionArgs) {
 
   const isActive = statusValue === 'true' ? true : statusValue === 'false' ? false : undefined;
 
-  const [users, roles] = await Promise.all([
+  const [users, roles, departments] = await Promise.all([
     adminAccountService.getUsers({
       search,
       roleId,
@@ -29,10 +30,12 @@ export async function adminAccountsLoader({ request }: LoaderFunctionArgs) {
     }),
 
     adminAccountService.getRoles(),
+    academicService.getDepartments(),
   ]);
 
   return {
     users,
     roles,
+    departments,
   };
 }

@@ -1,13 +1,11 @@
 import { useState, type FormEvent } from 'react';
 
-import { X } from 'lucide-react';
-
+import { AlertBanner } from '@/components/common/AlertBanner';
+import { BaseModal } from '@/components/common/BaseModal';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Select } from '@/components/ui/Select';
-import { AlertBanner } from '@/components/common/AlertBanner';
 
 import { adminAccountService } from '@/services/adminAccountService';
 
@@ -48,7 +46,15 @@ function EditUserModalForm({ user, onClose, onSuccess }: EditUserModalFormProps)
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const handleClose = () => {
+    if (isSaving) {
+      return;
+    }
+
+    onClose();
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -61,7 +67,7 @@ function EditUserModalForm({ user, onClose, onSuccess }: EditUserModalFormProps)
 
     try {
       setIsSaving(true);
-      setError('');
+      setError(null);
 
       await adminAccountService.updateUser(user.uid, {
         ...form,
@@ -89,203 +95,194 @@ function EditUserModalForm({ user, onClose, onSuccess }: EditUserModalFormProps)
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <Card className="max-h-[90vh] w-full max-w-2xl overflow-y-auto shadow-xl">
-        <div className="flex items-center justify-between border-b border-border-subtle px-6 py-4">
-          <div>
-            <h2 className="text-lg font-semibold text-text-main">Cập nhật người dùng</h2>
+    <BaseModal
+      isOpen
+      title="Cập nhật người dùng"
+      description={`${user.fullName} · ${user.userCode}`}
+      onClose={handleClose}
+      maxWidth="2xl"
+      fullScreenOnMobile
+      closeOnEscape={!isSaving}
+      closeOnBackdropClick={!isSaving}
+      showCloseButton={!isSaving}
+      footer={
+        <>
+          <Button type="button" variant="secondary" disabled={isSaving} onClick={handleClose}>
+            Hủy
+          </Button>
 
-            <p className="mt-1 text-sm text-text-muted">
-              {user.fullName}
-              {' · '}
-              {user.userCode}
-            </p>
+          <Button type="submit" form="edit-user-form" variant="primary" isLoading={isSaving}>
+            Lưu thay đổi
+          </Button>
+        </>
+      }
+    >
+      <form id="edit-user-form" onSubmit={handleSubmit} className="space-y-5">
+        {error && <AlertBanner type="danger" message={error} onClose={() => setError(null)} />}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-user-code" requiredBadge>
+              Mã người dùng
+            </Label>
+
+            <Input
+              id="edit-user-code"
+              value={form.userCode ?? ''}
+              disabled={isSaving}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  userCode: event.target.value,
+                }))
+              }
+            />
           </div>
 
-          <Button type="button" variant="ghost" size="icon" disabled={isSaving} onClick={onClose} aria-label="Đóng">
-            <X className="size-5" />
-          </Button>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-email" requiredBadge>
+              Email
+            </Label>
+
+            <Input
+              id="edit-email"
+              type="email"
+              value={form.email ?? ''}
+              disabled={isSaving}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  email: event.target.value,
+                }))
+              }
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-last-name" requiredBadge>
+              Họ
+            </Label>
+
+            <Input
+              id="edit-last-name"
+              value={form.lastName ?? ''}
+              disabled={isSaving}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  lastName: event.target.value,
+                }))
+              }
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-first-name" requiredBadge>
+              Tên
+            </Label>
+
+            <Input
+              id="edit-first-name"
+              value={form.firstName ?? ''}
+              disabled={isSaving}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  firstName: event.target.value,
+                }))
+              }
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-phone">Số điện thoại</Label>
+
+            <Input
+              id="edit-phone"
+              type="tel"
+              value={form.phone ?? ''}
+              disabled={isSaving}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  phone: event.target.value,
+                }))
+              }
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="edit-dob">Ngày sinh</Label>
+
+            <Input
+              id="edit-dob"
+              type="date"
+              value={form.dob ?? ''}
+              disabled={isSaving}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  dob: event.target.value || null,
+                }))
+              }
+            />
+          </div>
+
+          <Select
+            id="edit-gender"
+            label="Giới tính"
+            value={String(form.gender ?? 0)}
+            disabled={isSaving}
+            onChange={(event) =>
+              setForm((current) => ({
+                ...current,
+                gender: Number(event.target.value),
+              }))
+            }
+            options={[
+              {
+                value: '0',
+                label: 'Khác',
+              },
+              {
+                value: '1',
+                label: 'Nam',
+              },
+              {
+                value: '2',
+                label: 'Nữ',
+              },
+            ]}
+          />
+
+          <div className="space-y-1.5">
+            <Label>Vai trò</Label>
+
+            <div className="flex h-10 items-center rounded-lg border border-border-subtle bg-gray-50 px-3 text-sm text-text-muted">
+              {user.role ?? 'Chưa có Role'}
+            </div>
+
+            <p className="text-xs text-text-muted">Vai trò được thay đổi tại mục Quản lý Role.</p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Ngành</Label>
+
+            <div className="flex h-10 items-center rounded-lg border border-border-subtle bg-gray-50 px-3 text-sm text-text-muted">
+              {user.major ?? '—'}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Chuyên ngành</Label>
+
+            <div className="flex h-10 items-center rounded-lg border border-border-subtle bg-gray-50 px-3 text-sm text-text-muted">
+              {user.subMajor ?? '—'}
+            </div>
+          </div>
         </div>
-
-        <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && <AlertBanner type="danger" message={error} onClose={() => setError('')} />}
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="edit-user-code" requiredBadge>
-                  Mã người dùng
-                </Label>
-
-                <Input
-                  id="edit-user-code"
-                  value={form.userCode ?? ''}
-                  disabled={isSaving}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      userCode: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="edit-email" requiredBadge>
-                  Email
-                </Label>
-
-                <Input
-                  id="edit-email"
-                  type="email"
-                  value={form.email ?? ''}
-                  disabled={isSaving}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      email: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="edit-last-name" requiredBadge>
-                  Họ
-                </Label>
-
-                <Input
-                  id="edit-last-name"
-                  value={form.lastName ?? ''}
-                  disabled={isSaving}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      lastName: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="edit-first-name" requiredBadge>
-                  Tên
-                </Label>
-
-                <Input
-                  id="edit-first-name"
-                  value={form.firstName ?? ''}
-                  disabled={isSaving}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      firstName: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="edit-phone">Số điện thoại</Label>
-
-                <Input
-                  id="edit-phone"
-                  type="tel"
-                  value={form.phone ?? ''}
-                  disabled={isSaving}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      phone: event.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="edit-dob">Ngày sinh</Label>
-
-                <Input
-                  id="edit-dob"
-                  type="date"
-                  value={form.dob ?? ''}
-                  disabled={isSaving}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      dob: event.target.value || null,
-                    }))
-                  }
-                />
-              </div>
-
-              <Select
-                id="edit-gender"
-                label="Giới tính"
-                value={String(form.gender ?? 0)}
-                disabled={isSaving}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    gender: Number(event.target.value),
-                  }))
-                }
-                options={[
-                  {
-                    value: '0',
-                    label: 'Khác',
-                  },
-                  {
-                    value: '1',
-                    label: 'Nam',
-                  },
-                  {
-                    value: '2',
-                    label: 'Nữ',
-                  },
-                ]}
-              />
-
-              <div className="space-y-1.5">
-                <Label>Vai trò</Label>
-
-                <div className="flex h-10 items-center rounded-lg border border-border-subtle bg-gray-50 px-3 text-sm text-text-muted">
-                  {user.role ?? 'Chưa có Role'}
-                </div>
-
-                <p className="text-xs text-text-muted">Vai trò được thay đổi tại mục Quản lý Role.</p>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Ngành</Label>
-
-                <div className="flex h-10 items-center rounded-lg border border-border-subtle bg-gray-50 px-3 text-sm text-text-muted">
-                  {user.major ?? '—'}
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label>Chuyên ngành</Label>
-
-                <div className="flex h-10 items-center rounded-lg border border-border-subtle bg-gray-50 px-3 text-sm text-text-muted">
-                  {user.subMajor ?? '—'}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 border-t border-border-subtle pt-5">
-              <Button type="button" variant="secondary" disabled={isSaving} onClick={onClose}>
-                Hủy
-              </Button>
-
-              <Button type="submit" variant="primary" isLoading={isSaving}>
-                Lưu thay đổi
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+      </form>
+    </BaseModal>
   );
 }
 

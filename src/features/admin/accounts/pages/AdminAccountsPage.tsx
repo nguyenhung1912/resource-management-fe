@@ -14,6 +14,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { CreateUserModal } from '../components/CreateUserModal';
 import { EditUserModal } from '@/features/admin/accounts/components/EditUserModal';
 import { AlertBanner } from '@/components/common/AlertBanner';
+import type { Department } from '@/features/admin/academic/types/academic.types';
+import { ConfirmActionModal } from '@/components/common/ConfirmActionModal';
 
 import type { AdminUser, PaginatedResponse, Role } from '@/features/admin/accounts/types/admin-account.types';
 
@@ -22,10 +24,23 @@ import { adminAccountService } from '@/services/adminAccountService';
 interface LoaderData {
   users: PaginatedResponse<AdminUser>;
   roles: Role[];
+  departments: Department[];
 }
 
+type AccountConfirmAction =
+  | {
+      type: 'status';
+      user: AdminUser;
+      nextStatus: boolean;
+    }
+  | {
+      type: 'delete';
+      user: AdminUser;
+    }
+  | null;
+
 export function AdminAccountsPage() {
-  const { users, roles } = useLoaderData() as LoaderData;
+  const { users, roles, departments } = useLoaderData() as LoaderData;
 
   const revalidator = useRevalidator();
 
@@ -39,9 +54,11 @@ export function AdminAccountsPage() {
 
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
 
-  const [actionError, setActionError] = useState<string | null>(null);
-
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const [confirmAction, setConfirmAction] = useState<AccountConfirmAction>(null);
+
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   // =====================================================
   // UPDATE QUERY PARAMS
@@ -76,65 +93,74 @@ export function AdminAccountsPage() {
   // =====================================================
   // LOCK / UNLOCK
   // =====================================================
-  const handleStatusChange = async (user: AdminUser) => {
-    const nextStatus = !user.isActive;
+  const handleStatusChange = (user: AdminUser) => {
+    setConfirmError(null);
 
-    const confirmed = window.confirm(
-      nextStatus
-        ? `Bạn có chắc muốn mở khóa tài khoản "${user.userCode}"?`
-        : `Bạn có chắc muốn khóa tài khoản "${user.userCode}"?`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      setProcessingUid(user.uid);
-
-      setActionError(null);
-      setSuccessMessage(null);
-
-      await adminAccountService.updateStatus(user.uid, nextStatus);
-
-      setSuccessMessage(nextStatus ? 'Mở khóa tài khoản thành công.' : 'Khóa tài khoản thành công.');
-
-      revalidator.revalidate();
-    } catch (error) {
-      console.error(error);
-
-      setActionError(nextStatus ? 'Không thể mở khóa tài khoản.' : 'Không thể khóa tài khoản.');
-    } finally {
-      setProcessingUid(null);
-    }
+    setConfirmAction({
+      type: 'status',
+      user,
+      nextStatus: !user.isActive,
+    });
   };
 
   // =====================================================
   // DELETE USER
   // =====================================================
-  const handleDelete = async (user: AdminUser) => {
-    const confirmed = window.confirm(
-      `Bạn có chắc muốn xóa tài khoản "${user.fullName}" (${user.userCode})?\n\nHành động này không thể hoàn tác.`,
-    );
+  const handleDelete = (user: AdminUser) => {
+    setConfirmError(null);
 
-    if (!confirmed) {
+    setConfirmAction({
+      type: 'delete',
+      user,
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirmAction) {
+      return;
+    }
+
+    const { user } = confirmAction;
+
+    setSuccessMessage(null);
+    setConfirmError(null);
+
+    if (confirmAction.type === 'status') {
+      try {
+        setProcessingUid(user.uid);
+
+        await adminAccountService.updateStatus(user.uid, confirmAction.nextStatus);
+
+        setSuccessMessage(confirmAction.nextStatus ? 'Mở khóa tài khoản thành công.' : 'Khóa tài khoản thành công.');
+
+        setConfirmAction(null);
+
+        revalidator.revalidate();
+      } catch (error) {
+        console.error(error);
+
+        setConfirmError(confirmAction.nextStatus ? 'Không thể mở khóa tài khoản.' : 'Không thể khóa tài khoản.');
+      } finally {
+        setProcessingUid(null);
+      }
+
       return;
     }
 
     try {
       setDeletingUid(user.uid);
 
-      setActionError(null);
-      setSuccessMessage(null);
-
       await adminAccountService.deleteUser(user.uid);
 
       setSuccessMessage('Xóa tài khoản thành công.');
+
+      setConfirmAction(null);
+
       revalidator.revalidate();
     } catch (error) {
       console.error(error);
 
-      setActionError('Không thể xóa tài khoản. Người dùng có thể đang có dữ liệu liên quan.');
+      setConfirmError('Không thể xóa tài khoản. Người dùng có thể đang có dữ liệu liên quan.');
     } finally {
       setDeletingUid(null);
     }
@@ -175,11 +201,6 @@ export function AdminAccountsPage() {
           Tạo tài khoản
         </Button>
       </div>
-
-      {/* =====================================================
-          ERROR
-      ===================================================== */}
-      {actionError && <AlertBanner type="danger" message={actionError} onClose={() => setActionError(null)} />}
 
       {successMessage && (
         <AlertBanner type="success" message={successMessage} onClose={() => setSuccessMessage(null)} />
@@ -342,7 +363,7 @@ export function AdminAccountsPage() {
                             isLoading={isProcessing}
                             disabled={isDeleting}
                             onClick={() => {
-                              void handleStatusChange(user);
+                              handleStatusChange(user);
                             }}
                           >
                             {user.isActive ? (
@@ -366,7 +387,7 @@ export function AdminAccountsPage() {
                             isLoading={isDeleting}
                             disabled={isProcessing}
                             onClick={() => {
-                              void handleDelete(user);
+                              handleDelete(user);
                             }}
                           >
                             <Trash2 className="size-4" />
@@ -437,6 +458,7 @@ export function AdminAccountsPage() {
       {showCreateModal && (
         <CreateUserModal
           roles={roles}
+          departments={departments}
           onClose={() => setShowCreateModal(false)}
           onSuccess={() => {
             setShowCreateModal(false);
@@ -444,6 +466,45 @@ export function AdminAccountsPage() {
             setSuccessMessage('Tạo tài khoản thành công.');
 
             revalidator.revalidate();
+          }}
+        />
+      )}
+
+      {confirmAction && (
+        <ConfirmActionModal
+          isOpen
+          title={
+            confirmAction.type === 'delete'
+              ? 'Xóa tài khoản'
+              : confirmAction.nextStatus
+                ? 'Mở khóa tài khoản'
+                : 'Khóa tài khoản'
+          }
+          message={
+            confirmAction.type === 'delete' ? (
+              <>
+                Bạn có chắc muốn xóa tài khoản <strong>{confirmAction.user.fullName}</strong> (
+                {confirmAction.user.userCode})? Hành động này không thể hoàn tác.
+              </>
+            ) : (
+              <>
+                Bạn có chắc muốn {confirmAction.nextStatus ? 'mở khóa' : 'khóa'} tài khoản{' '}
+                <strong>{confirmAction.user.userCode}</strong>?
+              </>
+            )
+          }
+          confirmLabel={
+            confirmAction.type === 'delete' ? 'Xóa tài khoản' : confirmAction.nextStatus ? 'Mở khóa' : 'Khóa'
+          }
+          danger={confirmAction.type === 'delete' || (confirmAction.type === 'status' && !confirmAction.nextStatus)}
+          error={confirmError}
+          isProcessing={processingUid === confirmAction.user.uid || deletingUid === confirmAction.user.uid}
+          onClose={() => {
+            setConfirmAction(null);
+            setConfirmError(null);
+          }}
+          onConfirm={() => {
+            void handleConfirmAction();
           }}
         />
       )}
