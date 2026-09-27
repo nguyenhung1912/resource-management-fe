@@ -152,8 +152,13 @@ describe('moderationService', () => {
 
       const result = await moderationService.getModerationQueue({
         search: 'Học sâu',
+        departmentId: 'DPT_IT',
+        majorId: 'MAJ_CS',
         subMajorCode: 'CNTT_KTPM',
         fileTypeId: 2,
+        courseCode: 'CS101',
+        fromDate: '2026-09-01T00:00:00Z',
+        toDate: '2026-09-25T23:59:59Z',
         pageNumber: 1,
         pageSize: 15,
       });
@@ -161,8 +166,13 @@ describe('moderationService', () => {
       expect(axiosClient.get).toHaveBeenCalledWith('/api/Moderation/queue', {
         params: {
           Search: 'Học sâu',
+          DepartmentId: 'DPT_IT',
+          MajorId: 'MAJ_CS',
           SubMajorCode: 'CNTT_KTPM',
           FileTypeId: 2,
+          CourseCode: 'CS101',
+          FromDate: '2026-09-01T00:00:00Z',
+          ToDate: '2026-09-25T23:59:59Z',
           PageNumber: 1,
           PageSize: 15,
         },

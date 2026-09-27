@@ -1,3 +1,9 @@
+import type {
+  DepartmentResponse,
+  FileTypeResponse,
+  SubMajorResponse,
+} from '@/features/resources/types/academicCatalog.types';
+
 export interface ApproveModerationRequest {
   notes?: string;
 }
@@ -111,10 +117,34 @@ export interface ModerationDetailEnvelopeResponse {
 
 export interface ModerationQueueParams {
   search?: string;
+  departmentId?: string;
+  majorId?: string;
   subMajorCode?: string;
   fileTypeId?: number;
+  courseCode?: string;
+  fromDate?: string;
+  toDate?: string;
   pageNumber?: number;
   pageSize?: number;
+}
+
+export type ModerationAiRiskFilter = 'all' | 'uninspected' | 'safe' | 'warning' | 'danger';
+
+export interface ModerationQueueFilterState {
+  search?: string;
+  departmentId?: string;
+  subMajorCode?: string;
+  fileTypeId?: number;
+  aiRisk?: ModerationAiRiskFilter;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ModerationQueueOverviewStats {
+  totalPending: number;
+  highPlagiarismRisk: number;
+  safePlagiarism: number;
+  uninspectedCount: number;
 }
 
 export interface ModerationQueuePaginatedData {
@@ -130,6 +160,15 @@ export interface ModerationQueuePaginatedData {
 export interface ModerationQueuePaginatedResponse {
   message: string;
   data: ModerationQueuePaginatedData;
+}
+
+export interface ModerationQueueLoaderData {
+  queue: ModerationQueuePaginatedData;
+  stats: ModerationQueueOverviewStats;
+  departments: DepartmentResponse[];
+  subMajors: SubMajorResponse[];
+  fileTypes: FileTypeResponse[];
+  currentFilters: ModerationQueueFilterState;
 }
 
 export interface ModerationTargetDocument {
