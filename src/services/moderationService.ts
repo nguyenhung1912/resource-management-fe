@@ -47,11 +47,26 @@ export const moderationService = {
     if (params?.search?.trim()) {
       queryParams.Search = params.search.trim();
     }
+    if (params?.departmentId?.trim()) {
+      queryParams.DepartmentId = params.departmentId.trim();
+    }
+    if (params?.majorId?.trim()) {
+      queryParams.MajorId = params.majorId.trim();
+    }
     if (params?.subMajorCode?.trim()) {
       queryParams.SubMajorCode = params.subMajorCode.trim();
     }
     if (typeof params?.fileTypeId === 'number') {
       queryParams.FileTypeId = params.fileTypeId;
+    }
+    if (params?.courseCode?.trim()) {
+      queryParams.CourseCode = params.courseCode.trim();
+    }
+    if (params?.fromDate?.trim()) {
+      queryParams.FromDate = params.fromDate.trim();
+    }
+    if (params?.toDate?.trim()) {
+      queryParams.ToDate = params.toDate.trim();
     }
     if (typeof params?.pageNumber === 'number') {
       queryParams.PageNumber = params.pageNumber;
