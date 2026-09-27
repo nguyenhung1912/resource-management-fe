@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { BookOpen, Building2, GraduationCap, LibraryBig } from 'lucide-react';
 import { useLoaderData } from 'react-router-dom';
 
-import { EmptyState } from '@/components/common/EmptyState';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Tabs } from '@/components/ui/Tabs';
 
 import { DepartmentsTab } from '../components/DepartmentsTab';
 import { MajorsTab } from '../components/MajorsTab';
+import { SubMajorsTab } from '../components/SubMajorsTab';
+import { CoursesTab } from '../components/CoursesTab';
 
 import type { AcademicTab, Department } from '../types/academic.types';
 
@@ -63,21 +64,9 @@ export function AcademicManagementPage() {
 
       {activeTab === 'majors' && <MajorsTab departments={departments} />}
 
-      {activeTab === 'submajors' && (
-        <EmptyState
-          icon={LibraryBig}
-          title="Quản lý chuyên ngành"
-          description="Chức năng này sẽ được triển khai ở bước tiếp theo."
-        />
-      )}
+      {activeTab === 'submajors' && <SubMajorsTab departments={departments} />}
 
-      {activeTab === 'courses' && (
-        <EmptyState
-          icon={BookOpen}
-          title="Quản lý học phần"
-          description="Chức năng này sẽ được triển khai ở bước tiếp theo."
-        />
-      )}
+      {activeTab === 'courses' && <CoursesTab departments={departments} />}
     </div>
   );
 }
