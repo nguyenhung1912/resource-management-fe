@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { dashboardMenuPreviewData } from '@/constants/dashboard-menu';
+import { DASHBOARD_MENU_CONFIG } from '@/constants/dashboard-menu';
 
 import { buildDashboardMenu } from '../buildDashboardMenu';
 
 describe('buildDashboardMenu', () => {
   describe('Vai trò Sinh viên (Student / Sinh viên)', () => {
     it('hiển thị đúng 4 nhóm chức năng và bao gồm Khiếu nại của tôi', () => {
-      const menu = buildDashboardMenu(dashboardMenuPreviewData, [], 'Student');
+      const menu = buildDashboardMenu(DASHBOARD_MENU_CONFIG, [], 'Student');
 
       expect(menu.groups).toHaveLength(4);
 
@@ -47,7 +47,7 @@ describe('buildDashboardMenu', () => {
     });
 
     it('hoạt động chính xác với chuỗi tiếng Việt "Sinh viên"', () => {
-      const menu = buildDashboardMenu(dashboardMenuPreviewData, [], 'Sinh viên');
+      const menu = buildDashboardMenu(DASHBOARD_MENU_CONFIG, [], 'Sinh viên');
 
       expect(menu.groups).toHaveLength(4);
 
@@ -60,7 +60,7 @@ describe('buildDashboardMenu', () => {
 
   describe('Vai trò Giảng viên (Lecturer / Giảng viên)', () => {
     it('hiển thị đúng 5 nhóm chức năng học thuật & kiểm duyệt, không có Quản lý người dùng', () => {
-      const menu = buildDashboardMenu(dashboardMenuPreviewData, [], 'Lecturer');
+      const menu = buildDashboardMenu(DASHBOARD_MENU_CONFIG, [], 'Lecturer');
 
       expect(menu.groups).toHaveLength(5);
 
@@ -102,7 +102,7 @@ describe('buildDashboardMenu', () => {
     });
 
     it('hoạt động chính xác với chuỗi tiếng Việt "Giảng viên"', () => {
-      const menu = buildDashboardMenu(dashboardMenuPreviewData, [], 'Giảng viên');
+      const menu = buildDashboardMenu(DASHBOARD_MENU_CONFIG, [], 'Giảng viên');
 
       expect(menu.groups).toHaveLength(5);
     });
@@ -110,7 +110,7 @@ describe('buildDashboardMenu', () => {
 
   describe('Vai trò Quản trị viên (Admin / Quản trị viên)', () => {
     it('hiển thị đầy đủ 6 nhóm chức năng và toàn quyền quản trị', () => {
-      const menu = buildDashboardMenu(dashboardMenuPreviewData, [], 'Admin');
+      const menu = buildDashboardMenu(DASHBOARD_MENU_CONFIG, [], 'Admin');
 
       expect(menu.groups).toHaveLength(6);
 
@@ -139,7 +139,7 @@ describe('buildDashboardMenu', () => {
     });
 
     it('hoạt động chính xác với chuỗi tiếng Việt "Quản trị viên"', () => {
-      const menu = buildDashboardMenu(dashboardMenuPreviewData, [], 'Quản trị viên');
+      const menu = buildDashboardMenu(DASHBOARD_MENU_CONFIG, [], 'Quản trị viên');
 
       expect(menu.groups).toHaveLength(6);
     });
@@ -147,7 +147,7 @@ describe('buildDashboardMenu', () => {
 
   describe('Trường hợp không có role hoặc role không hợp lệ', () => {
     it('trả về menu an toàn mà không bị crash', () => {
-      const menu = buildDashboardMenu(dashboardMenuPreviewData, [], undefined);
+      const menu = buildDashboardMenu(DASHBOARD_MENU_CONFIG, [], undefined);
 
       expect(menu.groups.length).toBeGreaterThan(0);
     });

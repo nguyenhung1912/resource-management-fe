@@ -10,10 +10,22 @@ vi.mock('@/services/axiosClient', () => ({
   default: { post: vi.fn() },
 }));
 
-function renderUploadPage() {
+const defaultCatalog = {
+  departments: [{ id: 'DEPT-001', name: 'Khoa Công nghệ Thông tin' }],
+  majors: [{ majorId: 'MAJOR-001', majorName: 'Kỹ thuật Phần mềm', departmentId: 'DEPT-001' }],
+  subMajors: [{ subMajorCode: 'SE', subMajorName: 'Kỹ thuật phần mềm', majorId: 'MAJOR-001' }],
+  courses: [{ courseCode: 'PRN222', courseName: 'Lập trình .NET', subMajorCode: 'SE' }],
+  fileTypes: [{ id: 1, name: 'Báo cáo nghiên cứu' }],
+};
+
+function renderUploadPage(loaderData = defaultCatalog) {
   const router = createMemoryRouter(
     [
-      { path: APP_PATHS.RESOURCE_UPLOAD, element: <UploadResourcePage /> },
+      {
+        path: APP_PATHS.RESOURCE_UPLOAD,
+        element: <UploadResourcePage />,
+        loader: () => loaderData,
+      },
       { path: APP_PATHS.RESOURCES_MANAGER, element: <h1>Quản lý tài nguyên</h1> },
     ],
     { initialEntries: [APP_PATHS.RESOURCE_UPLOAD] },
@@ -22,9 +34,10 @@ function renderUploadPage() {
   return router;
 }
 
-function fillRequiredFields() {
+async function fillRequiredFields() {
+  const fileInput = await screen.findByLabelText('Chọn tệp tài nguyên');
   const file = new File(['report'], 'report.pdf', { type: 'application/pdf' });
-  fireEvent.change(screen.getByLabelText('Chọn tệp tài nguyên'), { target: { files: [file] } });
+  fireEvent.change(fileInput, { target: { files: [file] } });
   fireEvent.change(screen.getByLabelText(/loại tài nguyên/i), { target: { value: '1' } });
   fireEvent.change(screen.getByLabelText(/chuyên ngành/i), { target: { value: 'SE' } });
   const authorInput = screen.getByRole('textbox', { name: /nhập tác giả/i });
@@ -51,7 +64,7 @@ describe('UploadResourcePage', () => {
     );
     const router = renderUploadPage();
     expect(axiosClient.post).not.toHaveBeenCalled();
-    const file = fillRequiredFields();
+    const file = await fillRequiredFields();
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
 
     expect(screen.getByRole('button', { name: 'Đang tải lên…' })).toBeDisabled();
@@ -87,7 +100,7 @@ describe('UploadResourcePage', () => {
       })
       .mockResolvedValueOnce({ data: { message: 'Tải tài liệu thành công.' } });
     const router = renderUploadPage();
-    const file = fillRequiredFields();
+    const file = await fillRequiredFields();
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Mã chuyên ngành không hợp lệ.');

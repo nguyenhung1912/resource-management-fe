@@ -5,24 +5,6 @@ import { useUploadResource } from '@/features/resources/hooks/useUploadResource'
 import type { UploadResourceLoaderData } from '@/features/resources/pages/uploadResourceLoader';
 import type { SelectOption, UploadResourceFormValues } from '@/features/resources/types/resource.types';
 
-// Dữ liệu fallback dự phòng khi chưa tải được loader hoặc môi trường test biệt lập
-const previewFileTypes: SelectOption<number>[] = [
-  { value: 1, label: 'Báo cáo nghiên cứu' },
-  { value: 2, label: 'Đồ án' },
-  { value: 3, label: 'Bài thuyết trình' },
-];
-
-const previewSubMajors: SelectOption<string>[] = [
-  { value: 'SE', label: 'Kỹ thuật phần mềm' },
-  { value: 'AI', label: 'Trí tuệ nhân tạo' },
-  { value: 'IS', label: 'Hệ thống thông tin' },
-];
-
-const previewCourses: SelectOption<string>[] = [
-  { value: 'PRN222', label: 'Lập trình .NET' },
-  { value: 'SWR302', label: 'Kiến trúc và thiết kế phần mềm' },
-];
-
 export function UploadResourcePage() {
   const navigate = useNavigate();
   const revalidator = useRevalidator();
@@ -52,7 +34,7 @@ export function UploadResourcePage() {
         value: Number(ft.id),
         label: ft.name,
       }))
-    : previewFileTypes;
+    : [];
 
   const departments: SelectOption<string>[] = rawDepartments?.length
     ? rawDepartments.map((d) => ({
@@ -73,14 +55,14 @@ export function UploadResourcePage() {
         value: sm.subMajorCode,
         label: `${sm.subMajorName} (${sm.subMajorCode})`,
       }))
-    : previewSubMajors;
+    : [];
 
   const courses: SelectOption<string>[] = rawCourses?.length
     ? rawCourses.map((c) => ({
         value: c.courseCode,
         label: `${c.courseCode} - ${c.courseName}`,
       }))
-    : previewCourses;
+    : [];
 
   return (
     <UploadResourceModal

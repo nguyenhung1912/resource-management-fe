@@ -4,7 +4,7 @@ import { APP_PATHS } from '@/constants/path';
 
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { PageLoadingState } from '@/components/common/PageLoadingState';
-import { dashboardMenuPreviewData } from '@/constants/dashboard-menu';
+import { DASHBOARD_MENU_CONFIG } from '@/constants/dashboard-menu';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { DashboardMenu } from '@/features/dashboard/components/DashboardMenu';
 import { useDashboardFunctions } from '@/features/dashboard/hooks/useDashboardFunctions';
@@ -54,7 +54,7 @@ export function DashboardLayout() {
 
   const displayName = user?.fullName ?? user?.userCode ?? 'Người dùng';
 
-  const dashboardMenuData = buildDashboardMenu(dashboardMenuPreviewData, functions, user?.role);
+  const dashboardMenuData = buildDashboardMenu(DASHBOARD_MENU_CONFIG, functions, user?.role);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-text-main">

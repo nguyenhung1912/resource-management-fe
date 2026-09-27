@@ -5,20 +5,13 @@ import { APP_PATHS, ROUTE_SEGMENTS } from '@/constants/path';
 import { allResourcesLoader } from '@/features/digital-resources/all-resources/pages/allResourcesLoader';
 import { sourceCodeLoader } from '@/features/digital-resources/source-code/pages/sourceCodeLoader';
 
-const SearchHubPage = lazy(() => import('@/features/dashboard/pages/SearchHubPage'));
 const AllResourcesPage = lazy(() => import('@/features/digital-resources/all-resources/pages/AllResourcesPage'));
 const SourceCodePage = lazy(() => import('@/features/digital-resources/source-code/pages/SourceCodePage'));
 
 export const searchRoutes: RouteObject[] = [
   {
     path: ROUTE_SEGMENTS.SEARCH,
-    element: <SearchHubPage />,
-    handle: {
-      meta: {
-        title: 'Tra cứu tài nguyên',
-        breadcrumb: 'Tra cứu',
-      },
-    },
+    element: <Navigate to={APP_PATHS.ALL_RESOURCES} replace />,
   },
   {
     path: ROUTE_SEGMENTS.RESOURCES,
