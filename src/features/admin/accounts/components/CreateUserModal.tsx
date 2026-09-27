@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { AlertBanner } from '@/components/common/AlertBanner';
 import { Select } from '@/components/ui/Select';
 
 import { adminAccountService } from '@/services/adminAccountService';
@@ -128,7 +129,7 @@ export function CreateUserModal({ roles, onClose, onSuccess }: CreateUserModalPr
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">{error}</div>}
+            {error && <AlertBanner type="danger" message={error} onClose={() => setError(null)} />}
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">

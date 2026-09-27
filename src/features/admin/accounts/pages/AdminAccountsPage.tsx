@@ -13,6 +13,7 @@ import { Select } from '@/components/ui/Select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { CreateUserModal } from '../components/CreateUserModal';
 import { EditUserModal } from '@/features/admin/accounts/components/EditUserModal';
+import { AlertBanner } from '@/components/common/AlertBanner';
 
 import type { AdminUser, PaginatedResponse, Role } from '@/features/admin/accounts/types/admin-account.types';
 
@@ -39,6 +40,8 @@ export function AdminAccountsPage() {
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
 
   const [actionError, setActionError] = useState<string | null>(null);
+
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // =====================================================
   // UPDATE QUERY PARAMS
@@ -90,8 +93,11 @@ export function AdminAccountsPage() {
       setProcessingUid(user.uid);
 
       setActionError(null);
+      setSuccessMessage(null);
 
       await adminAccountService.updateStatus(user.uid, nextStatus);
+
+      setSuccessMessage(nextStatus ? 'Mở khóa tài khoản thành công.' : 'Khóa tài khoản thành công.');
 
       revalidator.revalidate();
     } catch (error) {
@@ -119,9 +125,11 @@ export function AdminAccountsPage() {
       setDeletingUid(user.uid);
 
       setActionError(null);
+      setSuccessMessage(null);
 
       await adminAccountService.deleteUser(user.uid);
 
+      setSuccessMessage('Xóa tài khoản thành công.');
       revalidator.revalidate();
     } catch (error) {
       console.error(error);
@@ -171,10 +179,10 @@ export function AdminAccountsPage() {
       {/* =====================================================
           ERROR
       ===================================================== */}
-      {actionError && (
-        <div className="rounded-lg border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">
-          {actionError}
-        </div>
+      {actionError && <AlertBanner type="danger" message={actionError} onClose={() => setActionError(null)} />}
+
+      {successMessage && (
+        <AlertBanner type="success" message={successMessage} onClose={() => setSuccessMessage(null)} />
       )}
 
       {/* =====================================================
@@ -420,6 +428,8 @@ export function AdminAccountsPage() {
           setEditingUser(null);
         }}
         onSuccess={() => {
+          setSuccessMessage('Cập nhật tài khoản thành công.');
+
           revalidator.revalidate();
         }}
       />
@@ -430,6 +440,9 @@ export function AdminAccountsPage() {
           onClose={() => setShowCreateModal(false)}
           onSuccess={() => {
             setShowCreateModal(false);
+
+            setSuccessMessage('Tạo tài khoản thành công.');
+
             revalidator.revalidate();
           }}
         />

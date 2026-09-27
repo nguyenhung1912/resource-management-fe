@@ -32,6 +32,8 @@ export function MajorsTab({ departments }: MajorsTabProps) {
 
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const [editingMajor, setEditingMajor] = useState<Major | null>(null);
@@ -88,9 +90,11 @@ export function MajorsTab({ departments }: MajorsTabProps) {
     return majors.filter((major) => major.majorName.toLowerCase().includes(keyword));
   }, [majors, search]);
 
-  const handleSuccess = async () => {
+  const handleSuccess = async (message: string) => {
     setIsCreateOpen(false);
     setEditingMajor(null);
+
+    setSuccessMessage(message);
 
     await loadMajors(departmentId);
   };
@@ -108,6 +112,7 @@ export function MajorsTab({ departments }: MajorsTabProps) {
 
       setDeletingMajor(null);
 
+      setSuccessMessage('Xóa ngành học thành công.');
       await loadMajors(departmentId);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 409) {
@@ -155,6 +160,9 @@ export function MajorsTab({ departments }: MajorsTabProps) {
         </div>
 
         {loadError && <AlertBanner type="danger" message={loadError} />}
+        {successMessage && (
+          <AlertBanner type="success" message={successMessage} onClose={() => setSuccessMessage(null)} />
+        )}
 
         {!departmentId ? (
           <EmptyState
@@ -234,7 +242,7 @@ export function MajorsTab({ departments }: MajorsTabProps) {
             departments={departments}
             defaultDepartmentId={departmentId}
             onClose={() => setIsCreateOpen(false)}
-            onSuccess={handleSuccess}
+            onSuccess={() => void handleSuccess('Thêm ngành học thành công.')}
           />
         )}
 
@@ -245,7 +253,7 @@ export function MajorsTab({ departments }: MajorsTabProps) {
             major={editingMajor}
             departments={departments}
             onClose={() => setEditingMajor(null)}
-            onSuccess={handleSuccess}
+            onSuccess={() => void handleSuccess('Cập nhật ngành học thành công.')}
           />
         )}
 
