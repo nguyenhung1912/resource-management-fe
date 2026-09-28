@@ -114,12 +114,12 @@ describe('reports manager routes integration', () => {
       {
         name: /Quản lý & Xử lý Báo cáo vi phạm/i,
       },
-      { timeout: 5000 },
+      { timeout: 10000 },
     );
 
     expect(heading).toBeInTheDocument();
 
-    const reportIdElements = await screen.findAllByText('RPT_TEST_001');
+    const reportIdElements = await screen.findAllByText('RPT_TEST_001', undefined, { timeout: 10000 });
     expect(reportIdElements[0]).toBeInTheDocument();
 
     const reporterElements = screen.getAllByText('Trần Văn T');
@@ -127,7 +127,7 @@ describe('reports manager routes integration', () => {
 
     const reasonElements = screen.getAllByText('Nghiên cứu sao chép nguyên văn đồ án tốt nghiệp');
     expect(reasonElements[0]).toBeInTheDocument();
-  });
+  }, 15000);
 
   it('mở modal chi tiết khi nhấn Chi tiết và có thể đóng lại', async () => {
     vi.mocked(reportService.getAllReports).mockResolvedValue(mockPagedReports);

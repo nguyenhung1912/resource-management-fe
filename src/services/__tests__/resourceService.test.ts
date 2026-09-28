@@ -304,6 +304,28 @@ describe('resourceService', () => {
       expect(formData.get('BannerImage')).toBe(bannerImage);
     });
 
+    it('gửi CustomFileTypeName khi có giá trị tùy chỉnh', () => {
+      const file = new File(['document'], 'report.pdf', { type: 'application/pdf' });
+      const values = {
+        file,
+        fileName: 'Tài liệu ôn thi',
+        fileDescription: null,
+        fileTypeId: 10,
+        customFileTypeName: 'Đề cương chi tiết',
+        subMajorCode: 'SE',
+        courseCode: null,
+        yearCompleted: null,
+        authorNames: ['Nguyễn Văn An'],
+        githubLink: null,
+        bannerImage: null,
+      };
+
+      const formData = buildUploadResourceFormData(values);
+
+      expect(formData.get('FileTypeId')).toBe('10');
+      expect(formData.get('CustomFileTypeName')).toBe('Đề cương chi tiết');
+    });
+
     it('không gửi null hoặc chuỗi trắng cho các trường upload tùy chọn', () => {
       const formData = buildUploadResourceFormData({
         file: new File(['document'], 'report.pdf', { type: 'application/pdf' }),

@@ -32,6 +32,9 @@ export function buildUploadResourceFormData(values: UploadResourceRequest | Uplo
   if (values.fileDescription?.trim()) {
     formData.append('FileDescription', values.fileDescription.trim());
   }
+  if ('customFileTypeName' in values && values.customFileTypeName?.trim()) {
+    formData.append('CustomFileTypeName', values.customFileTypeName.trim());
+  }
   if (values.courseCode?.trim()) {
     formData.append('CourseCode', values.courseCode.trim());
   }
@@ -45,14 +48,19 @@ export function buildUploadResourceFormData(values: UploadResourceRequest | Uplo
     formData.append('BannerImage', values.bannerImage);
   }
 
-  // Luồng tài liệu dùng tên tác giả; giữ hợp đồng hiện tại của form mã nguồn.
-  const authorField = 'authorNames' in values ? 'AuthorNames' : 'AuthorIds';
-  const authors = 'authorNames' in values ? values.authorNames : values.authorIds;
-  authors.forEach((author) => {
-    if (author.trim()) {
-      formData.append(authorField, author.trim());
-    }
-  });
+  if ('authorNames' in values && Array.isArray(values.authorNames) && values.authorNames.length > 0) {
+    values.authorNames.forEach((author) => {
+      if (author.trim()) {
+        formData.append('AuthorNames', author.trim());
+      }
+    });
+  } else if ('authorIds' in values && Array.isArray(values.authorIds)) {
+    values.authorIds.forEach((author) => {
+      if (author.trim()) {
+        formData.append('AuthorIds', author.trim());
+      }
+    });
+  }
 
   return formData;
 }

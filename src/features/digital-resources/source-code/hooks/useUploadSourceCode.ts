@@ -91,13 +91,17 @@ export function useUploadSourceCode({ fileTypeId, onSuccess }: UseUploadSourceCo
     (newFile: File | null) => {
       setFileState(newFile);
       clearError('file');
-      if (newFile && !fileName) {
-        const defaultName = newFile.name.replace(/\.[^/.]+$/, '');
-        setFileName(defaultName);
-        clearError('fileName');
+
+      if (!newFile) {
+        setFileName('');
+        return;
       }
+
+      const defaultName = newFile.name.replace(/\.[^/.]+$/, '');
+      setFileName(defaultName);
+      clearError('fileName');
     },
-    [clearError, fileName],
+    [clearError],
   );
 
   const setBannerImage = useCallback(
@@ -203,6 +207,7 @@ export function useUploadSourceCode({ fileTypeId, onSuccess }: UseUploadSourceCo
 
       setIsSubmitting(true);
 
+      const validAuthors = authorIds.filter((id) => id.trim().length > 0);
       const payload: UploadSourceCodeFormValues = {
         file,
         fileName: fileName.trim(),
@@ -211,7 +216,8 @@ export function useUploadSourceCode({ fileTypeId, onSuccess }: UseUploadSourceCo
         subMajorCode: subMajorCode.trim(),
         courseCode: courseCode.trim() || undefined,
         yearCompleted: yearCompleted.trim() ? Number(yearCompleted.trim()) : undefined,
-        authorIds: authorIds.filter((id) => id.trim().length > 0),
+        authorNames: validAuthors,
+        authorIds: validAuthors,
         githubLink: githubLink.trim() || undefined,
         bannerImage,
       };

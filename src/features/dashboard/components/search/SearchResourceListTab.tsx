@@ -1,4 +1,4 @@
-import { Calendar, Download, FileText, Search, User } from 'lucide-react';
+import { Calendar, Eye, FileText, Search, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
 import { CATEGORY_ICONS, SEARCH_CATEGORIES } from '../../constants/search.constants';
@@ -9,9 +9,15 @@ export interface SearchResourceListTabProps {
   resources: SearchResultItem[];
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
+  onSelectResource?: (resourceId: string) => void;
 }
 
-export function SearchResourceListTab({ resources, selectedCategory, onCategoryChange }: SearchResourceListTabProps) {
+export function SearchResourceListTab({
+  resources,
+  selectedCategory,
+  onCategoryChange,
+  onSelectResource,
+}: SearchResourceListTabProps) {
   return (
     <div className="space-y-4">
       {/* Category filter bar */}
@@ -69,9 +75,19 @@ export function SearchResourceListTab({ resources, selectedCategory, onCategoryC
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-bold text-text-main group-hover:text-primary transition-colors leading-snug">
-                    {res.title}
-                  </h3>
+                  {onSelectResource ? (
+                    <button
+                      type="button"
+                      onClick={() => onSelectResource(res.id)}
+                      className="text-left text-sm font-bold text-text-main hover:text-primary transition-colors leading-snug cursor-pointer line-clamp-2"
+                    >
+                      {res.title}
+                    </button>
+                  ) : (
+                    <h3 className="text-sm font-bold text-text-main group-hover:text-primary transition-colors leading-snug line-clamp-2">
+                      {res.title}
+                    </h3>
+                  )}
 
                   <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs text-text-muted">
                     <span className="flex items-center gap-1">
@@ -88,13 +104,24 @@ export function SearchResourceListTab({ resources, selectedCategory, onCategoryC
 
                 <div className="mt-4 pt-3 border-t border-border-subtle/60 flex items-center justify-between">
                   <span className="text-xs text-text-muted">{res.downloads} lượt tải</span>
-                  <Link
-                    to={APP_PATHS.RESOURCES_MANAGER}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
-                  >
-                    <Download className="size-3.5" aria-hidden="true" />
-                    Xem chi tiết
-                  </Link>
+                  {onSelectResource ? (
+                    <button
+                      type="button"
+                      onClick={() => onSelectResource(res.id)}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline cursor-pointer"
+                    >
+                      <Eye className="size-3.5" aria-hidden="true" />
+                      Xem chi tiết
+                    </button>
+                  ) : (
+                    <Link
+                      to={APP_PATHS.ALL_RESOURCES}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+                    >
+                      <Eye className="size-3.5" aria-hidden="true" />
+                      Xem chi tiết
+                    </Link>
+                  )}
                 </div>
               </div>
             );

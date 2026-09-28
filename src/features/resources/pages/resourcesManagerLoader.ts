@@ -1,7 +1,7 @@
 import { CheckCircle2, Clock, XCircle } from 'lucide-react';
 import type { LoaderFunctionArgs } from 'react-router-dom';
 import type { ResourceStat } from '@/features/resources/components/ResourceStats';
-import { DEFAULT_RESOURCE_STATS } from '../constants/resourceConstants';
+import { DEFAULT_RESOURCE_STATS, FILE_STATUS } from '../constants/resourceConstants';
 import type { MyUploadItemResponse, PaginatedResponse } from '@/features/resources/types/resource.types';
 import { resourceService } from '@/services/resourceService';
 
@@ -37,9 +37,9 @@ export async function resourcesManagerLoader({ request }: LoaderFunctionArgs): P
         pageSize,
         sortDirection,
       }),
-      resourceService.getMyUploads({ fileStatusId: 1, pageSize: 1 }),
-      resourceService.getMyUploads({ fileStatusId: 2, pageSize: 1 }),
-      resourceService.getMyUploads({ fileStatusId: 3, pageSize: 1 }),
+      resourceService.getMyUploads({ fileStatusId: FILE_STATUS.UPLOADED, pageSize: 1 }),
+      resourceService.getMyUploads({ fileStatusId: FILE_STATUS.PENDING, pageSize: 1 }),
+      resourceService.getMyUploads({ fileStatusId: FILE_STATUS.REJECT, pageSize: 1 }),
     ]);
 
     if (uploadsResult.status === 'fulfilled') {

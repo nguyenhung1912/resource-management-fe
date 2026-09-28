@@ -57,7 +57,7 @@ describe('ModifyResourceModal', () => {
     expect(screen.getByLabelText(/loại tài nguyên/i)).toHaveValue('1');
     expect(screen.getByLabelText(/chuyên ngành/i)).toHaveValue('SE');
     expect(screen.getByLabelText(/học phần/i)).toHaveValue('PRN222');
-    expect(screen.getByLabelText(/năm hoàn thành/i)).toHaveValue(2024);
+    expect(screen.getByLabelText(/năm hoàn thành/i)).toHaveValue('2024');
     expect(screen.getByText('bao-cao.pdf')).toBeInTheDocument();
     expect(screen.getByText('Tệp tài liệu không thể thay đổi.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Xóa tác giả Nguyễn Văn An' })).toBeInTheDocument();

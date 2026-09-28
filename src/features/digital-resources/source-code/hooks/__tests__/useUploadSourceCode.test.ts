@@ -100,6 +100,62 @@ describe('useUploadSourceCode hook', () => {
       expect(result.current.fileName).toBe('quan-ly-nckh');
     });
 
+    it('cập nhật lại fileName khi hủy file cũ và chọn file mới', () => {
+      const { result } = renderHook(() => useUploadSourceCode({ fileTypeId: 5 }));
+
+      const oldFile = new File(['content'], 'project-cu.zip', { type: 'application/zip' });
+      act(() => {
+        result.current.setFile(oldFile);
+      });
+      expect(result.current.fileName).toBe('project-cu');
+
+      // Hủy file
+      act(() => {
+        result.current.setFile(null);
+      });
+      expect(result.current.file).toBeNull();
+      expect(result.current.fileName).toBe('');
+
+      // Chọn file mới
+      const newFile = new File(['content'], 'project-moi.docx', {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      });
+      act(() => {
+        result.current.setFile(newFile);
+      });
+      expect(result.current.file).toBe(newFile);
+      expect(result.current.fileName).toBe('project-moi');
+    });
+
+    it('ghi đè fileName theo file mới ngay cả khi người dùng đã sửa tên trước đó', () => {
+      const { result } = renderHook(() => useUploadSourceCode({ fileTypeId: 5 }));
+
+      const oldFile = new File(['content'], 'project-cu.zip', { type: 'application/zip' });
+      act(() => {
+        result.current.setFile(oldFile);
+      });
+      expect(result.current.fileName).toBe('project-cu');
+
+      // Tự sửa tên
+      act(() => {
+        result.current.setFileName('Tên dự án tự đặt');
+      });
+      expect(result.current.fileName).toBe('Tên dự án tự đặt');
+
+      // Hủy file -> fileName xóa rỗng
+      act(() => {
+        result.current.setFile(null);
+      });
+      expect(result.current.fileName).toBe('');
+
+      // Chọn file mới -> Luôn ghi đè theo file mới
+      const newFile = new File(['content'], 'project-moi.zip', { type: 'application/zip' });
+      act(() => {
+        result.current.setFile(newFile);
+      });
+      expect(result.current.fileName).toBe('project-moi');
+    });
+
     it('thêm và xóa tác giả chính xác', () => {
       const { result } = renderHook(() => useUploadSourceCode({ fileTypeId: 5 }));
 

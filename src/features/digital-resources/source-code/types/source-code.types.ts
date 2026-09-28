@@ -109,6 +109,7 @@ export interface UploadSourceCodeFormValues {
   subMajorCode: string;
   courseCode?: string;
   yearCompleted?: number;
+  authorNames?: string[];
   authorIds: string[];
   githubLink?: string;
   bannerImage?: File | null;

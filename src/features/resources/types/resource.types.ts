@@ -8,6 +8,7 @@ export interface UploadResourceRequest {
   fileName: string;
   fileDescription: string | null;
   fileTypeId: number;
+  customFileTypeName?: string | null;
   subMajorCode: string;
   courseCode: string | null;
   yearCompleted: number | null;

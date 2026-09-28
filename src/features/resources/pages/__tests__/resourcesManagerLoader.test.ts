@@ -28,7 +28,7 @@ describe('resourcesManagerLoader', () => {
         fileId: 'FIL_1',
         fileName: 'Tài liệu hướng dẫn.pdf',
         fileTypeName: 'Tài liệu',
-        fileStatusId: 1,
+        fileStatusId: 2,
         fileStatusName: 'Đã duyệt',
         majorId: 'CNTT',
         majorName: 'Công nghệ thông tin',
@@ -47,17 +47,17 @@ describe('resourcesManagerLoader', () => {
         pageSize: 10,
         totalPages: 1,
       })
-      .mockResolvedValueOnce({ items: [], totalCount: 15, pageNumber: 1, pageSize: 1, totalPages: 15 }) // approved
-      .mockResolvedValueOnce({ items: [], totalCount: 4, pageNumber: 1, pageSize: 1, totalPages: 4 }) // pending
-      .mockResolvedValueOnce({ items: [], totalCount: 2, pageNumber: 1, pageSize: 1, totalPages: 2 }); // rejected
+      .mockResolvedValueOnce({ items: [], totalCount: 15, pageNumber: 1, pageSize: 1, totalPages: 15 }) // approved (2)
+      .mockResolvedValueOnce({ items: [], totalCount: 4, pageNumber: 1, pageSize: 1, totalPages: 4 }) // pending (1)
+      .mockResolvedValueOnce({ items: [], totalCount: 2, pageNumber: 1, pageSize: 1, totalPages: 2 }); // rejected (4)
 
     const result = await resourcesManagerLoader(
-      createMockLoaderArgs('http://localhost:3000/dashboard/resources-manager?search=web&status=1&page=1&sort=oldest'),
+      createMockLoaderArgs('http://localhost:3000/dashboard/resources-manager?search=web&status=2&page=1&sort=oldest'),
     );
 
     expect(resourceService.getMyUploads).toHaveBeenCalledWith({
       search: 'web',
-      fileStatusId: 1,
+      fileStatusId: 2,
       pageNumber: 1,
       pageSize: 10,
       sortDirection: 'asc',
