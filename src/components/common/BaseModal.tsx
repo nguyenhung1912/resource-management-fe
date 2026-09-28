@@ -11,7 +11,7 @@ export interface BaseModalProps {
   icon?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl';
   closeOnEscape?: boolean;
   closeOnBackdropClick?: boolean;
   fullScreenOnMobile?: boolean;
@@ -26,6 +26,10 @@ const maxWidthMap = {
   lg: 'max-w-lg',
   xl: 'max-w-xl',
   '2xl': 'max-w-2xl',
+  '3xl': 'max-w-3xl',
+  '4xl': 'max-w-4xl',
+  '5xl': 'max-w-5xl',
+  '6xl': 'max-w-6xl',
 } as const;
 
 const FOCUSABLE_SELECTOR = [
@@ -172,9 +176,9 @@ export function BaseModal({
                   </h2>
                 )}
                 {description && (
-                  <p id={descriptionId} className="mt-1 text-xs text-text-muted leading-relaxed">
+                  <div id={descriptionId} className="mt-1 text-xs text-text-muted leading-relaxed">
                     {description}
-                  </p>
+                  </div>
                 )}
               </div>
             </div>

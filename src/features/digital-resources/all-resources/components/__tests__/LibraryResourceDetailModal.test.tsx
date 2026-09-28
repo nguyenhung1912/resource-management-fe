@@ -1,7 +1,39 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import type { ResourceDetailResponse } from '@/features/resources/types/resource.types';
 import { LibraryResourceDetailModal } from '../LibraryResourceDetailModal';
+
+vi.mock('@/services/ratingService', () => ({
+  ratingService: {
+    getRatingSummary: vi.fn().mockResolvedValue(null),
+    getRatingsList: vi.fn().mockResolvedValue({
+      items: [],
+      totalItems: 0,
+      totalPages: 0,
+      pageIndex: 1,
+      pageSize: 10,
+    }),
+    getMyRating: vi.fn().mockResolvedValue(null),
+    upsertRating: vi.fn().mockResolvedValue({ message: 'Success' }),
+    deleteRating: vi.fn().mockResolvedValue({ message: 'Success' }),
+  },
+}));
+
+vi.mock('@/services/commentService', () => ({
+  commentService: {
+    getCommentsByFile: vi.fn().mockResolvedValue({
+      items: [],
+      totalCount: 0,
+      pageIndex: 1,
+      pageSize: 10,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    }),
+    createComment: vi.fn().mockResolvedValue({ message: 'Success', data: {} }),
+  },
+}));
 
 describe('LibraryResourceDetailModal', () => {
   const mockDetail: ResourceDetailResponse = {
@@ -36,26 +68,30 @@ describe('LibraryResourceDetailModal', () => {
 
   it('không render gì khi isOpen là false', () => {
     const { container } = render(
-      <LibraryResourceDetailModal
-        isOpen={false}
-        isLoading={false}
-        detail={null}
-        onClose={vi.fn()}
-        onDownload={vi.fn()}
-      />,
+      <MemoryRouter>
+        <LibraryResourceDetailModal
+          isOpen={false}
+          isLoading={false}
+          detail={null}
+          onClose={vi.fn()}
+          onDownload={vi.fn()}
+        />
+      </MemoryRouter>,
     );
     expect(container).toBeEmptyDOMElement();
   });
 
   it('hiển thị trạng thái loading khi isLoading là true', () => {
     render(
-      <LibraryResourceDetailModal
-        isOpen={true}
-        isLoading={true}
-        detail={null}
-        onClose={vi.fn()}
-        onDownload={vi.fn()}
-      />,
+      <MemoryRouter>
+        <LibraryResourceDetailModal
+          isOpen={true}
+          isLoading={true}
+          detail={null}
+          onClose={vi.fn()}
+          onDownload={vi.fn()}
+        />
+      </MemoryRouter>,
     );
 
     expect(screen.getByText(/đang nạp thông tin chi tiết tài liệu/i)).toBeInTheDocument();
@@ -63,29 +99,34 @@ describe('LibraryResourceDetailModal', () => {
 
   it('hiển thị thông báo lỗi khi error có giá trị', () => {
     render(
-      <LibraryResourceDetailModal
-        isOpen={true}
-        isLoading={false}
-        detail={null}
-        error="Không thể kết nối đến máy chủ"
-        onClose={vi.fn()}
-        onDownload={vi.fn()}
-      />,
+      <MemoryRouter>
+        <LibraryResourceDetailModal
+          isOpen={true}
+          isLoading={false}
+          detail={null}
+          error="Không thể kết nối đến máy chủ"
+          onClose={vi.fn()}
+          onDownload={vi.fn()}
+        />
+      </MemoryRouter>,
     );
 
     expect(screen.getByText('Không thể tải thông tin tài liệu')).toBeInTheDocument();
     expect(screen.getByText('Không thể kết nối đến máy chủ')).toBeInTheDocument();
   });
 
-  it('render đầy đủ nội dung chi tiết tài liệu, metadata, tác giả và từ khóa', () => {
+  it('render đầy đủ nội dung chi tiết tài liệu, metadata, tác giả, từ khóa và khung bình luận bên cạnh', () => {
     render(
-      <LibraryResourceDetailModal
-        isOpen={true}
-        isLoading={false}
-        detail={mockDetail}
-        onClose={vi.fn()}
-        onDownload={vi.fn()}
-      />,
+      <MemoryRouter>
+        <LibraryResourceDetailModal
+          isOpen={true}
+          isLoading={false}
+          detail={mockDetail}
+          initialRatings={{ items: [], totalItems: 0, pageIndex: 1, pageSize: 10, totalPages: 0 }}
+          onClose={vi.fn()}
+          onDownload={vi.fn()}
+        />
+      </MemoryRouter>,
     );
 
     expect(screen.getByText('Nghiên cứu Kiến trúc Vi dịch vụ')).toBeInTheDocument();
@@ -100,18 +141,30 @@ describe('LibraryResourceDetailModal', () => {
     expect(screen.getByText('Microservices')).toBeInTheDocument();
     expect(screen.getByText('Spring Boot')).toBeInTheDocument();
     expect(screen.getByText(/xem kho mã nguồn trên github/i)).toBeInTheDocument();
+
+    // Tabs Đánh giá & Thảo luận
+    expect(screen.getByRole('tab', { name: /đánh giá/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /thảo luận/i })).toBeInTheDocument();
+
+    // Chuyển sang Tab Thảo luận để kiểm tra khung bình luận
+    fireEvent.click(screen.getByRole('tab', { name: /thảo luận/i }));
+    expect(screen.getByText('Bình luận & Thảo luận')).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /khu vực bình luận và thảo luận tài liệu/i })).toBeInTheDocument();
   });
 
   it('kích hoạt onClose khi nhấn nút Đóng', () => {
     const handleClose = vi.fn();
     render(
-      <LibraryResourceDetailModal
-        isOpen={true}
-        isLoading={false}
-        detail={mockDetail}
-        onClose={handleClose}
-        onDownload={vi.fn()}
-      />,
+      <MemoryRouter>
+        <LibraryResourceDetailModal
+          isOpen={true}
+          isLoading={false}
+          detail={mockDetail}
+          initialRatings={{ items: [], totalItems: 0, pageIndex: 1, pageSize: 10, totalPages: 0 }}
+          onClose={handleClose}
+          onDownload={vi.fn()}
+        />
+      </MemoryRouter>,
     );
 
     const closeButtons = screen.getAllByRole('button', { name: 'Đóng' });
@@ -122,13 +175,16 @@ describe('LibraryResourceDetailModal', () => {
   it('kích hoạt onDownload khi nhấn nút Tải xuống tài liệu', () => {
     const handleDownload = vi.fn();
     render(
-      <LibraryResourceDetailModal
-        isOpen={true}
-        isLoading={false}
-        detail={mockDetail}
-        onClose={vi.fn()}
-        onDownload={handleDownload}
-      />,
+      <MemoryRouter>
+        <LibraryResourceDetailModal
+          isOpen={true}
+          isLoading={false}
+          detail={mockDetail}
+          initialRatings={{ items: [], totalItems: 0, pageIndex: 1, pageSize: 10, totalPages: 0 }}
+          onClose={vi.fn()}
+          onDownload={handleDownload}
+        />
+      </MemoryRouter>,
     );
 
     const downloadButton = screen.getByRole('button', {

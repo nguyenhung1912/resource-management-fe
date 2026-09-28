@@ -2,7 +2,7 @@ import { APP_PATHS } from '@/constants/path';
 
 import type { DashboardMenuResponse } from '@/features/dashboard/types/dashboard-menu.types';
 
-export const dashboardMenuPreviewData: DashboardMenuResponse = {
+export const DASHBOARD_MENU_CONFIG: DashboardMenuResponse = {
   groups: [
     {
       groupId: 'personal',
@@ -184,7 +184,7 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
         {
           functionId: 'search-hub',
           functionName: 'Tra cứu tài nguyên',
-          functionUrl: APP_PATHS.SEARCH,
+          functionUrl: APP_PATHS.ALL_RESOURCES,
           functionDescription: 'Tìm kiếm tài liệu thông minh, bộ lọc nâng cao và trợ lý AI',
           allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },
@@ -193,4 +193,4 @@ export const dashboardMenuPreviewData: DashboardMenuResponse = {
   ],
 };
 
-export default dashboardMenuPreviewData;
+export default DASHBOARD_MENU_CONFIG;

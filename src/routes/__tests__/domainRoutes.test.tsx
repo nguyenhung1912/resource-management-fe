@@ -62,7 +62,9 @@ describe('domain routes and dynamic path builders', () => {
       expect(matchRoutes(resourceRoutes, '/resources-manager/upload')).not.toBeNull();
     });
 
-    it('moderationRoutes matches moderation detail route', () => {
+    it('moderationRoutes matches moderation queue index, plagiarism reports, and detail route', () => {
+      expect(matchRoutes(moderationRoutes, '/moderation')).not.toBeNull();
+      expect(matchRoutes(moderationRoutes, '/moderation/plagiarism-reports')).not.toBeNull();
       expect(matchRoutes(moderationRoutes, '/moderation/FIL_123')).not.toBeNull();
     });
 

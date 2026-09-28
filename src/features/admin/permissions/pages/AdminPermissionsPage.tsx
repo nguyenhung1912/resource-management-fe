@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Select } from '@/components/ui/Select';
+import { AlertBanner } from '@/components/common/AlertBanner';
 
 import type { Role } from '@/features/admin/accounts/types/admin-account.types';
 
@@ -188,15 +189,9 @@ export function AdminPermissionsPage() {
         </Button>
       </div>
 
-      {/* SUCCESS */}
-      {message && (
-        <div className="rounded-lg border border-success/20 bg-success/5 px-4 py-3 text-sm text-success">{message}</div>
-      )}
+      {message && <AlertBanner type="success" message={message} onClose={() => setMessage(null)} />}
 
-      {/* ERROR */}
-      {error && (
-        <div className="rounded-lg border border-danger/20 bg-danger/5 px-4 py-3 text-sm text-danger">{error}</div>
-      )}
+      {error && <AlertBanner type="danger" message={error} onClose={() => setError(null)} />}
 
       {/* ROLE */}
       <Card>

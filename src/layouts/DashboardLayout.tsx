@@ -4,7 +4,7 @@ import { APP_PATHS } from '@/constants/path';
 
 import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { PageLoadingState } from '@/components/common/PageLoadingState';
-import { dashboardMenuPreviewData } from '@/constants/dashboard-menu';
+import { DASHBOARD_MENU_CONFIG } from '@/constants/dashboard-menu';
 import { DashboardHeader } from '@/features/dashboard/components/DashboardHeader';
 import { DashboardMenu } from '@/features/dashboard/components/DashboardMenu';
 import { useDashboardFunctions } from '@/features/dashboard/hooks/useDashboardFunctions';
@@ -12,9 +12,12 @@ import { buildDashboardMenu } from '@/features/dashboard/utils/buildDashboardMen
 import { useDocumentTitle } from '@/routes/hooks/useDocumentTitle';
 import { useAuthStore } from '@/store/authStore';
 import { cn } from '@/utils/cn';
+import { SessionExpiryWatcher } from '@/features/auth/components/SessionExpiryWatcher';
+import { LogoutConfirmModal } from '@/features/auth/components/LogoutConfirmModal';
 
 export function DashboardLayout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 1024 : false));
   const navigate = useNavigate();
 
@@ -40,9 +43,18 @@ export function DashboardLayout() {
     }
   };
 
+  const handleLogoutConfirm = () => {
+    logout();
+    setIsLogoutModalOpen(false);
+
+    navigate(APP_PATHS.HOME, {
+      replace: true,
+    });
+  };
+
   const displayName = user?.fullName ?? user?.userCode ?? 'Người dùng';
 
-  const dashboardMenuData = buildDashboardMenu(dashboardMenuPreviewData, functions, user?.role);
+  const dashboardMenuData = buildDashboardMenu(DASHBOARD_MENU_CONFIG, functions, user?.role);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-text-main">
@@ -55,12 +67,7 @@ export function DashboardLayout() {
         }}
         onProfile={() => navigate(APP_PATHS.PROFILE)}
         onChangePassword={() => navigate(APP_PATHS.CHANGE_PASSWORD)}
-        onLogout={() => {
-          logout();
-          navigate(APP_PATHS.HOME, {
-            replace: true,
-          });
-        }}
+        onLogout={() => setIsLogoutModalOpen(true)}
       />
 
       <div className="flex min-h-0 flex-1">
@@ -103,6 +110,14 @@ export function DashboardLayout() {
           </Suspense>
         </main>
       </div>
+
+      <SessionExpiryWatcher />
+
+      <LogoutConfirmModal
+        open={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogoutConfirm}
+      />
     </div>
   );
 }

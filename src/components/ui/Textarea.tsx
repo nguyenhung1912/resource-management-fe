@@ -19,6 +19,7 @@ export const textareaVariants = cva(
 
 export interface TextareaProps
   extends TextareaHTMLAttributes<HTMLTextAreaElement>, VariantProps<typeof textareaVariants> {
+  ref?: React.Ref<HTMLTextAreaElement>;
   error?: string;
   helperText?: string;
   maxLength?: number;
@@ -27,6 +28,7 @@ export interface TextareaProps
 }
 
 export function Textarea({
+  ref,
   className,
   variant,
   error,
@@ -51,6 +53,7 @@ export function Textarea({
   return (
     <div className="w-full flex flex-col gap-1.5">
       <textarea
+        ref={ref}
         id={id}
         value={value}
         disabled={disabled}

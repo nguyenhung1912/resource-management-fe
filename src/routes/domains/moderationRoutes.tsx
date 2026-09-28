@@ -1,13 +1,15 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy } from 'react';
-import { Navigate, type RouteObject } from 'react-router-dom';
-import { APP_PATHS, ROUTE_PARAMS, ROUTE_SEGMENTS } from '@/constants/path';
+import type { RouteObject } from 'react-router-dom';
+import { ROUTE_PARAMS, ROUTE_SEGMENTS } from '@/constants/path';
 import { moderationDetailLoader } from '@/features/moderation/pages/moderationDetailLoader';
+import { moderationQueueLoader } from '@/features/moderation/pages/moderationQueueLoader';
 import { plagiarismReportLoader } from '@/features/moderation/pages/plagiarismReportLoader';
 import { RoleGuard } from '../guards/RoleGuard';
 
 const DocumentModerationDetailPage = lazy(() => import('@/features/moderation/pages/DocumentModerationDetailPage'));
 const PlagiarismReportPage = lazy(() => import('@/features/moderation/pages/PlagiarismReportPage'));
+const ModerationQueuePage = lazy(() => import('@/features/moderation/pages/ModerationQueuePage'));
 
 const ServerErrorPage = lazy(() =>
   import('@/features/errors/pages/ErrorPages').then((m) => ({ default: m.ServerErrorPage })),
@@ -25,7 +27,15 @@ export const moderationRoutes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <Navigate to={APP_PATHS.PLAGIARISM_REPORTS} replace />,
+        element: <ModerationQueuePage />,
+        loader: moderationQueueLoader,
+        errorElement: <ServerErrorPage />,
+        handle: {
+          meta: {
+            title: 'Hàng đợi kiểm duyệt',
+            breadcrumb: 'Hàng đợi kiểm duyệt',
+          },
+        },
       },
       {
         path: ROUTE_SEGMENTS.PLAGIARISM_REPORTS,
