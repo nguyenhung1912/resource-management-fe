@@ -184,7 +184,7 @@ export const DASHBOARD_MENU_CONFIG: DashboardMenuResponse = {
         {
           functionId: 'search-hub',
           functionName: 'Tra cứu tài nguyên',
-          functionUrl: APP_PATHS.ALL_RESOURCES,
+          functionUrl: APP_PATHS.SEARCH,
           functionDescription: 'Tìm kiếm tài liệu thông minh, bộ lọc nâng cao và trợ lý AI',
           allowedRoles: ['Student', 'Lecturer', 'Admin'],
         },

@@ -8,6 +8,7 @@ import {
   Clock,
   Download,
   ExternalLink,
+  Eye,
   GitBranch,
   GraduationCap,
   HardDrive,
@@ -29,6 +30,7 @@ import type { PagedCommentResponse } from '@/features/comments/types/comment.typ
 import { DocumentRatingPanel } from '@/features/ratings/components/DocumentRatingPanel';
 import type { PagedRatingResponse, RatingSummaryResponse } from '@/features/ratings/types/rating.types';
 import type { ResourceDetailResponse } from '@/features/resources/types/resource.types';
+import { resourceService } from '@/services/resourceService';
 import { cn } from '@/utils/cn';
 import { formatDateTime } from '@/utils/date';
 import { formatFileSize, getFileTypeBadgeClass } from '../utils/allResourcesUtils';
@@ -60,6 +62,34 @@ export function LibraryResourceDetailModal({
 }: LibraryResourceDetailModalProps) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'ratings' | 'discussion'>('ratings');
+  const [isViewing, setIsViewing] = useState(false);
+
+  const handleViewFile = async () => {
+    if (!detail) return;
+    if (detail.fileUrl && (detail.fileUrl.startsWith('http://') || detail.fileUrl.startsWith('https://'))) {
+      window.open(detail.fileUrl, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    try {
+      setIsViewing(true);
+      const blob = await resourceService.downloadResourceFile(detail.fileId);
+      const ext = detail.fileName?.split('.').pop()?.toLowerCase() || '';
+      let mimeType = blob.type || 'application/octet-stream';
+      if (ext === 'pdf') mimeType = 'application/pdf';
+      else if (['jpg', 'jpeg'].includes(ext)) mimeType = 'image/jpeg';
+      else if (ext === 'png') mimeType = 'image/png';
+      else if (ext === 'webp') mimeType = 'image/webp';
+      else if (ext === 'txt') mimeType = 'text/plain';
+
+      const viewBlob = new Blob([blob], { type: mimeType });
+      const fileUrl = window.URL.createObjectURL(viewBlob);
+      window.open(fileUrl, '_blank');
+    } catch (err: unknown) {
+      console.error('View file error:', err);
+    } finally {
+      setIsViewing(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -135,21 +165,39 @@ export function LibraryResourceDetailModal({
           </Button>
 
           {detail && (
-            <Button
-              variant="primary"
-              size="md"
-              onClick={() => onDownload(detail.fileId, detail.fileName)}
-              disabled={isDownloading}
-              className="gap-2 shadow-xs cursor-pointer font-semibold"
-              aria-label={`Tải xuống tài liệu ${detail.fileName}`}
-            >
-              {isDownloading ? (
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              ) : (
-                <Download className="size-4" aria-hidden="true" />
-              )}
-              <span>{isDownloading ? 'Đang tải về...' : 'Tải xuống tài liệu'}</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="md"
+                onClick={handleViewFile}
+                disabled={isViewing}
+                className="gap-2 shadow-xs cursor-pointer font-semibold"
+                aria-label={`Xem tài liệu ${detail.fileName}`}
+              >
+                {isViewing ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Eye className="size-4" aria-hidden="true" />
+                )}
+                <span>{isViewing ? 'Đang mở...' : 'Xem tài liệu'}</span>
+              </Button>
+
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => onDownload(detail.fileId, detail.fileName)}
+                disabled={isDownloading}
+                className="gap-2 shadow-xs cursor-pointer font-semibold"
+                aria-label={`Tải xuống tài liệu ${detail.fileName}`}
+              >
+                {isDownloading ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Download className="size-4" aria-hidden="true" />
+                )}
+                <span>{isDownloading ? 'Đang tải về...' : 'Tải xuống tài liệu'}</span>
+              </Button>
+            </div>
           )}
         </div>
       }
