@@ -1,7 +1,7 @@
 export interface SearchRequestParams {
-  q?: string;
+  search?: string;
   fileTypeId?: string;
-  subMajorCode?: string;
+  subMajorId?: string;
   courseCode?: string;
   uploadUserId?: string;
   yearCompleted?: number;

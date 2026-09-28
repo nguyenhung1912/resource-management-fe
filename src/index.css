@@ -2,10 +2,18 @@
 
 @theme {
   --color-primary: #256eff;
+  --color-primary-hover: #1d5bd8;
+  --color-primary-active: #1848ac;
   --color-secondary: #6b7280;
   --color-success: #15a34a;
+  --color-success-hover: #15803d;
+  --color-success-active: #166534;
   --color-warning: #f97316;
+  --color-warning-hover: #ea580c;
+  --color-warning-active: #c2410c;
   --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-active: #991b1b;
   --color-surface: #ffffff;
   --color-background: #f7f7f7;
   --color-text: #1a1a1a;

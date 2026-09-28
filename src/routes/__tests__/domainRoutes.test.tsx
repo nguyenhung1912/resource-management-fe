@@ -1,7 +1,14 @@
 import { matchRoutes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { APP_PATHS, ROUTE_PARAMS } from '@/constants/path';
-import { appealRoutes, moderationRoutes, notificationRoutes, reportRoutes, resourceRoutes } from '@/routes/domains';
+import {
+  appealRoutes,
+  moderationRoutes,
+  notificationRoutes,
+  reportRoutes,
+  resourceRoutes,
+  searchRoutes,
+} from '@/routes/domains';
 
 describe('domain routes and dynamic path builders', () => {
   describe('APP_PATHS dynamic builders', () => {
@@ -61,6 +68,16 @@ describe('domain routes and dynamic path builders', () => {
 
     it('reportRoutes matches reports segment', () => {
       expect(matchRoutes(reportRoutes, '/reports')).not.toBeNull();
+    });
+
+    it('searchRoutes matches search, resources, source-code, and legacy redirects', () => {
+      expect(matchRoutes(searchRoutes, '/search')).not.toBeNull();
+      expect(matchRoutes(searchRoutes, '/resources')).not.toBeNull();
+      expect(matchRoutes(searchRoutes, '/source-code')).not.toBeNull();
+      expect(matchRoutes(searchRoutes, '/lectures')).not.toBeNull();
+      expect(matchRoutes(searchRoutes, '/theses')).not.toBeNull();
+      expect(matchRoutes(searchRoutes, '/course-reports')).not.toBeNull();
+      expect(matchRoutes(searchRoutes, '/other-resources')).not.toBeNull();
     });
   });
 });

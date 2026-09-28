@@ -22,12 +22,27 @@ export interface ModerationDecisionEnvelopeResponse {
   data: ModerationDecisionResponse;
 }
 
+export type SimilarityRiskLevel = 'safe' | 'warning' | 'danger';
+
 export interface PlagiarismMatchedChunk {
   chunkIndex?: number;
   sourceFileId?: string;
   sourceFileName?: string;
   similarity?: number;
   contentSnippet?: string;
+  snippet?: string;
+  matchedWithFileId?: string;
+  matchedWithFileName?: string;
+  cosineSimilarity?: number;
+}
+
+export interface NormalizedMatchedChunk {
+  chunkIndex: number;
+  sourceFileId: string;
+  sourceFileName: string;
+  similarity: number;
+  contentSnippet: string;
+  riskLevel: SimilarityRiskLevel;
 }
 
 export interface PlagiarismCheckResponse {

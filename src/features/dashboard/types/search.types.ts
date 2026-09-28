@@ -1,3 +1,4 @@
+import type { SearchResponse } from '@/features/resources/types/search.types';
 import type { LucideIcon } from 'lucide-react';
 
 export type SearchTab = 'all' | 'ai' | 'advanced' | 'authors';
@@ -33,4 +34,15 @@ export interface AdvancedSearchFilters {
   year: string;
   format: string;
   plagiarismRate: string;
+}
+
+export interface LookupItem {
+  id: number | string;
+  name: string;
+}
+
+export interface SearchHubLoaderData {
+  apiData: SearchResponse;
+  submajors: LookupItem[];
+  fileTypes: LookupItem[];
 }

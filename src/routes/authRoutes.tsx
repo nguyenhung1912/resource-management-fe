@@ -5,6 +5,7 @@ import type { RouteObject } from 'react-router-dom';
 import { ROUTE_SEGMENTS } from '@/constants/path';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { GuestRoute } from './guards/GuestRoute';
+import { googleCallbackLoader } from '@/features/auth/pages/googleCallbackLoader';
 
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'));
 
@@ -42,6 +43,12 @@ export const authRoutes: RouteObject[] = [
             breadcrumb: 'Quên mật khẩu',
           },
         },
+      },
+
+      {
+        path: ROUTE_SEGMENTS.GOOGLE_CALLBACK,
+
+        loader: googleCallbackLoader,
       },
     ],
   },

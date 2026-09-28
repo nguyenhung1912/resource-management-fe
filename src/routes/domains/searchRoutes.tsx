@@ -1,16 +1,18 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy } from 'react';
-import type { RouteObject } from 'react-router-dom';
-import { ROUTE_SEGMENTS } from '@/constants/path';
-import searchLoader from '@/features/resources/pages/searchLoader';
+import { Navigate, type RouteObject } from 'react-router-dom';
+import { APP_PATHS, ROUTE_SEGMENTS } from '@/constants/path';
 
-// const SearchHubPage = lazy(() => import('@/features/dashboard/pages/SearchHubPage'));
-const PlaceholderFeaturePage = lazy(() => import('@/features/dashboard/pages/PlaceholderFeaturePage'));
+import searchLoader from '@/features/resources/pages/searchLoader';
+import { allResourcesLoader } from '@/features/digital-resources/all-resources/pages/allResourcesLoader';
+import { sourceCodeLoader } from '@/features/digital-resources/source-code/pages/sourceCodeLoader';
+
+const AllResourcesPage = lazy(() => import('@/features/digital-resources/all-resources/pages/AllResourcesPage'));
+const SourceCodePage = lazy(() => import('@/features/digital-resources/source-code/pages/SourceCodePage'));
 
 export const searchRoutes: RouteObject[] = [
   {
     path: ROUTE_SEGMENTS.SEARCH,
-    // element: <SearchHubPage />,
     lazy: async () => {
       const { SearchHubPage } = await import('@/features/dashboard/pages/SearchHubPage');
       return { Component: SearchHubPage };
@@ -25,93 +27,43 @@ export const searchRoutes: RouteObject[] = [
   },
   {
     path: ROUTE_SEGMENTS.RESOURCES,
-    // element: <SearchHubPage />,
-    lazy: async () => {
-      const { SearchHubPage } = await import('@/features/dashboard/pages/SearchHubPage');
-      return { Component: SearchHubPage };
-    },
+    // Trận địa của đồng đội: Trả lại route này cho AllResourcesPage và cắm ống allResourcesLoader của họ vào
+    loader: allResourcesLoader,
+    element: <AllResourcesPage />,
     handle: {
       meta: {
-        title: 'Tất cả tài nguyên',
+        title: 'Thư viện Tài nguyên Số',
         breadcrumb: 'Tất cả tài nguyên',
-      },
-    },
-    loader: searchLoader,
-  },
-  {
-    path: ROUTE_SEGMENTS.LECTURES,
-    element: (
-      <PlaceholderFeaturePage
-        title="Tài liệu Bài giảng & Giáo trình"
-        description="Danh mục giáo trình, bài giảng và tài liệu học tập của các bộ môn."
-      />
-    ),
-    handle: {
-      meta: {
-        title: 'Bài giảng',
-        breadcrumb: 'Bài giảng',
-      },
-    },
-  },
-  {
-    path: ROUTE_SEGMENTS.THESES,
-    element: (
-      <PlaceholderFeaturePage
-        title="Khóa luận tốt nghiệp"
-        description="Kho lưu trữ các đề tài khóa luận và đồ án tốt nghiệp xuất sắc của sinh viên."
-      />
-    ),
-    handle: {
-      meta: {
-        title: 'Khóa luận tốt nghiệp',
-        breadcrumb: 'Khóa luận',
-      },
-    },
-  },
-  {
-    path: ROUTE_SEGMENTS.COURSE_REPORTS,
-    element: (
-      <PlaceholderFeaturePage
-        title="Báo cáo môn học & Đồ án"
-        description="Tổng hợp báo cáo bài tập lớn, đồ án môn học và nghiên cứu khoa học sinh viên."
-      />
-    ),
-    handle: {
-      meta: {
-        title: 'Báo cáo môn học',
-        breadcrumb: 'Báo cáo môn học',
       },
     },
   },
   {
     path: ROUTE_SEGMENTS.SOURCE_CODE,
-    element: (
-      <PlaceholderFeaturePage
-        title="Kho Mã nguồn & Dự án mẫu"
-        description="Lưu trữ tài nguyên mã nguồn lập trình, dự án mẫu và thư viện dùng chung."
-      />
-    ),
+    loader: sourceCodeLoader,
+    element: <SourceCodePage />,
     handle: {
       meta: {
-        title: 'Mã nguồn',
+        title: 'Kho Mã nguồn & Dự án mẫu',
         breadcrumb: 'Mã nguồn',
       },
     },
   },
+
+  {
+    path: ROUTE_SEGMENTS.LECTURES,
+    element: <Navigate to={APP_PATHS.ALL_RESOURCES} replace />,
+  },
+  {
+    path: ROUTE_SEGMENTS.THESES,
+    element: <Navigate to={APP_PATHS.ALL_RESOURCES} replace />,
+  },
+  {
+    path: ROUTE_SEGMENTS.COURSE_REPORTS,
+    element: <Navigate to={APP_PATHS.ALL_RESOURCES} replace />,
+  },
   {
     path: ROUTE_SEGMENTS.OTHER_RESOURCES,
-    element: (
-      <PlaceholderFeaturePage
-        title="Tài nguyên & Tài liệu khác"
-        description="Các tài liệu tham khảo bổ trợ, biểu mẫu và quy chế học liệu của nhà trường."
-      />
-    ),
-    handle: {
-      meta: {
-        title: 'Tài nguyên khác',
-        breadcrumb: 'Tài nguyên khác',
-      },
-    },
+    element: <Navigate to={APP_PATHS.ALL_RESOURCES} replace />,
   },
 ];
 

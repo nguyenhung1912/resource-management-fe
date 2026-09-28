@@ -7,3 +7,4 @@ export { profileRoutes } from './profileRoutes';
 export { changePasswordRoutes } from './changePasswordRoutes';
 export { searchRoutes } from './searchRoutes';
 export { adminRoutes } from './adminRoutes';
+export { myReportRoutes } from './myReportRoutes';

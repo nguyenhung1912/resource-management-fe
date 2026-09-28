@@ -78,25 +78,29 @@
 import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { FACULTY_OPTIONS } from '../../constants/search.constants';
+import type { LookupItem } from '../../types/search.types';
+// Xóa bỏ import FACULTY_OPTIONS tĩnh đi
+// import { FACULTY_OPTIONS } from '../../constants/search.constants';
 
 export interface SearchAdvancedFilterTabProps {
-  // Các khớp nối hiện tại
+  // DỮ LIỆU ĐỘNG (Được truyền từ Loader xuống)
+  submajors: LookupItem[];
+  fileTypes: LookupItem[];
+
+  // STATE NĂM VÀ CÁC HÀM XỬ LÝ (Giữ nguyên)
   selectedFaculty: string;
   onFacultyChange: (faculty: string) => void;
-
-  // Bổ sung các khớp nối mới cho các bộ lọc còn thiếu
   selectedYear: string;
   onYearChange: (year: string) => void;
-
   selectedFormat: string;
   onFormatChange: (format: string) => void;
-
   onReset: () => void;
   onApply: () => void;
 }
 
 export function SearchAdvancedFilterTab({
+  submajors = [], // Nhận dữ liệu thật
+  fileTypes = [], // Nhận dữ liệu thật
   selectedFaculty,
   onFacultyChange,
   selectedYear,
@@ -111,34 +115,35 @@ export function SearchAdvancedFilterTab({
       <h2 className="text-base font-bold text-text-main">Tiêu chí Lọc Nâng cao</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* 1. Khoa / Bộ môn (Đã kết nối) */}
+        {/* 1. Khoa / Bộ môn (Đã sử dụng dữ liệu động từ API) */}
         <div>
-          <label className="text-xs font-semibold text-text-main block mb-1">Khoa / Bộ môn</label>
+          <label className="text-xs font-semibold text-text-main block mb-1">Tất cả Ngành</label>
           <select
             value={selectedFaculty}
             onChange={(e) => onFacultyChange(e.target.value)}
             className="w-full h-10 rounded-lg border border-border-subtle bg-background px-3 text-xs text-text-main focus:outline-none focus:border-primary"
           >
-            {FACULTY_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
+            <option value="all">Tất cả Ngành</option>
+            {submajors.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.name}
               </option>
             ))}
           </select>
         </div>
 
-        {/* 2. Năm phát hành (Đã kết nối) */}
+        {/* 2. Năm phát hành (Giữ nguyên Input, không cần API) */}
         <div>
           <label className="text-xs font-semibold text-text-main block mb-1">Năm phát hành</label>
           <Input
             placeholder="Ví dụ: 2024"
             value={selectedYear}
             onChange={(e) => onYearChange(e.target.value)}
-            type="number" // Ép người dùng nhập số
+            type="number"
           />
         </div>
 
-        {/* 3. Định dạng tệp (Đã kết nối) */}
+        {/* 3. Định dạng tệp (Đã sử dụng dữ liệu động từ API) */}
         <div>
           <label className="text-xs font-semibold text-text-main block mb-1">Định dạng tệp</label>
           <select
@@ -147,17 +152,19 @@ export function SearchAdvancedFilterTab({
             className="w-full h-10 rounded-lg border border-border-subtle bg-background px-3 text-xs text-text-main focus:outline-none focus:border-primary"
           >
             <option value="all">Tất cả định dạng</option>
-            <option value="1">PDF</option> {/* ID giả định theo DB của anh */}
-            <option value="2">Word (.docx)</option>
-            <option value="3">Mã nguồn nén (.zip)</option>
+            {fileTypes.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.name}
+              </option>
+            ))}
           </select>
         </div>
 
-        {/* 4. Tỷ lệ đạo văn (Tạm thời vô hiệu hóa nếu Backend chưa hỗ trợ) */}
+        {/* 4. Tỷ lệ đạo văn (Đóng băng chờ chỉ thị mới) */}
         <div>
           <label className="text-xs font-semibold text-text-main block mb-1">Tỷ lệ đạo văn AI</label>
           <select
-            disabled // Khóa lại cho đến khi API của anh thực sự có chức năng này
+            disabled
             className="w-full h-10 rounded-lg border border-border-subtle bg-background px-3 text-xs text-text-main focus:outline-none focus:border-primary opacity-50 cursor-not-allowed"
           >
             <option value="all">Tính năng đang phát triển...</option>

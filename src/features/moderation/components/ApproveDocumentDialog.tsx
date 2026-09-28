@@ -76,11 +76,11 @@ function ApproveDocumentDialogContent({ isOpen, onClose, document, onSuccess }: 
           <Button
             type="submit"
             form="approve-document-form"
+            variant="success"
             size="md"
             isLoading={isApproving}
             disabled={isApproving}
             iconLeft={<CheckCircle2 className="h-4 w-4" />}
-            className="bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white focus-visible:ring-emerald-500/40"
           >
             Xác nhận Phê duyệt
           </Button>

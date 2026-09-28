@@ -1,10 +1,30 @@
-import { Layers3 } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
 
+import logoQnu from '@/assets/logo-qnu.webp';
+import { APP_PATHS } from '@/constants/path';
 import { LoginForm } from '@/features/auth/components/LoginForm';
 import { useLogin } from '@/features/auth/hooks/useLogin';
 
 export function LoginPage() {
   const { error, isLoading, handleLogin, handleGoogleLogin } = useLogin();
+
+  const [searchParams] = useSearchParams();
+
+  const googleErrorCode = searchParams.get('error');
+
+  const googleErrorMessages: Record<string, string> = {
+    google_login_failed: 'Đăng nhập Google thất bại.',
+
+    google_email_missing: 'Không lấy được email từ Google.',
+
+    google_account_not_found: 'Email Google chưa được đăng ký trong hệ thống.',
+
+    google_account_locked: 'Tài khoản đã bị khóa.',
+
+    google_callback_invalid: 'Thông tin đăng nhập Google không hợp lệ.',
+  };
+
+  const googleError = googleErrorCode ? googleErrorMessages[googleErrorCode] : null;
 
   return (
     <section
@@ -28,22 +48,27 @@ export function LoginPage() {
           text-center
         "
       >
-        <div
+        <Link
+          to={APP_PATHS.HOME}
+          aria-label="Về trang chủ"
           className="
             mx-auto
             mb-4
-            flex
-            h-14
-            w-14
-            items-center
-            justify-center
-            rounded-xl
-            bg-primary/10
-            text-primary
+            inline-block
+            rounded-full
+            outline-none
+            transition-transform
+            hover:scale-105
+            focus-visible:ring-2
+            focus-visible:ring-primary/40
           "
         >
-          <Layers3 className="h-7 w-7" />
-        </div>
+          <img
+            src={logoQnu}
+            alt="Logo Trường Đại học Quy Nhơn"
+            className="size-20 rounded-full border-2 border-border/80 bg-surface object-contain p-1.5 shadow-2xs"
+          />
+        </Link>
 
         <h1
           className="
@@ -70,7 +95,12 @@ export function LoginPage() {
 
       {/* Login form */}
       <div className="px-8 py-7">
-        <LoginForm error={error} isLoading={isLoading} onSubmit={handleLogin} onGoogleLogin={handleGoogleLogin} />
+        <LoginForm
+          error={googleError ?? error}
+          isLoading={isLoading}
+          onSubmit={handleLogin}
+          onGoogleLogin={handleGoogleLogin}
+        />
       </div>
     </section>
   );

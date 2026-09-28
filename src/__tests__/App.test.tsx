@@ -1,11 +1,11 @@
 import { render, screen, within } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 import App from '@/App';
 import { APP_PATHS } from '@/constants/path';
 import { useAuthStore } from '@/store/authStore';
 
-describe('App (Home Dashboard Hub)', () => {
+describe('App (Guest Landing Page & Auth Forwarding)', () => {
   afterEach(() => {
     useAuthStore.setState({
       user: null,
@@ -16,7 +16,7 @@ describe('App (Home Dashboard Hub)', () => {
     });
   });
 
-  it('renders unauthenticated greeting and system operational status', () => {
+  it('renders guest landing page with system operational status when unauthenticated', () => {
     render(
       <MemoryRouter>
         <App />
@@ -36,7 +36,7 @@ describe('App (Home Dashboard Hub)', () => {
     );
   });
 
-  it('renders personalized greeting and role badge when user is logged in', () => {
+  it('redirects to APP_PATHS.DASHBOARD when user is logged in', () => {
     useAuthStore.setState({
       user: {
         uid: 'user-123',
@@ -52,14 +52,26 @@ describe('App (Home Dashboard Hub)', () => {
       isLoading: false,
     });
 
-    render(
-      <MemoryRouter>
-        <App />
-      </MemoryRouter>,
+    const router = createMemoryRouter(
+      [
+        {
+          path: APP_PATHS.HOME,
+          element: <App />,
+        },
+        {
+          path: APP_PATHS.DASHBOARD,
+          element: <h1>Dashboard Hub</h1>,
+        },
+      ],
+      {
+        initialEntries: [APP_PATHS.HOME],
+      },
     );
 
-    expect(screen.getByRole('heading', { name: 'Xin chào, TS. Nguyễn Văn Hùng!' })).toBeInTheDocument();
-    expect(screen.getByText('Vai trò: Giảng viên')).toBeInTheDocument();
+    render(<RouterProvider router={router} />);
+
+    expect(screen.getByRole('heading', { name: 'Dashboard Hub' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe(APP_PATHS.DASHBOARD);
   });
 
   it('renders all 6 quick action cards connecting to main domain workflows', () => {

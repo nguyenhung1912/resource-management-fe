@@ -111,7 +111,7 @@ function AppealResolutionDialogContent({ isOpen, onClose, appeal, detail, onSucc
           <Button
             type="submit"
             form="appeal-resolution-form"
-            variant={isApproved ? 'primary' : 'danger'}
+            variant={isApproved ? 'success' : 'danger'}
             size="md"
             isLoading={isResolving}
             disabled={isResolving || (!isResponseValid && touched)}

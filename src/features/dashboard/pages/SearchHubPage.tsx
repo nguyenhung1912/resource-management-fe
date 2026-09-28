@@ -9,15 +9,15 @@ import { SearchAiTab } from '../components/search/SearchAiTab';
 import { SearchAuthorsTab } from '../components/search/SearchAuthorsTab';
 import { SearchOmnibox } from '../components/search/SearchOmnibox';
 import { SearchResourceListTab } from '../components/search/SearchResourceListTab';
-import type { SearchResourceItem, SearchTab } from '../types/search.types';
-import type { SearchResponse, SearchResultItem } from '@/features/resources/types/search.types';
+import type { SearchHubLoaderData, SearchResourceItem, SearchTab } from '../types/search.types';
+import type { SearchResultItem } from '@/features/resources/types/search.types';
 
 export function SearchHubPage() {
-  const apiData = useLoaderData() as SearchResponse;
+  const { apiData, submajors, fileTypes } = useLoaderData() as SearchHubLoaderData;
+
   const submit = useSubmit();
   const [searchParams] = useSearchParams();
 
-  // 1. Ánh xạ dữ liệu từ API sang UI
   const mappedResources: SearchResourceItem[] = useMemo(() => {
     if (!apiData?.items) return [];
     return apiData.items.map((item: SearchResultItem) => ({
@@ -32,19 +32,16 @@ export function SearchHubPage() {
     }));
   }, [apiData]);
 
-  // 2. Khởi tạo State từ URL Params để không mất dữ liệu khi F5
   const [activeTab, setActiveTab] = useState<SearchTab>('all');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedFaculty, setSelectedFaculty] = useState(searchParams.get('subMajorCode') || 'all');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('fileTypeId') || 'all');
 
-  // State cho tab Lọc Nâng Cao
   const [selectedYear, setSelectedYear] = useState(searchParams.get('yearCompleted') || '');
   const [selectedFormat, setSelectedFormat] = useState(searchParams.get('fileTypeId') || 'all');
 
   const deferredQuery = useDeferredValue(searchQuery.trim());
 
-  // 3. Tự động đẩy dữ liệu lên URL khi State thay đổi
   useEffect(() => {
     const params = new URLSearchParams();
 
@@ -52,16 +49,13 @@ export function SearchHubPage() {
     if (selectedFaculty !== 'all') params.set('subMajorCode', selectedFaculty);
     if (selectedYear) params.set('yearCompleted', selectedYear);
 
-    // Gộp logic fileTypeId: Ưu tiên selectedFormat (từ tab Nâng cao) nếu nó thay đổi, ngược lại dùng selectedCategory
     const finalFileTypeId =
       selectedFormat !== 'all' ? selectedFormat : selectedCategory !== 'all' ? selectedCategory : null;
     if (finalFileTypeId) params.set('fileTypeId', finalFileTypeId);
 
-    // Gọi lại Loader với tham số mới
     submit(params, { replace: true });
   }, [deferredQuery, selectedFaculty, selectedCategory, selectedFormat, selectedYear, submit]);
 
-  // 4. đặt lại filter
   const handleResetFilters = () => {
     setSelectedFaculty('all');
     setSelectedCategory('all');
@@ -110,6 +104,8 @@ export function SearchHubPage() {
 
       {activeTab === 'advanced' ? (
         <SearchAdvancedFilterTab
+          submajors={submajors}
+          fileTypes={fileTypes}
           selectedFaculty={selectedFaculty}
           onFacultyChange={setSelectedFaculty}
           selectedYear={selectedYear}

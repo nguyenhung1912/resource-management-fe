@@ -2,13 +2,14 @@
 import { lazy } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import { ROUTE_PARAMS, ROUTE_SEGMENTS } from '@/constants/path';
-import searchLoader from '@/features/resources/pages/searchLoader';
 import resourceDetailLoader from '@/features/resources/pages/resourceDetailLoader';
+import { uploadResourceLoader } from '@/features/resources/pages/uploadResourceLoader';
+import { resourcesManagerLoader } from '@/features/resources/pages/resourcesManagerLoader';
+import { modifyResourceLoader } from '@/features/resources/pages/modifyResourceLoader';
 
 const ResourcesManagerPage = lazy(() => import('@/features/resources/pages/ResourcesManagerPage'));
 const UploadResourcePage = lazy(() => import('@/features/resources/pages/UploadResourcePage'));
 const ModifyResourcePage = lazy(() => import('@/features/resources/pages/ModifyResourcePage'));
-const SearchResourcesPage = lazy(() => import('@/features/resources/pages/SearchResourcesPage'));
 const PlaceholderFeaturePage = lazy(() => import('@/features/dashboard/pages/PlaceholderFeaturePage'));
 const ResourceDetailPage = lazy(() => import('@/features/resources/pages/ResourceDetailPage'));
 
@@ -16,6 +17,8 @@ export const resourceRoutes: RouteObject[] = [
   {
     path: ROUTE_SEGMENTS.RESOURCES_MANAGER,
     element: <ResourcesManagerPage />,
+    loader: resourcesManagerLoader,
+    shouldRevalidate: () => true,
     handle: {
       meta: {
         title: 'Quản lý tài nguyên',
@@ -26,6 +29,7 @@ export const resourceRoutes: RouteObject[] = [
       {
         path: ROUTE_SEGMENTS.RESOURCE_UPLOAD,
         element: <UploadResourcePage />,
+        loader: uploadResourceLoader,
         handle: {
           meta: {
             title: 'Tải lên tài nguyên',
@@ -36,6 +40,7 @@ export const resourceRoutes: RouteObject[] = [
       {
         path: `${ROUTE_PARAMS.RESOURCE_ID}/${ROUTE_SEGMENTS.RESOURCE_EDIT}`,
         element: <ModifyResourcePage />,
+        loader: modifyResourceLoader,
         handle: {
           meta: {
             title: 'Chỉnh sửa tài nguyên',
@@ -43,11 +48,7 @@ export const resourceRoutes: RouteObject[] = [
           },
         },
       },
-      {
-        path: ROUTE_SEGMENTS.SEARCH,
-        element: <SearchResourcesPage />,
-        loader: searchLoader,
-      },
+      // Đã xóa bỏ block SEARCH gây nhiễu
       {
         path: ROUTE_PARAMS.RESOURCE_ID,
         element: <ResourceDetailPage />,

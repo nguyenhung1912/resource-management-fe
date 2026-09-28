@@ -28,6 +28,7 @@ export interface PagedReportResponse {
   pageIndex: number;
   pageSize: number;
   totalCount: number;
+  totalItems?: number;
   totalPages: number;
   hasPreviousPage: boolean;
   hasNextPage: boolean;
@@ -39,7 +40,7 @@ export interface UpdateReportStatusRequest {
 }
 
 export interface ReportTypeResponse {
-  reportTypeId: number;
+  reportTypeId: number | string;
   reportTypeName: string;
   description: string;
 }
@@ -49,10 +50,66 @@ export interface ReportMutationResponse {
   data?: ReportItemResponse;
 }
 
+export interface FileTargetContext {
+  type: 'File';
+  id: string;
+  title: string;
+  authorName?: string;
+  departmentName?: string;
+  fileTypeName?: string;
+}
+
+export interface CommentTargetContext {
+  type: 'Comment';
+  id: string;
+  content: string;
+  authorName: string;
+  authorAvatar?: string;
+  fileId?: string;
+  fileTitle?: string;
+  uidtarget?: string;
+}
+
+export interface UserTargetContext {
+  type: 'User';
+  id: string;
+  fullName: string;
+  userCode?: string;
+  avatarUrl?: string;
+  roleName?: string;
+  departmentName?: string;
+}
+
+export type ReportTargetContext = FileTargetContext | CommentTargetContext | UserTargetContext;
+
+export interface CreateReportPayload {
+  reportTypeId: string | number;
+  reportContent: string;
+  reason?: string;
+  targetType?: ReportTargetType;
+  targetId?: string;
+  fileId?: string | null;
+  commentId?: string | null;
+  uidtarget?: string | null;
+}
+
+export interface CreateReportRequestBody {
+  reportTypeId: string | number;
+  reportContent: string;
+  reason: string;
+  targetType?: ReportTargetType;
+  targetId?: string;
+  fileId?: string | null;
+  commentId?: string | null;
+  uidtarget?: string | null;
+}
+
 export interface GetReportsParams {
   status?: ReportStatus | string;
   pageNumber?: number;
+  pageIndex?: number;
   pageSize?: number;
+  reportTypeId?: number | string;
 }
 
 export interface ReportOverviewStats {
@@ -64,6 +121,18 @@ export interface ReportOverviewStats {
 }
 
 export interface ReportsLoaderResult {
+  reports: PagedReportResponse;
+  stats: ReportOverviewStats;
+  reportTypes: ReportTypeResponse[];
+  currentStatus?: ReportStatus;
+  currentTargetType?: ReportTargetType;
+  currentReportTypeId?: number;
+  searchQuery: string;
+  currentPage: number;
+  pageSize: number;
+}
+
+export interface MyReportsLoaderResult {
   reports: PagedReportResponse;
   stats: ReportOverviewStats;
   reportTypes: ReportTypeResponse[];

@@ -120,7 +120,7 @@ describe('DocumentModerationDetailPage integration', () => {
     expect(screen.getByText('Phân tích Trùng lặp & Đạo văn AI')).toBeInTheDocument();
     expect(screen.getByText('16.5%')).toBeInTheDocument();
     expect(screen.getByText(/Mức độ An toàn \(Trùng lặp thấp\)/i)).toBeInTheDocument();
-    expect(screen.getByText('Khóa luận K18 NLP')).toBeInTheDocument();
+    expect(screen.getAllByText('Khóa luận K18 NLP').length).toBeGreaterThan(0);
 
     // History Timeline
     expect(screen.getByText(/Nhật ký Kiểm duyệt & Lịch sử \(1\)/i)).toBeInTheDocument();
