@@ -8,6 +8,7 @@ const defaultProps = {
   fileTypes: [
     { value: 1, label: 'Báo cáo nghiên cứu' },
     { value: 2, label: 'Đồ án' },
+    { value: 10, label: 'Khác' },
   ],
   subMajors: [
     { value: 'SE', label: 'Kỹ thuật phần mềm' },
@@ -115,6 +116,48 @@ describe('UploadResourceModal', () => {
 
     expect(screen.getByText('bao-cao-nghien-cuu.pdf')).toBeInTheDocument();
     expect(screen.getByLabelText(/tên tài nguyên/i)).toHaveValue('bao-cao-nghien-cuu');
+  });
+
+  it('cập nhật lại tên tài nguyên theo file mới khi hủy file cũ và upload file mới', () => {
+    renderModal();
+
+    chooseMainFile(new File(['noi dung 1'], 'file-cu.pdf', { type: 'application/pdf' }));
+    expect(screen.getByLabelText(/tên tài nguyên/i)).toHaveValue('file-cu');
+
+    // Hủy file cũ
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa file-cu.pdf' }));
+    expect(screen.getByLabelText(/tên tài nguyên/i)).toHaveValue('');
+    expect(screen.queryByText('file-cu.pdf')).not.toBeInTheDocument();
+
+    // Upload file mới
+    chooseMainFile(
+      new File(['noi dung 2'], 'file-moi.docx', {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      }),
+    );
+    expect(screen.getByText('file-moi.docx')).toBeInTheDocument();
+    expect(screen.getByLabelText(/tên tài nguyên/i)).toHaveValue('file-moi');
+  });
+
+  it('ghi đè tên tài nguyên theo file mới ngay cả khi người dùng đã sửa tên trước đó', () => {
+    renderModal();
+
+    chooseMainFile(new File(['noi dung 1'], 'file-cu.pdf', { type: 'application/pdf' }));
+    expect(screen.getByLabelText(/tên tài nguyên/i)).toHaveValue('file-cu');
+
+    // Người dùng chỉnh sửa tên tài nguyên
+    fireEvent.change(screen.getByLabelText(/tên tài nguyên/i), {
+      target: { value: 'Tên tùy chỉnh do tôi đặt' },
+    });
+    expect(screen.getByLabelText(/tên tài nguyên/i)).toHaveValue('Tên tùy chỉnh do tôi đặt');
+
+    // Hủy file cũ -> Tên tài nguyên được xóa
+    fireEvent.click(screen.getByRole('button', { name: 'Xóa file-cu.pdf' }));
+    expect(screen.getByLabelText(/tên tài nguyên/i)).toHaveValue('');
+
+    // Upload file mới -> Luôn ghi đè theo tên của file mới
+    chooseMainFile(new File(['noi dung 2'], 'file-moi.pdf', { type: 'application/pdf' }));
+    expect(screen.getByLabelText(/tên tài nguyên/i)).toHaveValue('file-moi');
   });
 
   it.each([500, 501])('kiểm tra giới hạn GithubLink với URL dài %i ký tự', (length) => {
@@ -242,6 +285,7 @@ describe('UploadResourceModal', () => {
       fileName: 'Đề tài AI',
       fileDescription: 'Mô tả nghiên cứu',
       fileTypeId: 1,
+      customFileTypeName: null,
       subMajorCode: 'AI',
       courseCode: 'PRN222',
       yearCompleted: 2025,
@@ -340,5 +384,150 @@ describe('UploadResourceModal', () => {
     // Tự động map ngược lên Ngành và Khoa
     expect(majorSelect).toHaveValue('MAJOR-001');
     expect(deptSelect).toHaveValue('DEPT-001');
+  });
+
+  it('hiển thị ô nhập loại tài nguyên tùy chỉnh khi chọn loại "Khác" và ẩn khi chọn loại chuẩn', () => {
+    renderModal();
+
+    expect(screen.queryByLabelText(/tên loại tài nguyên khác/i)).not.toBeInTheDocument();
+
+    // Chọn loại "Khác"
+    fireEvent.change(screen.getByRole('combobox', { name: /^loại tài nguyên/i }), { target: { value: '10' } });
+    expect(screen.getByLabelText(/tên loại tài nguyên khác/i)).toBeInTheDocument();
+
+    // Đổi về loại "Báo cáo nghiên cứu"
+    fireEvent.change(screen.getByRole('combobox', { name: /^loại tài nguyên/i }), { target: { value: '1' } });
+    expect(screen.queryByLabelText(/tên loại tài nguyên khác/i)).not.toBeInTheDocument();
+  });
+
+  it('báo lỗi kiểm duyệt khi chọn "Khác" mà để trống hoặc nhập chuỗi không hợp lệ', () => {
+    const handleSubmit = vi.fn();
+    renderModal({ onSubmit: handleSubmit });
+
+    chooseMainFile(new File(['noi dung'], 'resource.pdf', { type: 'application/pdf' }));
+    fireEvent.change(screen.getByLabelText(/tên tài nguyên/i), { target: { value: 'Tài liệu môn học' } });
+    fireEvent.change(screen.getByLabelText(/chuyên ngành/i), { target: { value: 'SE' } });
+    const authorInput = screen.getByRole('textbox', { name: /nhập tác giả/i });
+    fireEvent.change(authorInput, { target: { value: 'Nguyễn Văn An' } });
+    fireEvent.keyDown(authorInput, { key: 'Enter' });
+
+    // Chọn "Khác" nhưng để trống ô nhập
+    fireEvent.change(screen.getByRole('combobox', { name: /^loại tài nguyên/i }), { target: { value: '10' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
+
+    expect(handleSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText(/vui lòng nhập tên loại tài nguyên khi chọn loại "khác"/i)).toBeInTheDocument();
+
+    // Nhập chuỗi mã độc XSS
+    const customTypeInput = screen.getByLabelText(/tên loại tài nguyên khác/i);
+    fireEvent.change(customTypeInput, { target: { value: '<script>alert(1)</script>' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
+
+    expect(handleSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText(/chứa ký tự không hợp lệ hoặc nguy hiểm/i)).toBeInTheDocument();
+
+    // Nhập chuỗi spam lặp
+    fireEvent.change(customTypeInput, { target: { value: 'aaaaaaa' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
+
+    expect(handleSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText(/không được chứa ký tự lặp vô nghĩa/i)).toBeInTheDocument();
+  });
+
+  it('gửi customFileTypeName hợp lệ khi chọn loại "Khác" và submit thành công', () => {
+    const handleSubmit = vi.fn();
+    renderModal({ onSubmit: handleSubmit });
+
+    const file = new File(['noi dung'], 'resource.pdf', { type: 'application/pdf' });
+    chooseMainFile(file);
+    fireEvent.change(screen.getByLabelText(/tên tài nguyên/i), { target: { value: 'Tài liệu bổ trợ' } });
+    fireEvent.change(screen.getByLabelText(/chuyên ngành/i), { target: { value: 'SE' } });
+    const authorInput = screen.getByRole('textbox', { name: /nhập tác giả/i });
+    fireEvent.change(authorInput, { target: { value: 'Nguyễn Văn An' } });
+    fireEvent.keyDown(authorInput, { key: 'Enter' });
+
+    // Chọn "Khác" và nhập tên hợp lệ
+    fireEvent.change(screen.getByRole('combobox', { name: /^loại tài nguyên/i }), { target: { value: '10' } });
+    const customTypeInput = screen.getByLabelText(/tên loại tài nguyên khác/i);
+    fireEvent.change(customTypeInput, { target: { value: '  Đề cương   chi tiết  ' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
+
+    expect(handleSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fileTypeId: 10,
+        customFileTypeName: 'Đề cương chi tiết',
+      }),
+    );
+  });
+
+  it('cho phép nhập năm hoàn thành từng chữ số mà không bị báo lỗi dải số 1900 sớm', () => {
+    renderModal();
+
+    const yearInput = screen.getByLabelText(/năm hoàn thành/i);
+
+    // Gõ chữ số đầu tiên
+    fireEvent.change(yearInput, { target: { value: '2' } });
+    expect(yearInput).toHaveValue('2');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    // Gõ 2 chữ số
+    fireEvent.change(yearInput, { target: { value: '20' } });
+    expect(yearInput).toHaveValue('20');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    // Gõ 3 chữ số
+    fireEvent.change(yearInput, { target: { value: '202' } });
+    expect(yearInput).toHaveValue('202');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+
+    // Gõ đủ 4 chữ số hợp lệ
+    fireEvent.change(yearInput, { target: { value: '2024' } });
+    expect(yearInput).toHaveValue('2024');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('chỉ cho phép nhập tối đa 4 chữ số và tự động loại bỏ ký tự chữ khỏi ô năm hoàn thành', () => {
+    renderModal();
+
+    const yearInput = screen.getByLabelText(/năm hoàn thành/i);
+
+    // Nhập lẫn chữ cái và ký hiệu
+    fireEvent.change(yearInput, { target: { value: '20ab24#xyz' } });
+    expect(yearInput).toHaveValue('2024');
+
+    // Nhập nhiều hơn 4 chữ số -> tự cắt về 4 số
+    fireEvent.change(yearInput, { target: { value: '202599' } });
+    expect(yearInput).toHaveValue('2025');
+  });
+
+  it('báo lỗi khi submit với năm hoàn thành chưa đủ 4 chữ số hoặc ngoài dải cho phép', () => {
+    const handleSubmit = vi.fn();
+    renderModal({ onSubmit: handleSubmit });
+
+    const file = new File(['noi dung'], 'resource.pdf', { type: 'application/pdf' });
+    chooseMainFile(file);
+    fireEvent.change(screen.getByLabelText(/tên tài nguyên/i), { target: { value: 'Tài liệu toán' } });
+    fireEvent.change(screen.getByRole('combobox', { name: /^loại tài nguyên/i }), { target: { value: '1' } });
+    fireEvent.change(screen.getByLabelText(/chuyên ngành/i), { target: { value: 'SE' } });
+    const authorInput = screen.getByRole('textbox', { name: /nhập tác giả/i });
+    fireEvent.change(authorInput, { target: { value: 'Nguyễn Văn An' } });
+    fireEvent.keyDown(authorInput, { key: 'Enter' });
+
+    const yearInput = screen.getByLabelText(/năm hoàn thành/i);
+
+    // Nhập 2 chữ số rồi submit
+    fireEvent.change(yearInput, { target: { value: '20' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
+
+    expect(handleSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText('Năm hoàn thành phải đủ 4 chữ số (VD: 2024).')).toBeInTheDocument();
+
+    // Nhập năm nhỏ hơn 1900
+    fireEvent.change(yearInput, { target: { value: '1850' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
+
+    expect(handleSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText(/năm hoàn thành phải nằm trong khoảng 1900–/i)).toBeInTheDocument();
   });
 });

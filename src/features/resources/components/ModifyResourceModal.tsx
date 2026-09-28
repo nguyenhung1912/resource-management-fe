@@ -14,10 +14,10 @@ import { Select } from '@/components/ui/Select';
 import { AuthorInput } from './AuthorInput';
 import { KeywordInput } from './KeywordInput';
 import { ResourceFileDropzone } from './ResourceFileDropzone';
+import { sanitizeYearInput, validateCompletionYear } from '@/utils/yearValidation';
 
 const MAX_BANNER_FILE_SIZE = 5 * 1024 * 1024;
 const BANNER_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const CURRENT_YEAR = new Date().getFullYear();
 
 interface FormState {
   fileName: string;
@@ -97,12 +97,8 @@ export function ModifyResourceModal({
   const fileTypeError = isSubmitted && !form.fileTypeId ? 'Vui lòng chọn loại tài nguyên.' : undefined;
   const subMajorError = isSubmitted && !form.subMajorCode ? 'Vui lòng chọn chuyên ngành.' : undefined;
   const authorsError = isSubmitted && form.authorNames.length === 0 ? 'Vui lòng nhập ít nhất một tác giả.' : undefined;
-  const numericYear = form.yearCompleted ? Number(form.yearCompleted) : null;
-  const yearError =
-    form.yearCompleted &&
-    (!Number.isInteger(numericYear) || numericYear === null || numericYear < 1900 || numericYear > CURRENT_YEAR)
-      ? `Năm hoàn thành phải nằm trong khoảng 1900–${CURRENT_YEAR}.`
-      : undefined;
+  const yearValidation = validateCompletionYear(form.yearCompleted, isSubmitted);
+  const yearError = yearValidation.error;
 
   const updateField = <TKey extends keyof FormState>(key: TKey, value: FormState[TKey]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -124,6 +120,7 @@ export function ModifyResourceModal({
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitted(true);
+    const submitYearValidation = validateCompletionYear(form.yearCompleted, true);
 
     const hasError =
       !form.fileName.trim() ||
@@ -132,7 +129,7 @@ export function ModifyResourceModal({
       !form.subMajorCode ||
       form.authorNames.length === 0 ||
       Boolean(bannerError) ||
-      Boolean(yearError);
+      !submitYearValidation.isValid;
 
     if (hasError || isSubmitting) return;
 
@@ -142,7 +139,7 @@ export function ModifyResourceModal({
       fileTypeId: Number(form.fileTypeId),
       subMajorCode: form.subMajorCode,
       courseCode: form.courseCode || null,
-      yearCompleted: numericYear,
+      yearCompleted: submitYearValidation.numericYear,
       authorNames: form.authorNames,
       keywords: form.keywords,
       bannerImage: form.bannerImage,
@@ -300,14 +297,14 @@ export function ModifyResourceModal({
             </Label>
             <Input
               id="modify-resource-year"
-              type="number"
+              type="text"
               inputMode="numeric"
-              min={1900}
-              max={CURRENT_YEAR}
+              maxLength={4}
+              placeholder="YYYY (VD: 2024)"
               value={form.yearCompleted}
               error={yearError}
               disabled={isSubmitting}
-              onChange={(event) => updateField('yearCompleted', event.target.value)}
+              onChange={(event) => updateField('yearCompleted', sanitizeYearInput(event.target.value))}
             />
           </div>
         </div>
