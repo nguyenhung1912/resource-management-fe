@@ -126,4 +126,32 @@ describe('ModerationQueueTable', () => {
     });
     expect(scanButtons[0]).toBeDisabled();
   });
+
+  it('hiển thị chính xác tên người tải khi dữ liệu trả về dạng object uploader.fullName', () => {
+    const itemWithUploaderDto: ModerationResourceItemResponse = {
+      fileId: 'FIL_ROW_3',
+      fileName: 'Nghiên cứu Deep Learning',
+      fileTypeId: 1,
+      fileTypeName: 'Khóa luận',
+      uploader: {
+        uid: 'user-123',
+        fullName: 'Trần Văn Cao',
+        email: 'caotran@gmail.com',
+      },
+      fileStatusId: 1,
+      createdAt: '2026-09-29T08:30:00Z',
+    };
+
+    render(
+      <ModerationQueueTable
+        items={[itemWithUploaderDto]}
+        onCheckPlagiarism={vi.fn()}
+        onApprove={vi.fn()}
+        onReject={vi.fn()}
+        onViewDetail={vi.fn()}
+      />,
+    );
+
+    expect(screen.getAllByText('Trần Văn Cao').length).toBeGreaterThan(0);
+  });
 });

@@ -1,8 +1,9 @@
 import { Clock, ExternalLink, FileText, User } from 'lucide-react';
 import { PlagiarismScoreGauge } from './PlagiarismScoreGauge';
 import { ModerationQueueRowActions } from './ModerationQueueRowActions';
-import type { ModerationResourceItemResponse } from '../types/moderation.types';
+import { getModerationUploaderName, type ModerationResourceItemResponse } from '../types/moderation.types';
 import { formatDateTime, formatRelativeTime } from '@/utils/date';
+
 import { cn } from '@/utils/cn';
 
 export interface ModerationQueueMobileCardProps {
@@ -40,8 +41,8 @@ export function ModerationQueueMobileCard({
               <FileText className="h-3 w-3 shrink-0" aria-hidden="true" />
               {item.fileTypeName ?? 'Tài liệu'}
             </span>
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-warning/10 text-warning border border-warning/20">
-              <span className="h-1.5 w-1.5 rounded-full bg-warning" aria-hidden="true" />
+            <span className="inline-flex items-center gap-1 text-[11px] font-normal px-2 py-0.5 rounded bg-neutral-100 text-text-muted">
+              <span className="h-1.5 w-1.5 rounded-full bg-neutral-400" aria-hidden="true" />
               Chờ duyệt
             </span>
           </div>
@@ -72,7 +73,7 @@ export function ModerationQueueMobileCard({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-text-muted pt-1 border-t border-border-subtle/50">
         <div className="flex items-center gap-1.5 truncate">
           <User className="h-3.5 w-3.5 text-text-muted shrink-0" aria-hidden="true" />
-          <span className="truncate">{item.uploaderName ?? item.uploaderEmail ?? 'Người dùng'}</span>
+          <span className="truncate">{getModerationUploaderName(item)}</span>
         </div>
 
         <div
@@ -94,7 +95,7 @@ export function ModerationQueueMobileCard({
       {/* Plagiarism AI Gauge */}
       <div className="pt-2 border-t border-border-subtle/50 flex items-center justify-between gap-2">
         <span className="text-xs text-text-muted font-medium">Tỷ lệ tương đồng AI:</span>
-        <PlagiarismScoreGauge score={item.latestPlagiarismScore} compact />
+        <PlagiarismScoreGauge score={item.latestPlagiarismScore ?? item.latestModeration?.plagiarismScore} compact />
       </div>
 
       {/* Actions */}
