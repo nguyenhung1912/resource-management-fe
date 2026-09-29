@@ -18,16 +18,14 @@ export function SearchHubPage() {
   const submit = useSubmit();
   const [searchParams] = useSearchParams();
 
-  // Hàm chuyển trang
+  // Cơ chế chuyển trang giữ nguyên bộ lọc
   const handlePageChange = (newPage: number) => {
-    // Kế thừa lại toàn bộ các bộ lọc đang có trên URL
     const params = new URLSearchParams(searchParams);
-    // Ghi đè lại số trang
     params.set('page', newPage.toString());
-    // Bắn lệnh đi (React Router sẽ gọi lại searchLoader và lấy data mới)
     submit(params, { replace: true });
   };
 
+  // Ánh xạ dữ liệu chuẩn xác từ Backend
   const mappedResources: SearchResourceItem[] = useMemo(() => {
     if (!apiData?.items) return [];
     return apiData.items.map((item: SearchResultItem) => ({
@@ -46,12 +44,12 @@ export function SearchHubPage() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedFaculty, setSelectedFaculty] = useState(searchParams.get('subMajorCode') || 'all');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('fileTypeId') || 'all');
-
   const [selectedYear, setSelectedYear] = useState(searchParams.get('yearCompleted') || '');
   const [selectedFormat, setSelectedFormat] = useState(searchParams.get('fileTypeId') || 'all');
 
   const deferredQuery = useDeferredValue(searchQuery.trim());
 
+  // Đồng bộ hóa trạng thái bộ lọc lên thanh URL
   useEffect(() => {
     const params = new URLSearchParams();
 
@@ -100,7 +98,7 @@ export function SearchHubPage() {
           resources={mappedResources}
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
-
+          // Lắp đạn phân trang của chúng ta vào
           pagination={{
             currentPage: apiData?.currentPage || 1,
             totalPages: apiData?.totalPages || 1,
@@ -135,7 +133,8 @@ export function SearchHubPage() {
         />
       ) : null}
 
-      {activeTab === 'authors' ? <SearchAuthorsTab /> : null}
+      {/* Tạm thời bỏ trống danh sách tác giả nếu chưa có API hỗ trợ */}
+      {activeTab === 'authors' ? <SearchAuthorsTab authors={[]} /> : null}
     </div>
   );
 }

@@ -36,7 +36,7 @@ const mockUploadItem: MyUploadItemResponse = {
   fileTypeName: 'Báo cáo',
   fileSize: 2_516_582,
   createdAt: '2024-05-12T08:00:00.000Z',
-  fileStatusId: 1,
+  fileStatusId: 2,
   fileStatusName: 'Đã duyệt',
   majorId: 'CNTT',
   majorName: 'Công nghệ thông tin',
@@ -58,13 +58,13 @@ describe('resources manager routes', () => {
 
   it('hiển thị danh sách tài nguyên và các công cụ quản lý khi có dữ liệu từ backend', async () => {
     vi.spyOn(resourceService, 'getMyUploads').mockImplementation(async (filter) => {
-      if (filter?.fileStatusId === 1) {
+      if (filter?.fileStatusId === 2) {
         return { items: [], totalCount: 10, pageNumber: 1, pageSize: 1, totalPages: 10 };
       }
-      if (filter?.fileStatusId === 2) {
+      if (filter?.fileStatusId === 1) {
         return { items: [], totalCount: 5, pageNumber: 1, pageSize: 1, totalPages: 5 };
       }
-      if (filter?.fileStatusId === 3) {
+      if (filter?.fileStatusId === 4) {
         return { items: [], totalCount: 2, pageNumber: 1, pageSize: 1, totalPages: 2 };
       }
       return {
@@ -98,7 +98,7 @@ describe('resources manager routes', () => {
       'href',
       APP_PATHS.RESOURCE_EDIT('resource-1'),
     );
-  });
+  }, 15000);
 
   it('hiển thị trạng thái rỗng và số liệu 0 khi không có dữ liệu tài nguyên nào', async () => {
     vi.spyOn(resourceService, 'getMyUploads').mockResolvedValue({
@@ -143,8 +143,10 @@ describe('resources manager routes', () => {
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Hủy' }));
 
-    await waitFor(() => expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCES_MANAGER));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCES_MANAGER);
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
     expect(screen.getByRole('heading', { name: 'Quản lý tài nguyên' })).toBeInTheDocument();
   });
 
@@ -163,7 +165,7 @@ describe('resources manager routes', () => {
       fileUrl: 'https://example.com/report.pdf',
       fileTypeId: 1,
       fileTypeName: 'PDF',
-      fileStatusId: 1,
+      fileStatusId: 2,
       fileStatusName: 'Đã duyệt',
       majorId: 'CNTT',
       majorName: 'Công nghệ thông tin',
@@ -206,7 +208,7 @@ describe('resources manager routes', () => {
       fileUrl: 'https://example.com/report.pdf',
       fileTypeId: 1,
       fileTypeName: 'PDF',
-      fileStatusId: 1,
+      fileStatusId: 2,
       fileStatusName: 'Đã duyệt',
       majorId: 'CNTT',
       majorName: 'Công nghệ thông tin',

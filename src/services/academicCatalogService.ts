@@ -8,21 +8,27 @@ import type {
 } from '@/features/resources/types/academicCatalog.types';
 
 export const academicCatalogService = {
-  // GET /api/AcademicCatalog/majors
-  async getMajors(): Promise<MajorResponse[]> {
-    const response = await axiosClient.get<MajorResponse[]>('/api/AcademicCatalog/majors');
+  // GET /api/Lookup/majors
+  async getMajors(departmentId?: string): Promise<MajorResponse[]> {
+    const response = await axiosClient.get<MajorResponse[]>('/api/Lookup/majors', {
+      params: departmentId ? { departmentId } : undefined,
+    });
     return response.data;
   },
 
-  // GET /api/AcademicCatalog/submajors
-  async getSubMajors(): Promise<SubMajorResponse[]> {
-    const response = await axiosClient.get<SubMajorResponse[]>('/api/AcademicCatalog/submajors');
+  // GET /api/Lookup/submajors
+  async getSubMajors(majorId?: string): Promise<SubMajorResponse[]> {
+    const response = await axiosClient.get<SubMajorResponse[]>('/api/Lookup/submajors', {
+      params: majorId ? { majorId } : undefined,
+    });
     return response.data;
   },
 
-  // GET /api/AcademicCatalog/courses
-  async getCourses(): Promise<CourseResponse[]> {
-    const response = await axiosClient.get<CourseResponse[]>('/api/AcademicCatalog/courses');
+  // GET /api/Lookup/courses
+  async getCourses(submajorCode?: string): Promise<CourseResponse[]> {
+    const response = await axiosClient.get<CourseResponse[]>('/api/Lookup/courses', {
+      params: submajorCode ? { submajorCode } : undefined,
+    });
     return response.data;
   },
 

@@ -10,12 +10,13 @@ import type { SelectOption, UploadResourceFormValues } from '@/features/resource
 import type { CourseResponse, MajorResponse, SubMajorResponse } from '@/features/resources/types/academicCatalog.types';
 import { AuthorInput } from './AuthorInput';
 import { ResourceFileDropzone } from './ResourceFileDropzone';
+import { validateCustomFileTypeName } from '@/utils/fileTypeValidation';
+import { sanitizeYearInput, validateCompletionYear } from '@/utils/yearValidation';
 
 const MAX_RESOURCE_FILE_SIZE = 50 * 1024 * 1024;
 const MAX_BANNER_FILE_SIZE = 5 * 1024 * 1024;
 const RESOURCE_EXTENSIONS = new Set(['pdf', 'docx', 'doc', 'pptx', 'ppt']);
 const BANNER_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
-const CURRENT_YEAR = new Date().getFullYear();
 
 export interface UploadResourceModalProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ interface FormState {
   fileName: string;
   fileDescription: string;
   fileTypeId: string;
+  customFileTypeName: string;
   departmentId: string;
   majorId: string;
   subMajorCode: string;
@@ -58,6 +60,7 @@ const initialFormState: FormState = {
   fileName: '',
   fileDescription: '',
   fileTypeId: '',
+  customFileTypeName: '',
   departmentId: '',
   majorId: '',
   subMajorCode: '',
@@ -282,6 +285,32 @@ export function UploadResourceModal({
       : form.fileName.length > 255
         ? 'Tên tài nguyên không được vượt quá 255 ký tự.'
         : undefined;
+  const isOtherFileTypeSelected = useMemo(() => {
+    if (!form.fileTypeId) return false;
+    const selected = fileTypes.find((ft) => String(ft.value) === String(form.fileTypeId));
+    return selected?.label.trim().toLowerCase() === 'khác' || Number(form.fileTypeId) === 10;
+  }, [fileTypes, form.fileTypeId]);
+
+  const handleFileTypeChange = (newFileTypeId: string) => {
+    const selected = fileTypes.find((ft) => String(ft.value) === String(newFileTypeId));
+    const isOther = selected?.label.trim().toLowerCase() === 'khác' || Number(newFileTypeId) === 10;
+    setForm((current) => ({
+      ...current,
+      fileTypeId: newFileTypeId,
+      customFileTypeName: isOther ? current.customFileTypeName : '',
+    }));
+  };
+
+  const customFileTypeValidation = useMemo(() => {
+    if (!isOtherFileTypeSelected) return { isValid: true };
+    return validateCustomFileTypeName(form.customFileTypeName);
+  }, [isOtherFileTypeSelected, form.customFileTypeName]);
+
+  const customFileTypeError =
+    isSubmitted && isOtherFileTypeSelected && !customFileTypeValidation.isValid
+      ? customFileTypeValidation.error
+      : undefined;
+
   const fileTypeError = isSubmitted && !form.fileTypeId ? 'Vui lòng chọn loại tài nguyên.' : undefined;
   const subMajorError = isSubmitted && !form.subMajorCode ? 'Vui lòng chọn chuyên ngành.' : undefined;
   const authorsError = isSubmitted && form.authorNames.length === 0 ? 'Vui lòng nhập ít nhất một tác giả.' : undefined;
@@ -293,12 +322,8 @@ export function UploadResourceModal({
     : isSubmitted && hasInvalidSourceCodeUrl
       ? 'Liên kết mã nguồn phải là URL hợp lệ sử dụng giao thức http:// hoặc https://.'
       : undefined;
-  const numericYear = form.yearCompleted ? Number(form.yearCompleted) : null;
-  const yearError =
-    form.yearCompleted &&
-    (!Number.isInteger(numericYear) || numericYear === null || numericYear < 1900 || numericYear > CURRENT_YEAR)
-      ? `Năm hoàn thành phải nằm trong khoảng 1900–${CURRENT_YEAR}.`
-      : undefined;
+  const yearValidation = validateCompletionYear(form.yearCompleted, isSubmitted);
+  const yearError = yearValidation.error;
 
   const updateField = <TKey extends keyof FormState>(key: TKey, value: FormState[TKey]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -309,11 +334,21 @@ export function UploadResourceModal({
     setFileErrors((current) => ({ ...current, resource: validationError }));
     if (validationError) return;
 
+    const baseName = file.name.replace(/\.[^.]+$/, '');
     setForm((current) => ({
       ...current,
       file,
-      fileName: current.fileName.trim() || file.name.replace(/\.[^.]+$/, ''),
+      fileName: baseName,
     }));
+  };
+
+  const handleRemoveResourceFile = () => {
+    setForm((current) => ({
+      ...current,
+      file: null,
+      fileName: '',
+    }));
+    setFileErrors((current) => ({ ...current, resource: undefined }));
   };
 
   const handleBannerFile = (file: File) => {
@@ -337,19 +372,22 @@ export function UploadResourceModal({
     event.preventDefault();
     setIsSubmitted(true);
     const selectedFile = form.file;
+    const submitYearValidation = validateCompletionYear(form.yearCompleted, true);
 
     const hasError =
       !selectedFile ||
       !form.fileName.trim() ||
       form.fileName.length > 255 ||
       !form.fileTypeId ||
+      Boolean(customFileTypeError) ||
+      (isOtherFileTypeSelected && !customFileTypeValidation.isValid) ||
       !form.subMajorCode ||
       form.authorNames.length === 0 ||
       hasInvalidSourceCodeUrl ||
       hasLongSourceCodeUrl ||
       Boolean(resourceFileError) ||
       Boolean(fileErrors.banner) ||
-      Boolean(yearError);
+      !submitYearValidation.isValid;
 
     if (hasError || isSubmitting || !selectedFile) return;
 
@@ -358,9 +396,12 @@ export function UploadResourceModal({
       fileName: form.fileName.trim(),
       fileDescription: form.fileDescription.trim() || null,
       fileTypeId: Number(form.fileTypeId),
+      customFileTypeName: isOtherFileTypeSelected
+        ? customFileTypeValidation.sanitized || form.customFileTypeName.trim()
+        : null,
       subMajorCode: form.subMajorCode,
       courseCode: form.courseCode || null,
-      yearCompleted: numericYear,
+      yearCompleted: submitYearValidation.numericYear,
       authorNames: form.authorNames,
       sourceCodeUrl: trimmedSourceCodeUrl || null,
       bannerImage: form.bannerImage,
@@ -423,7 +464,7 @@ export function UploadResourceModal({
             error={resourceFileError}
             disabled={isSubmitting}
             onFileSelect={handleResourceFile}
-            onFileRemove={() => updateField('file', null)}
+            onFileRemove={handleRemoveResourceFile}
           />
         </div>
 
@@ -502,7 +543,7 @@ export function UploadResourceModal({
               value={form.fileTypeId}
               disabled={isSubmitting}
               error={fileTypeError}
-              onChange={(event) => updateField('fileTypeId', event.target.value)}
+              onChange={(event) => handleFileTypeChange(event.target.value)}
             >
               <option value="">Chọn loại tài nguyên</option>
               {fileTypes.map((fileType) => (
@@ -534,6 +575,26 @@ export function UploadResourceModal({
           </div>
         </div>
 
+        {isOtherFileTypeSelected ? (
+          <div className="space-y-1.5">
+            <Label htmlFor="resource-custom-file-type" requiredBadge error={Boolean(customFileTypeError)}>
+              Tên loại tài nguyên khác
+            </Label>
+            <Input
+              id="resource-custom-file-type"
+              maxLength={50}
+              placeholder="Nhập tên loại tài nguyên (ví dụ: Tài liệu tham khảo, Đề cương...)"
+              value={form.customFileTypeName}
+              error={customFileTypeError}
+              disabled={isSubmitting}
+              onChange={(event) => updateField('customFileTypeName', event.target.value)}
+            />
+            <p className="text-xs text-text-muted">
+              Tối đa 50 ký tự. Chỉ cho phép chữ cái, chữ số, khoảng trắng và các dấu (- , () , . , + , #).
+            </p>
+          </div>
+        ) : null}
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="resource-course">Học phần</Label>
@@ -558,15 +619,14 @@ export function UploadResourceModal({
             </Label>
             <Input
               id="resource-year"
-              type="number"
+              type="text"
               inputMode="numeric"
-              min={1900}
-              max={CURRENT_YEAR}
-              placeholder="YYYY"
+              maxLength={4}
+              placeholder="YYYY (VD: 2024)"
               value={form.yearCompleted}
               error={yearError}
               disabled={isSubmitting}
-              onChange={(event) => updateField('yearCompleted', event.target.value)}
+              onChange={(event) => updateField('yearCompleted', sanitizeYearInput(event.target.value))}
             />
           </div>
         </div>
