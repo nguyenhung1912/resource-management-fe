@@ -1,5 +1,5 @@
 import { hasAnyRole } from '@/features/auth/utils/roleUtils';
-import type { DashboardFunction, DashboardMenuResponse } from '@/features/dashboard/types/dashboard-menu.types';
+import type { DashboardFunction, DashboardMenuResponse } from '@/features/home/types/dashboard-menu.types';
 
 const ALWAYS_VISIBLE_IDS = new Set(['profile']);
 

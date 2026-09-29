@@ -65,8 +65,10 @@ export interface PlagiarismCheckEnvelopeResponse {
 
 export interface ModerationUploaderInfo {
   uid?: string;
+  userCode?: string;
   fullName?: string;
   email?: string;
+  roleName?: string;
 }
 
 export interface ModerationAuthorItem {
@@ -82,16 +84,57 @@ export interface ModerationResourceItemResponse {
   fileName: string;
   fileDescription?: string;
   fileUrl?: string;
+  fileBannerImage?: string;
+  fileSize?: number;
   fileTypeId?: number;
   fileTypeName?: string;
+  majorId?: string;
+  majorName?: string;
   subMajorCode?: string;
   subMajorName?: string;
+  courseCode?: string;
+  courseName?: string;
+  yearCompleted?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  uploader?: ModerationUploaderInfo;
+  authors?: ModerationAuthorItem[];
+  latestModeration?: {
+    moderationId?: string;
+    decision?: string;
+    reviewNote?: string;
+    plagiarismScore?: number | null;
+    moderatorUid?: string;
+    moderatorName?: string;
+    createdAt?: string;
+  };
   uploaderName?: string;
   uploaderEmail?: string;
   fileStatusId?: number;
   fileStatusName?: string;
-  createdAt?: string;
   latestPlagiarismScore?: number | null;
+}
+
+/**
+ * Lấy tên hiển thị của người tải tài liệu, ưu tiên theo thứ tự:
+ * 1. uploader.fullName (từ backend ModerationUploaderDto)
+ * 2. uploaderName (tương thích ngược)
+ * 3. uploader.email
+ * 4. uploaderEmail
+ * 5. fallback mặc định ('Người dùng')
+ */
+export function getModerationUploaderName(
+  item?: Pick<ModerationResourceItemResponse, 'uploader' | 'uploaderName' | 'uploaderEmail'> | null,
+  fallback = 'Người dùng',
+): string {
+  if (!item) return fallback;
+  return (
+    item.uploader?.fullName?.trim() ||
+    item.uploaderName?.trim() ||
+    item.uploader?.email?.trim() ||
+    item.uploaderEmail?.trim() ||
+    fallback
+  );
 }
 
 export interface ModerationResourceDetailResponse {

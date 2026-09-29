@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { DashboardMenu } from '../DashboardMenu';
-import type { DashboardMenuResponse } from '@/features/dashboard/types/dashboard-menu.types';
+import type { DashboardMenuResponse } from '@/features/home/types/dashboard-menu.types';
 
 const menuData: DashboardMenuResponse = {
   groups: [

@@ -3,8 +3,9 @@ import { ArrowRight, FileText, User } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table';
 import { PlagiarismScoreGauge } from './PlagiarismScoreGauge';
-import type { ModerationResourceItemResponse } from '../types/moderation.types';
+import { getModerationUploaderName, type ModerationResourceItemResponse } from '../types/moderation.types';
 import { APP_PATHS } from '@/constants/path';
+
 import { formatRelativeTime } from '@/utils/date';
 import { cn } from '@/utils/cn';
 
@@ -117,11 +118,16 @@ function DesktopTable({
                     <User className="h-3 w-3 text-secondary" aria-hidden="true" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs text-text-main truncate max-w-30" title={item.uploaderName}>
-                      {item.uploaderName ?? '—'}
+                    <p
+                      className="text-xs text-text-main truncate max-w-30"
+                      title={getModerationUploaderName(item, '—')}
+                    >
+                      {getModerationUploaderName(item, '—')}
                     </p>
-                    {item.uploaderEmail ? (
-                      <p className="text-[11px] text-text-muted truncate max-w-30">{item.uploaderEmail}</p>
+                    {item.uploader?.email || item.uploaderEmail ? (
+                      <p className="text-[11px] text-text-muted truncate max-w-30">
+                        {item.uploader?.email || item.uploaderEmail}
+                      </p>
                     ) : null}
                   </div>
                 </div>
@@ -191,9 +197,9 @@ function MobileCard({
             Chuyên ngành: <span className="text-text-main font-medium">{item.subMajorName}</span>
           </span>
         ) : null}
-        {item.uploaderName ? (
+        {getModerationUploaderName(item, '') ? (
           <span>
-            Người tải: <span className="text-text-main font-medium">{item.uploaderName}</span>
+            Người tải: <span className="text-text-main font-medium">{getModerationUploaderName(item, '')}</span>
           </span>
         ) : null}
         {item.createdAt ? <span>{formatRelativeTime(item.createdAt)}</span> : null}
@@ -201,7 +207,8 @@ function MobileCard({
 
       {/* Score + Action */}
       <div className="flex items-center justify-between gap-3 pt-1 border-t border-border-subtle/60">
-        <PlagiarismScoreGauge score={item.latestPlagiarismScore} />
+        <PlagiarismScoreGauge score={item.latestPlagiarismScore ?? item.latestModeration?.plagiarismScore} />
+
         <Button
           type="button"
           variant="outline"

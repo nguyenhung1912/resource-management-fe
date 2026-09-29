@@ -2,11 +2,11 @@
 import { lazy } from 'react';
 import { Navigate, type RouteObject } from 'react-router-dom';
 import { APP_PATHS, ROUTE_SEGMENTS } from '@/constants/path';
-import { searchHubLoader } from '@/features/dashboard/pages/searchHubLoader';
+import { searchHubLoader } from '@/features/home/pages/searchHubLoader';
 import { allResourcesLoader } from '@/features/digital-resources/all-resources/pages/allResourcesLoader';
 import { sourceCodeLoader } from '@/features/digital-resources/source-code/pages/sourceCodeLoader';
 
-const SearchHubPage = lazy(() => import('@/features/dashboard/pages/SearchHubPage'));
+const SearchHubPage = lazy(() => import('@/features/home/pages/SearchHubPage'));
 const AllResourcesPage = lazy(() => import('@/features/digital-resources/all-resources/pages/AllResourcesPage'));
 const SourceCodePage = lazy(() => import('@/features/digital-resources/source-code/pages/SourceCodePage'));
 

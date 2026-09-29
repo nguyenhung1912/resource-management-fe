@@ -20,7 +20,7 @@ const AdminPermissionsPage = lazy(() => import('@/features/admin/permissions/pag
 
 const AcademicManagementPage = lazy(() => import('@/features/admin/academic/pages/AcademicManagementPage'));
 
-const PlaceholderFeaturePage = lazy(() => import('@/features/dashboard/pages/PlaceholderFeaturePage'));
+const PlaceholderFeaturePage = lazy(() => import('@/features/home/pages/PlaceholderFeaturePage'));
 
 export const adminRoutes: RouteObject[] = [
   {

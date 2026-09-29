@@ -21,6 +21,7 @@ import type {
   LibraryResourceQuery,
   RecommendedResourceItem,
 } from '@/features/digital-resources/all-resources/types/all-resources.types';
+import type { GlobalSearchQuery, SearchPaginatedResult } from '@/features/home/types/home.types';
 
 export function buildUploadResourceFormData(values: UploadResourceRequest | UploadSourceCodeFormValues): FormData {
   const formData = new FormData();
@@ -78,6 +79,38 @@ export function triggerFileDownload(blob: Blob, fileName: string): void {
 }
 
 export const resourceService = {
+  // GET /api/Search
+  async globalSearch(params: GlobalSearchQuery = {}): Promise<SearchPaginatedResult> {
+    const queryParams: Record<string, string | number> = {
+      Page: params.page ?? 1,
+      PageSize: params.pageSize ?? 6,
+      SortBy: params.sortBy ?? 'date',
+      SortDirection: params.sortDirection ?? 'desc',
+    };
+
+    if (params.q?.trim()) {
+      queryParams.q = params.q.trim();
+    }
+    if (params.fileTypeId !== undefined && params.fileTypeId > 0) {
+      queryParams.FileTypeId = params.fileTypeId;
+    }
+    if (params.subMajorCode?.trim()) {
+      queryParams.SubMajorCode = params.subMajorCode.trim();
+    }
+    if (params.courseCode?.trim()) {
+      queryParams.CourseCode = params.courseCode.trim();
+    }
+    if (params.yearCompleted !== undefined && params.yearCompleted > 0) {
+      queryParams.YearCompleted = params.yearCompleted;
+    }
+
+    const response = await axiosClient.get<SearchPaginatedResult>('/api/Search', {
+      params: queryParams,
+    });
+
+    return response.data;
+  },
+
   // GET /api/ResourcesSearch
   async searchResources<T = SourceCodePaginatedResult>(query: SourceCodeQuery | LibraryResourceQuery): Promise<T> {
     const params: Record<string, string | number> = {

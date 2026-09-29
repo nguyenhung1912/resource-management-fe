@@ -37,7 +37,7 @@ import type {
   DashboardMenuGroup,
   DashboardMenuResponse,
   DashboardMenuUser,
-} from '@/features/dashboard/types/dashboard-menu.types';
+} from '@/features/home/types/dashboard-menu.types';
 import { cn } from '@/utils/cn';
 
 interface DashboardMenuProps {

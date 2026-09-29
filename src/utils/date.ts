@@ -1,8 +1,31 @@
-export function formatRelativeTime(dateInput: string | Date | null | undefined): string {
-  if (!dateInput) return '';
+export function parseDate(dateInput: string | Date | null | undefined): Date | null {
+  if (!dateInput) return null;
+  if (dateInput instanceof Date) {
+    return Number.isNaN(dateInput.getTime()) ? null : dateInput;
+  }
+  if (typeof dateInput !== 'string') return null;
 
-  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-  if (Number.isNaN(date.getTime())) return '';
+  const trimmed = dateInput.trim();
+  if (!trimmed) return null;
+
+  const isDateTime = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(trimmed);
+  const hasTimezone = /([zZ]|[+-]\d{2}(?::?\d{2})?)$/.test(trimmed);
+
+  if (isDateTime && !hasTimezone) {
+    const isoString = trimmed.includes(' ') ? trimmed.replace(' ', 'T') : trimmed;
+    const parsedUtc = new Date(`${isoString}Z`);
+    if (!Number.isNaN(parsedUtc.getTime())) {
+      return parsedUtc;
+    }
+  }
+
+  const parsed = new Date(trimmed);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+export function formatRelativeTime(dateInput: string | Date | null | undefined): string {
+  const date = parseDate(dateInput);
+  if (!date) return '';
 
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
@@ -31,10 +54,8 @@ export function formatRelativeTime(dateInput: string | Date | null | undefined):
 }
 
 export function formatDateTime(dateInput: string | Date | null | undefined): string {
-  if (!dateInput) return '-';
-
-  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-  if (Number.isNaN(date.getTime())) return '-';
+  const date = parseDate(dateInput);
+  if (!date) return '-';
 
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
