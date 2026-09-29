@@ -40,26 +40,30 @@ const unauthenticatedState = {
   isLoading: false,
 } satisfies Partial<ReturnType<typeof useAuthStore.getState>>;
 
-// Hàm chiến thuật: Đánh chặn lưới API diện rộng
-const mockSearchApi = (items: Partial<SearchResultItem>[]) => {
-  vi.mocked(axiosClient.get).mockImplementation((url: string) => {
-    const lowerUrl = url.toLowerCase();
+// Khối logic giả lập xử lý chung cho cả GET và POST
+const mockImplementation = (items: Partial<SearchResultItem>[]) => (url: string) => {
+  const lowerUrl = url.toLowerCase();
 
-    // 1. Nếu hệ thống ngầm (Promise.all) gọi lấy danh mục, cấp mảng rỗng
-    if (lowerUrl.includes('sub-major') || lowerUrl.includes('file-type') || lowerUrl.includes('system')) {
-      return Promise.resolve({ data: [] });
-    }
+  // 1. Cấp mảng rỗng cho các API lấy danh mục
+  if (lowerUrl.includes('sub-major') || lowerUrl.includes('file-type') || lowerUrl.includes('system')) {
+    return Promise.resolve({ data: [] });
+  }
 
-    // 2. Mặc định mọi API GET chính (chính là lệnh Search) đều sẽ nhận băng đạn này
-    return Promise.resolve({
-      data: {
-        items,
-        totalCount: items.length,
-        totalPages: 1,
-        currentPage: 1,
-      },
-    });
+  // 2. Cấp đạn thật cho API Search
+  return Promise.resolve({
+    data: {
+      items,
+      totalCount: items.length,
+      totalPages: 1,
+      currentPage: 1,
+    },
   });
+};
+
+// Đánh chặn toàn bộ mọi ngóc ngách của API
+const mockSearchApi = (items: Partial<SearchResultItem>[]) => {
+  vi.mocked(axiosClient.get).mockImplementation(mockImplementation(items));
+  vi.mocked(axiosClient.post).mockImplementation(mockImplementation(items));
 };
 
 describe('searchHubRoutes integration', () => {
@@ -72,6 +76,7 @@ describe('searchHubRoutes integration', () => {
     useAuthStore.setState(unauthenticatedState);
   });
 
+  // CHÚ Ý: Đã thêm lại , 15000 ở cuối block it() để nới rộng thời gian cho CI/CD
   it('nạp dữ liệu qua loader và hiển thị giao diện Tra cứu tài nguyên số', async () => {
     mockSearchApi([
       {
@@ -94,14 +99,12 @@ describe('searchHubRoutes integration', () => {
 
     render(<RouterProvider router={router} />);
 
-    // Chờ khung trang load xong
     const heading = await screen.findByRole('heading', { name: 'Trung tâm Tra cứu Tài nguyên Số' }, { timeout: 10000 });
     expect(heading).toBeInTheDocument();
 
-    // Kéo dài timeout lên 5000ms để đợi RouterProvider phân trang ngầm xong
-    expect(await screen.findByText('Giáo trình Lập trình Hướng đối tượng', {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(await screen.findByText('Giáo trình Lập trình Hướng đối tượng')).toBeInTheDocument();
     expect(screen.getByText('TS. Nguyễn Văn Hùng')).toBeInTheDocument();
-  });
+  }, 15000);
 
   it('chuyển đổi tab Trợ lý AI và hiển thị gợi ý câu hỏi', async () => {
     mockSearchApi([]);
@@ -117,8 +120,8 @@ describe('searchHubRoutes integration', () => {
     const aiTabBtn = screen.getByRole('button', { name: /Trợ lý AI/i });
     fireEvent.click(aiTabBtn);
 
-    expect(await screen.findByText(/Hỏi đáp & Tra cứu Ngữ nghĩa cùng AI/i, {}, { timeout: 5000 })).toBeInTheDocument();
-  });
+    expect(await screen.findByText(/Hỏi đáp & Tra cứu Ngữ nghĩa cùng AI/i)).toBeInTheDocument();
+  }, 15000);
 
   it('chuyển đổi tab Tác giả & Giảng viên và hiển thị thông tin tác giả nạp từ tài nguyên', async () => {
     mockSearchApi([
@@ -147,8 +150,7 @@ describe('searchHubRoutes integration', () => {
     const authorsTabBtn = screen.getByRole('button', { name: /Tác giả & Giảng viên/i });
     fireEvent.click(authorsTabBtn);
 
-    // Chờ 5000ms cho thuật toán trích xuất tên tác giả chạy xong
-    expect(await screen.findByText('Danh bạ Tác giả & Giảng viên', {}, { timeout: 5000 })).toBeInTheDocument();
-    expect(await screen.findByText('PGS. TS. Trần Minh Tuấn', {}, { timeout: 5000 })).toBeInTheDocument();
-  });
+    expect(await screen.findByText('Danh bạ Tác giả & Giảng viên')).toBeInTheDocument();
+    expect(await screen.findByText('PGS. TS. Trần Minh Tuấn')).toBeInTheDocument();
+  }, 15000);
 });
