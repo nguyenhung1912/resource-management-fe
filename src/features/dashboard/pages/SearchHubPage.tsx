@@ -39,6 +39,22 @@ export function SearchHubPage() {
       downloads: 0,
     }));
   }, [apiData]);
+  const extractedAuthors = useMemo(() => {
+    const authorMap = new Map<string, number>();
+
+    mappedResources.forEach((res) => {
+      if (res.author && res.author !== 'Ẩn danh') {
+        authorMap.set(res.author, (authorMap.get(res.author) || 0) + 1);
+      }
+    });
+
+    return Array.from(authorMap.entries()).map(([name, count]) => ({
+      name,
+      role: 'Giảng viên', // Giá trị mặc định
+      dept: 'Chưa cập nhật',
+      count,
+    }));
+  }, [mappedResources]);
 
   const [activeTab, setActiveTab] = useState<SearchTab>('all');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
@@ -134,7 +150,7 @@ export function SearchHubPage() {
       ) : null}
 
       {/* Tạm thời bỏ trống danh sách tác giả nếu chưa có API hỗ trợ */}
-      {activeTab === 'authors' ? <SearchAuthorsTab authors={[]} /> : null}
+      {activeTab === 'authors' ? <SearchAuthorsTab authors={extractedAuthors} /> : null}
     </div>
   );
 }

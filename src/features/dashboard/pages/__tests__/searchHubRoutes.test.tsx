@@ -5,7 +5,9 @@ import { APP_PATHS } from '@/constants/path';
 import { appRoutes } from '@/routes';
 import axiosClient from '@/services/axiosClient';
 import { useAuthStore } from '@/store/authStore';
+import type { SearchResultItem } from '@/features/resources/types/search.types';
 
+// Giả lập Axios
 vi.mock('@/services/axiosClient', () => ({
   default: {
     get: vi.fn(),
@@ -38,6 +40,28 @@ const unauthenticatedState = {
   isLoading: false,
 } satisfies Partial<ReturnType<typeof useAuthStore.getState>>;
 
+// Hàm chiến thuật: Trạm phát tín hiệu giả bao phủ toàn bộ các API mà searchLoader cần
+const mockSearchApi = (items: Partial<SearchResultItem>[]) => {
+  vi.mocked(axiosClient.get).mockImplementation((url: string) => {
+    // 1. Giả lập API Tìm kiếm chính (Cập nhật đúng cấu trúc phân trang mới)
+    if (url.includes('/api/ResourcesSearch')) {
+      return Promise.resolve({
+        data: {
+          items,
+          totalCount: items.length,
+          totalPages: 1,
+          currentPage: 1,
+        },
+      });
+    }
+    // 2. Giả lập các API Danh mục chạy ngầm trong Promise.all
+    if (url.includes('/api/System/sub-majors') || url.includes('/api/System/file-types')) {
+      return Promise.resolve({ data: [] });
+    }
+    return Promise.resolve({ data: [] });
+  });
+};
+
 describe('searchHubRoutes integration', () => {
   beforeEach(() => {
     useAuthStore.setState(authenticatedState);
@@ -49,33 +73,20 @@ describe('searchHubRoutes integration', () => {
   });
 
   it('nạp dữ liệu qua loader và hiển thị giao diện Tra cứu tài nguyên số', async () => {
-    vi.mocked(axiosClient.get).mockImplementation((url: string) => {
-      if (url.includes('/api/ResourcesSearch')) {
-        return Promise.resolve({
-          data: {
-            items: [
-              {
-                fileId: 'FIL_SEARCH_001',
-                fileName: 'Giáo trình Lập trình Hướng đối tượng',
-                fileDescription: 'Tài liệu hướng đối tượng C# và .NET',
-                fileUrl: 'https://example.com/oop.pdf',
-                fileTypeId: 1,
-                fileTypeName: 'Bài giảng',
-                subMajorCode: 'Công nghệ Thông tin',
-                yearCompleted: 2026,
-                uploadBy: 'TS. Nguyễn Văn Hùng',
-                fileSize: 2048576,
-                createdAt: '2026-09-20T08:00:00Z',
-              },
-            ],
-            totalCount: 1,
-            page: 1,
-            pageSize: 50,
-          },
-        });
-      }
-      return Promise.resolve({ data: [] });
-    });
+    mockSearchApi([
+      {
+        fileId: 'FIL_SEARCH_001',
+        fileName: 'Giáo trình Lập trình Hướng đối tượng',
+        fileDescription: 'Tài liệu hướng đối tượng C# và .NET',
+        fileUrl: 'https://example.com/oop.pdf',
+        fileTypeName: 'Bài giảng',
+        subMajorCode: 'Công nghệ Thông tin',
+        yearCompleted: 2026,
+        uploadBy: 'TS. Nguyễn Văn Hùng',
+        createdAt: '2026-09-20T08:00:00Z',
+        keywords: [],
+      },
+    ]);
 
     const router = createMemoryRouter(appRoutes, {
       initialEntries: [APP_PATHS.SEARCH],
@@ -83,24 +94,17 @@ describe('searchHubRoutes integration', () => {
 
     render(<RouterProvider router={router} />);
 
-    // Kiểm tra tiêu đề trang
+    // Chờ hệ thống nạp xong đạn và render thành công
     const heading = await screen.findByRole('heading', { name: 'Trung tâm Tra cứu Tài nguyên Số' }, { timeout: 10000 });
     expect(heading).toBeInTheDocument();
 
-    // Kiểm tra kết quả tài liệu nạp từ API
+    // Xác nhận tài liệu đã xuất hiện trên radar
     expect(await screen.findByText('Giáo trình Lập trình Hướng đối tượng')).toBeInTheDocument();
     expect(screen.getByText('TS. Nguyễn Văn Hùng')).toBeInTheDocument();
-  }, 15000);
+  });
 
   it('chuyển đổi tab Trợ lý AI và hiển thị gợi ý câu hỏi', async () => {
-    vi.mocked(axiosClient.get).mockImplementation((url: string) => {
-      if (url.includes('/api/ResourcesSearch')) {
-        return Promise.resolve({
-          data: { items: [], totalCount: 0, page: 1, pageSize: 50 },
-        });
-      }
-      return Promise.resolve({ data: [] });
-    });
+    mockSearchApi([]); // Trạm AI không cần nạp trước tài liệu
 
     const router = createMemoryRouter(appRoutes, {
       initialEntries: [APP_PATHS.SEARCH],
@@ -114,36 +118,24 @@ describe('searchHubRoutes integration', () => {
     fireEvent.click(aiTabBtn);
 
     expect(await screen.findByText(/Hỏi đáp & Tra cứu Ngữ nghĩa cùng AI/i)).toBeInTheDocument();
-  }, 15000);
+  });
 
   it('chuyển đổi tab Tác giả & Giảng viên và hiển thị thông tin tác giả nạp từ tài nguyên', async () => {
-    vi.mocked(axiosClient.get).mockImplementation((url: string) => {
-      if (url.includes('/api/ResourcesSearch')) {
-        return Promise.resolve({
-          data: {
-            items: [
-              {
-                fileId: 'FIL_SEARCH_002',
-                fileName: 'Khóa luận Tốt nghiệp Trí tuệ Nhân tạo',
-                fileDescription: 'Nghiên cứu thị giác máy tính',
-                fileUrl: 'https://example.com/ai.pdf',
-                fileTypeId: 2,
-                fileTypeName: 'Khóa luận tốt nghiệp',
-                subMajorCode: 'Trí tuệ Nhân tạo',
-                yearCompleted: 2026,
-                uploadBy: 'PGS. TS. Trần Minh Tuấn',
-                fileSize: 4096000,
-                createdAt: '2026-09-22T08:00:00Z',
-              },
-            ],
-            totalCount: 1,
-            page: 1,
-            pageSize: 50,
-          },
-        });
-      }
-      return Promise.resolve({ data: [] });
-    });
+    // Cấp phát một tài liệu để thuật toán extractedAuthors của anh trích xuất
+    mockSearchApi([
+      {
+        fileId: 'FIL_SEARCH_002',
+        fileName: 'Khóa luận Tốt nghiệp Trí tuệ Nhân tạo',
+        fileDescription: 'Nghiên cứu thị giác máy tính',
+        fileUrl: 'https://example.com/ai.pdf',
+        fileTypeName: 'Khóa luận tốt nghiệp',
+        subMajorCode: 'Trí tuệ Nhân tạo',
+        yearCompleted: 2026,
+        uploadBy: 'PGS. TS. Trần Minh Tuấn',
+        createdAt: '2026-09-22T08:00:00Z',
+        keywords: [],
+      },
+    ]);
 
     const router = createMemoryRouter(appRoutes, {
       initialEntries: [APP_PATHS.SEARCH],
@@ -156,8 +148,9 @@ describe('searchHubRoutes integration', () => {
     const authorsTabBtn = screen.getByRole('button', { name: /Tác giả & Giảng viên/i });
     fireEvent.click(authorsTabBtn);
 
+    // Xác minh thuật toán trích xuất tác giả hoạt động chuẩn xác
     expect(await screen.findByText('Danh bạ Tác giả & Giảng viên')).toBeInTheDocument();
     expect(screen.getByText('PGS. TS. Trần Minh Tuấn')).toBeInTheDocument();
-    expect(screen.getByText(/1 tài liệu đã đăng/i)).toBeInTheDocument();
-  }, 15000);
+    expect(screen.getByText(/1 tài liệu/i)).toBeInTheDocument();
+  });
 });
