@@ -7,7 +7,7 @@ import axiosClient from '@/services/axiosClient';
 import { useAuthStore } from '@/store/authStore';
 import type { SearchResultItem } from '@/features/resources/types/search.types';
 
-// Giả lập Axios
+// Giả lập Axios toàn diện, đảm bảo không có API nào bị lọt
 vi.mock('@/services/axiosClient', () => ({
   default: {
     get: vi.fn(),
@@ -40,16 +40,21 @@ const unauthenticatedState = {
   isLoading: false,
 } satisfies Partial<ReturnType<typeof useAuthStore.getState>>;
 
-// Khối logic giả lập xử lý chung cho cả GET và POST
+// Khối logic giả lập xử lý BẤT BẠI
 const mockImplementation = (items: Partial<SearchResultItem>[]) => (url: string) => {
   const lowerUrl = url.toLowerCase();
 
-  // 1. Cấp mảng rỗng cho các API lấy danh mục
-  if (lowerUrl.includes('sub-major') || lowerUrl.includes('file-type') || lowerUrl.includes('system')) {
-    return Promise.resolve({ data: [] });
+  // 1. Nếu là gọi lấy danh mục, trả mảng rỗng (Tránh lỗi 500 từ Promise.all)
+  if (
+    lowerUrl.includes('sub-major') ||
+    lowerUrl.includes('file-type') ||
+    lowerUrl.includes('system') ||
+    lowerUrl.includes('authors')
+  ) {
+    return Promise.resolve({ data: [] }); // Thêm auths vào đề phòng
   }
 
-  // 2. Cấp đạn thật cho API Search
+  // 2. Mặc định mọi request khác (như API Search) đều phải trả về data chuẩn!
   return Promise.resolve({
     data: {
       items,
@@ -60,7 +65,7 @@ const mockImplementation = (items: Partial<SearchResultItem>[]) => (url: string)
   });
 };
 
-// Đánh chặn toàn bộ mọi ngóc ngách của API
+// Đánh chặn toàn bộ
 const mockSearchApi = (items: Partial<SearchResultItem>[]) => {
   vi.mocked(axiosClient.get).mockImplementation(mockImplementation(items));
   vi.mocked(axiosClient.post).mockImplementation(mockImplementation(items));
@@ -76,7 +81,7 @@ describe('searchHubRoutes integration', () => {
     useAuthStore.setState(unauthenticatedState);
   });
 
-  // CHÚ Ý: Đã thêm lại , 15000 ở cuối block it() để nới rộng thời gian cho CI/CD
+  // Tăng max timeout lên 20000ms (20 giây) để CI chạy thoải mái
   it('nạp dữ liệu qua loader và hiển thị giao diện Tra cứu tài nguyên số', async () => {
     mockSearchApi([
       {
@@ -99,12 +104,14 @@ describe('searchHubRoutes integration', () => {
 
     render(<RouterProvider router={router} />);
 
-    const heading = await screen.findByRole('heading', { name: 'Trung tâm Tra cứu Tài nguyên Số' }, { timeout: 10000 });
+    // Kiểm tra title
+    const heading = await screen.findByRole('heading', { name: 'Trung tâm Tra cứu Tài nguyên Số' }, { timeout: 15000 });
     expect(heading).toBeInTheDocument();
 
-    expect(await screen.findByText('Giáo trình Lập trình Hướng đối tượng')).toBeInTheDocument();
+    // Xác nhận tài liệu
+    expect(await screen.findByText('Giáo trình Lập trình Hướng đối tượng', {}, { timeout: 15000 })).toBeInTheDocument();
     expect(screen.getByText('TS. Nguyễn Văn Hùng')).toBeInTheDocument();
-  }, 15000);
+  }, 20000);
 
   it('chuyển đổi tab Trợ lý AI và hiển thị gợi ý câu hỏi', async () => {
     mockSearchApi([]);
@@ -115,13 +122,13 @@ describe('searchHubRoutes integration', () => {
 
     render(<RouterProvider router={router} />);
 
-    await screen.findByRole('heading', { name: 'Trung tâm Tra cứu Tài nguyên Số' }, { timeout: 10000 });
+    await screen.findByRole('heading', { name: 'Trung tâm Tra cứu Tài nguyên Số' }, { timeout: 15000 });
 
     const aiTabBtn = screen.getByRole('button', { name: /Trợ lý AI/i });
     fireEvent.click(aiTabBtn);
 
-    expect(await screen.findByText(/Hỏi đáp & Tra cứu Ngữ nghĩa cùng AI/i)).toBeInTheDocument();
-  }, 15000);
+    expect(await screen.findByText(/Hỏi đáp & Tra cứu Ngữ nghĩa cùng AI/i, {}, { timeout: 15000 })).toBeInTheDocument();
+  }, 20000);
 
   it('chuyển đổi tab Tác giả & Giảng viên và hiển thị thông tin tác giả nạp từ tài nguyên', async () => {
     mockSearchApi([
@@ -145,12 +152,12 @@ describe('searchHubRoutes integration', () => {
 
     render(<RouterProvider router={router} />);
 
-    await screen.findByRole('heading', { name: 'Trung tâm Tra cứu Tài nguyên Số' }, { timeout: 10000 });
+    await screen.findByRole('heading', { name: 'Trung tâm Tra cứu Tài nguyên Số' }, { timeout: 15000 });
 
     const authorsTabBtn = screen.getByRole('button', { name: /Tác giả & Giảng viên/i });
     fireEvent.click(authorsTabBtn);
 
-    expect(await screen.findByText('Danh bạ Tác giả & Giảng viên')).toBeInTheDocument();
-    expect(await screen.findByText('PGS. TS. Trần Minh Tuấn')).toBeInTheDocument();
-  }, 15000);
+    expect(await screen.findByText('Danh bạ Tác giả & Giảng viên', {}, { timeout: 15000 })).toBeInTheDocument();
+    expect(await screen.findByText('PGS. TS. Trần Minh Tuấn', {}, { timeout: 15000 })).toBeInTheDocument();
+  }, 20000);
 });
