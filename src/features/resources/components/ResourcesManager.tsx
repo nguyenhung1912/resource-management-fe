@@ -404,10 +404,7 @@ export function ResourcesManager({ items, loaderData, onRevalidate, onDeleteSucc
         <div className="space-y-4">
           {/* Desktop & Tablet Responsive Table View */}
           <div className="overflow-hidden rounded-2xl border border-border-subtle bg-surface shadow-2xs">
-            <Table
-              className="w-full min-w-[900px] border-collapse text-left"
-              aria-label="Danh sách tài nguyên đã tải lên"
-            >
+            <Table className="w-full min-w-225 border-collapse text-left" aria-label="Danh sách tài nguyên đã tải lên">
               <TableHeader>
                 <TableRow className="border-b border-border-subtle bg-background/60 hover:bg-background/60 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
                   <TableHead className="px-4 py-3.5 sm:px-6">Tên tài liệu</TableHead>

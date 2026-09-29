@@ -6,6 +6,8 @@ import { APP_PATHS, ROUTE_SEGMENTS } from '@/constants/path';
 import searchLoader from '@/features/resources/pages/searchLoader';
 import { allResourcesLoader } from '@/features/digital-resources/all-resources/pages/allResourcesLoader';
 import { sourceCodeLoader } from '@/features/digital-resources/source-code/pages/sourceCodeLoader';
+import ResourceDetailPage from '@/features/resources/pages/ResourceDetailPage';
+import resourceDetailLoader from '@/features/resources/pages/resourceDetailLoader';
 
 const AllResourcesPage = lazy(() => import('@/features/digital-resources/all-resources/pages/AllResourcesPage'));
 const SourceCodePage = lazy(() => import('@/features/digital-resources/source-code/pages/SourceCodePage'));
@@ -48,7 +50,11 @@ export const searchRoutes: RouteObject[] = [
       },
     },
   },
-
+  {
+    path: `${ROUTE_SEGMENTS.RESOURCE_DETAIL}/:resourceId`,
+    element: <ResourceDetailPage />,
+    loader: resourceDetailLoader,
+  },
   {
     path: ROUTE_SEGMENTS.LECTURES,
     element: <Navigate to={APP_PATHS.ALL_RESOURCES} replace />,

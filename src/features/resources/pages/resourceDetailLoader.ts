@@ -7,10 +7,14 @@ export default async function resourceDetailLoader({ params }: LoaderFunctionArg
   if (!resourceId) throw new Response('Not Found', { status: 404 });
 
   // Bắn 2 luồng request cùng lúc để tiết kiệm thời gian chờ
-  const [detail, recommendations] = await Promise.all([
-    getResourceDetail(resourceId),
-    getRecommendedResources(5).catch(() => []), // Nếu API gợi ý lỗi thì trả về mảng rỗng
-  ]);
+  try {
+    const [detail, recommendations] = await Promise.all([
+      getResourceDetail(resourceId),
+      getRecommendedResources(5).catch(() => []),
+    ]);
 
-  return { detail, recommendations };
+    return { detail, recommendations };
+  } catch {
+    throw new Response('Lỗi máy chủ', { status: 500 });
+  }
 }

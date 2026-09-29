@@ -18,6 +18,16 @@ export function SearchHubPage() {
   const submit = useSubmit();
   const [searchParams] = useSearchParams();
 
+  // Hàm chuyển trang
+  const handlePageChange = (newPage: number) => {
+    // Kế thừa lại toàn bộ các bộ lọc đang có trên URL
+    const params = new URLSearchParams(searchParams);
+    // Ghi đè lại số trang
+    params.set('page', newPage.toString());
+    // Bắn lệnh đi (React Router sẽ gọi lại searchLoader và lấy data mới)
+    submit(params, { replace: true });
+  };
+
   const mappedResources: SearchResourceItem[] = useMemo(() => {
     if (!apiData?.items) return [];
     return apiData.items.map((item: SearchResultItem) => ({
@@ -90,6 +100,14 @@ export function SearchHubPage() {
           resources={mappedResources}
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
+
+          pagination={{
+            currentPage: apiData?.currentPage || 1,
+            totalPages: apiData?.totalPages || 1,
+            totalCount: apiData?.totalCount || 0,
+            pageSize: 10,
+            onPageChange: handlePageChange,
+          }}
         />
       ) : null}
 

@@ -19,6 +19,7 @@ export const ROUTE_SEGMENTS = {
   RESOURCE_UPLOAD: 'upload',
   RESOURCE_EDIT: 'edit',
   TRASH: 'trash',
+  RESOURCE_DETAIL: 'resource',
 
   // Digital resources catalog
   RESOURCES: 'resources',
@@ -132,4 +133,6 @@ export const APP_PATHS = {
   SERVER_ERROR: `/${ROUTE_SEGMENTS.SERVER_ERROR}`,
 
   SEARCH_RESOURCES: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.SEARCH}`,
+  RESOURCE_DETAIL_PUBLIC: (resourceId: string | number) =>
+    `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.RESOURCE_DETAIL}/${resourceId}`,
 } as const;

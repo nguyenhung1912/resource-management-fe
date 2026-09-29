@@ -2,16 +2,25 @@ import { Calendar, Download, FileText, Search, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
 import { CATEGORY_ICONS, SEARCH_CATEGORIES } from '../../constants/search.constants';
-import type { SearchResultItem } from '../../types/search.types';
+import type { SearchResourceItem } from '../../types/search.types';
 import { cn } from '@/utils/cn';
+import { Pagination, type PaginationProps } from '@/components/common/Pagination';
 
 export interface SearchResourceListTabProps {
-  resources: SearchResultItem[];
+  // 1. Đã đổi thành SearchResourceItem để khớp với mappedResources
+  resources: SearchResourceItem[];
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
+  pagination?: PaginationProps;
 }
 
-export function SearchResourceListTab({ resources, selectedCategory, onCategoryChange }: SearchResourceListTabProps) {
+// 2. Đã thêm pagination vào danh sách tiếp nhận
+export function SearchResourceListTab({
+  resources,
+  selectedCategory,
+  onCategoryChange,
+  pagination,
+}: SearchResourceListTabProps) {
   return (
     <div className="space-y-4">
       {/* Category filter bar */}
@@ -69,7 +78,7 @@ export function SearchResourceListTab({ resources, selectedCategory, onCategoryC
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-bold text-text-main group-hover:text-primary transition-colors leading-snug">
+                  <h3 className="text-sm font-bold text-text-main group-hover:text-primary transition-colors leading-snug line-clamp-2">
                     {res.title}
                   </h3>
 
@@ -82,14 +91,14 @@ export function SearchResourceListTab({ resources, selectedCategory, onCategoryC
                       <Calendar className="size-3.5" aria-hidden="true" />
                       {res.year}
                     </span>
-                    <span>{res.faculty}</span>
+                    <span className="truncate max-w-30">{res.faculty}</span>
                   </div>
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-border-subtle/60 flex items-center justify-between">
                   <span className="text-xs text-text-muted">{res.downloads} lượt tải</span>
                   <Link
-                    to={APP_PATHS.RESOURCES_MANAGER}
+                    to={APP_PATHS.RESOURCE_DETAIL_PUBLIC(res.id)}
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
                   >
                     <Download className="size-3.5" aria-hidden="true" />
@@ -99,6 +108,12 @@ export function SearchResourceListTab({ resources, selectedCategory, onCategoryC
               </div>
             );
           })}
+        </div>
+      )}
+
+      {pagination && resources.length > 0 && (
+        <div className="mt-6">
+          <Pagination {...pagination} />
         </div>
       )}
     </div>
