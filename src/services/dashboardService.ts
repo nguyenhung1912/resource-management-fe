@@ -1,6 +1,6 @@
 import axiosClient from '@/services/axiosClient';
 
-import type { DashboardFunction } from '@/features/dashboard/types/dashboard-menu.types';
+import type { DashboardFunction } from '@/features/home/types/dashboard-menu.types';
 
 export const dashboardService = {
   async getMyFunctions(): Promise<DashboardFunction[]> {

@@ -1,6 +1,6 @@
 import { APP_PATHS } from '@/constants/path';
 
-import type { DashboardMenuResponse } from '@/features/dashboard/types/dashboard-menu.types';
+import type { DashboardMenuResponse } from '@/features/home/types/dashboard-menu.types';
 
 export const DASHBOARD_MENU_CONFIG: DashboardMenuResponse = {
   groups: [

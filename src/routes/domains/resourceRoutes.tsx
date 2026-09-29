@@ -9,7 +9,7 @@ import { modifyResourceLoader } from '@/features/resources/pages/modifyResourceL
 const ResourcesManagerPage = lazy(() => import('@/features/resources/pages/ResourcesManagerPage'));
 const UploadResourcePage = lazy(() => import('@/features/resources/pages/UploadResourcePage'));
 const ModifyResourcePage = lazy(() => import('@/features/resources/pages/ModifyResourcePage'));
-const PlaceholderFeaturePage = lazy(() => import('@/features/dashboard/pages/PlaceholderFeaturePage'));
+const PlaceholderFeaturePage = lazy(() => import('@/features/home/pages/PlaceholderFeaturePage'));
 
 export const resourceRoutes: RouteObject[] = [
   {
