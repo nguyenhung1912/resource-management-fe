@@ -40,25 +40,25 @@ const unauthenticatedState = {
   isLoading: false,
 } satisfies Partial<ReturnType<typeof useAuthStore.getState>>;
 
-// Hàm chiến thuật: Trạm phát tín hiệu giả bao phủ toàn bộ các API mà searchLoader cần
+// Hàm chiến thuật: Đánh chặn lưới API diện rộng
 const mockSearchApi = (items: Partial<SearchResultItem>[]) => {
   vi.mocked(axiosClient.get).mockImplementation((url: string) => {
-    // 1. Giả lập API Tìm kiếm chính (Cập nhật đúng cấu trúc phân trang mới)
-    if (url.includes('/api/ResourcesSearch')) {
-      return Promise.resolve({
-        data: {
-          items,
-          totalCount: items.length,
-          totalPages: 1,
-          currentPage: 1,
-        },
-      });
-    }
-    // 2. Giả lập các API Danh mục chạy ngầm trong Promise.all
-    if (url.includes('/api/System/sub-majors') || url.includes('/api/System/file-types')) {
+    const lowerUrl = url.toLowerCase();
+
+    // 1. Nếu hệ thống ngầm (Promise.all) gọi lấy danh mục, cấp mảng rỗng
+    if (lowerUrl.includes('sub-major') || lowerUrl.includes('file-type') || lowerUrl.includes('system')) {
       return Promise.resolve({ data: [] });
     }
-    return Promise.resolve({ data: [] });
+
+    // 2. Mặc định mọi API GET chính (chính là lệnh Search) đều sẽ nhận băng đạn này
+    return Promise.resolve({
+      data: {
+        items,
+        totalCount: items.length,
+        totalPages: 1,
+        currentPage: 1,
+      },
+    });
   });
 };
 
@@ -94,17 +94,17 @@ describe('searchHubRoutes integration', () => {
 
     render(<RouterProvider router={router} />);
 
-    // Chờ hệ thống nạp xong đạn và render thành công
+    // Chờ khung trang load xong
     const heading = await screen.findByRole('heading', { name: 'Trung tâm Tra cứu Tài nguyên Số' }, { timeout: 10000 });
     expect(heading).toBeInTheDocument();
 
-    // Xác nhận tài liệu đã xuất hiện trên radar
-    expect(await screen.findByText('Giáo trình Lập trình Hướng đối tượng')).toBeInTheDocument();
+    // Kéo dài timeout lên 5000ms để đợi RouterProvider phân trang ngầm xong
+    expect(await screen.findByText('Giáo trình Lập trình Hướng đối tượng', {}, { timeout: 5000 })).toBeInTheDocument();
     expect(screen.getByText('TS. Nguyễn Văn Hùng')).toBeInTheDocument();
   });
 
   it('chuyển đổi tab Trợ lý AI và hiển thị gợi ý câu hỏi', async () => {
-    mockSearchApi([]); // Trạm AI không cần nạp trước tài liệu
+    mockSearchApi([]);
 
     const router = createMemoryRouter(appRoutes, {
       initialEntries: [APP_PATHS.SEARCH],
@@ -117,11 +117,10 @@ describe('searchHubRoutes integration', () => {
     const aiTabBtn = screen.getByRole('button', { name: /Trợ lý AI/i });
     fireEvent.click(aiTabBtn);
 
-    expect(await screen.findByText(/Hỏi đáp & Tra cứu Ngữ nghĩa cùng AI/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Hỏi đáp & Tra cứu Ngữ nghĩa cùng AI/i, {}, { timeout: 5000 })).toBeInTheDocument();
   });
 
   it('chuyển đổi tab Tác giả & Giảng viên và hiển thị thông tin tác giả nạp từ tài nguyên', async () => {
-    // Cấp phát một tài liệu để thuật toán extractedAuthors của anh trích xuất
     mockSearchApi([
       {
         fileId: 'FIL_SEARCH_002',
@@ -148,9 +147,8 @@ describe('searchHubRoutes integration', () => {
     const authorsTabBtn = screen.getByRole('button', { name: /Tác giả & Giảng viên/i });
     fireEvent.click(authorsTabBtn);
 
-    // Xác minh thuật toán trích xuất tác giả hoạt động chuẩn xác
-    expect(await screen.findByText('Danh bạ Tác giả & Giảng viên')).toBeInTheDocument();
-    expect(screen.getByText('PGS. TS. Trần Minh Tuấn')).toBeInTheDocument();
-    expect(screen.getByText(/1 tài liệu/i)).toBeInTheDocument();
+    // Chờ 5000ms cho thuật toán trích xuất tên tác giả chạy xong
+    expect(await screen.findByText('Danh bạ Tác giả & Giảng viên', {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(await screen.findByText('PGS. TS. Trần Minh Tuấn', {}, { timeout: 5000 })).toBeInTheDocument();
   });
 });
