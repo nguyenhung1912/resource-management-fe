@@ -3,17 +3,20 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { APP_PATHS } from '@/constants/path';
 import { appRoutes } from '@/routes';
-import axiosClient from '@/services/axiosClient';
 import { useAuthStore } from '@/store/authStore';
+import { searchResources } from '@/services/searchService';
+import { resourceService } from '@/services/resourceService';
 import type { SearchResultItem } from '@/features/resources/types/search.types';
 
-// Giả lập Axios toàn diện, đảm bảo không có API nào bị lọt
-vi.mock('@/services/axiosClient', () => ({
-  default: {
-    get: vi.fn(),
-    post: vi.fn(),
-    put: vi.fn(),
-    delete: vi.fn(),
+// 1. Đánh chặn trực tiếp tầng Dịch vụ (Services) thay vì Axios
+vi.mock('@/services/searchService', () => ({
+  searchResources: vi.fn(),
+}));
+
+vi.mock('@/services/resourceService', () => ({
+  resourceService: {
+    getSubMajors: vi.fn(),
+    getFileTypes: vi.fn(),
   },
 }));
 
@@ -40,35 +43,19 @@ const unauthenticatedState = {
   isLoading: false,
 } satisfies Partial<ReturnType<typeof useAuthStore.getState>>;
 
-// Khối logic giả lập xử lý BẤT BẠI
-const mockImplementation = (items: Partial<SearchResultItem>[]) => (url: string) => {
-  const lowerUrl = url.toLowerCase();
-
-  // 1. Nếu là gọi lấy danh mục, trả mảng rỗng (Tránh lỗi 500 từ Promise.all)
-  if (
-    lowerUrl.includes('sub-major') ||
-    lowerUrl.includes('file-type') ||
-    lowerUrl.includes('system') ||
-    lowerUrl.includes('authors')
-  ) {
-    return Promise.resolve({ data: [] }); // Thêm auths vào đề phòng
-  }
-
-  // 2. Mặc định mọi request khác (như API Search) đều phải trả về data chuẩn!
-  return Promise.resolve({
-    data: {
-      items,
-      totalCount: items.length,
-      totalPages: 1,
-      currentPage: 1,
-    },
+// 2. Trạm phát tín hiệu giả nạp thẳng vào các hàm Dịch vụ
+const mockSearchService = (items: Partial<SearchResultItem>[]) => {
+  // Mock hàm tìm kiếm chính
+  vi.mocked(searchResources).mockResolvedValue({
+    items: items as SearchResultItem[],
+    totalCount: items.length,
+    totalPages: 1,
+    currentPage: 1,
   });
-};
 
-// Đánh chặn toàn bộ
-const mockSearchApi = (items: Partial<SearchResultItem>[]) => {
-  vi.mocked(axiosClient.get).mockImplementation(mockImplementation(items));
-  vi.mocked(axiosClient.post).mockImplementation(mockImplementation(items));
+  // Mock các hàm danh mục (luôn trả về mảng rỗng để không bị lỗi 500)
+  vi.mocked(resourceService.getSubMajors).mockResolvedValue([]);
+  vi.mocked(resourceService.getFileTypes).mockResolvedValue([]);
 };
 
 describe('searchHubRoutes integration', () => {
@@ -81,9 +68,8 @@ describe('searchHubRoutes integration', () => {
     useAuthStore.setState(unauthenticatedState);
   });
 
-  // Tăng max timeout lên 20000ms (20 giây) để CI chạy thoải mái
   it('nạp dữ liệu qua loader và hiển thị giao diện Tra cứu tài nguyên số', async () => {
-    mockSearchApi([
+    mockSearchService([
       {
         fileId: 'FIL_SEARCH_001',
         fileName: 'Giáo trình Lập trình Hướng đối tượng',
@@ -99,22 +85,23 @@ describe('searchHubRoutes integration', () => {
     ]);
 
     const router = createMemoryRouter(appRoutes, {
-      initialEntries: [APP_PATHS.SEARCH],
+      // Ép một URL có tham số tìm kiếm (q) để searchLoader kích hoạt hàm searchResources
+      initialEntries: [`${APP_PATHS.SEARCH}?q=oop`],
     });
 
     render(<RouterProvider router={router} />);
 
-    // Kiểm tra title
+    // Chờ tiêu đề xuất hiện
     const heading = await screen.findByRole('heading', { name: 'Trung tâm Tra cứu Tài nguyên Số' }, { timeout: 15000 });
     expect(heading).toBeInTheDocument();
 
-    // Xác nhận tài liệu
+    // Xác nhận tài liệu đã load
     expect(await screen.findByText('Giáo trình Lập trình Hướng đối tượng', {}, { timeout: 15000 })).toBeInTheDocument();
     expect(screen.getByText('TS. Nguyễn Văn Hùng')).toBeInTheDocument();
   }, 20000);
 
   it('chuyển đổi tab Trợ lý AI và hiển thị gợi ý câu hỏi', async () => {
-    mockSearchApi([]);
+    mockSearchService([]);
 
     const router = createMemoryRouter(appRoutes, {
       initialEntries: [APP_PATHS.SEARCH],
@@ -131,7 +118,7 @@ describe('searchHubRoutes integration', () => {
   }, 20000);
 
   it('chuyển đổi tab Tác giả & Giảng viên và hiển thị thông tin tác giả nạp từ tài nguyên', async () => {
-    mockSearchApi([
+    mockSearchService([
       {
         fileId: 'FIL_SEARCH_002',
         fileName: 'Khóa luận Tốt nghiệp Trí tuệ Nhân tạo',
@@ -147,7 +134,7 @@ describe('searchHubRoutes integration', () => {
     ]);
 
     const router = createMemoryRouter(appRoutes, {
-      initialEntries: [APP_PATHS.SEARCH],
+      initialEntries: [`${APP_PATHS.SEARCH}?q=ai`], // Kích hoạt tìm kiếm
     });
 
     render(<RouterProvider router={router} />);
