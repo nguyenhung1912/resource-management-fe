@@ -667,4 +667,72 @@ describe('resourceService', () => {
       expect(result).toEqual(mockRecommendations);
     });
   });
+
+  describe('globalSearch', () => {
+    it('gọi GET /api/Search với tham số mặc định', async () => {
+      const mockResult = {
+        items: [],
+        totalCount: 0,
+        page: 1,
+        pageSize: 6,
+      };
+
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: mockResult });
+
+      const result = await resourceService.globalSearch({});
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/Search', {
+        params: {
+          Page: 1,
+          PageSize: 6,
+          SortBy: 'date',
+          SortDirection: 'desc',
+        },
+      });
+      expect(result).toEqual(mockResult);
+    });
+
+    it('gửi đầy đủ các tham số tìm kiếm nâng cao khi được cung cấp', async () => {
+      const mockResult = {
+        items: [
+          {
+            fileId: 'FIL_TEST',
+            fileName: 'Nghiên cứu AI',
+          },
+        ],
+        totalCount: 1,
+        page: 2,
+        pageSize: 10,
+      };
+
+      vi.mocked(axiosClient.get).mockResolvedValueOnce({ data: mockResult });
+
+      const result = await resourceService.globalSearch({
+        q: 'Trí tuệ nhân tạo',
+        fileTypeId: 1,
+        subMajorCode: 'CNTT_KTPM',
+        courseCode: 'IT3040',
+        yearCompleted: 2026,
+        sortBy: 'year',
+        sortDirection: 'asc',
+        page: 2,
+        pageSize: 10,
+      });
+
+      expect(axiosClient.get).toHaveBeenCalledWith('/api/Search', {
+        params: {
+          q: 'Trí tuệ nhân tạo',
+          FileTypeId: 1,
+          SubMajorCode: 'CNTT_KTPM',
+          CourseCode: 'IT3040',
+          YearCompleted: 2026,
+          SortBy: 'year',
+          SortDirection: 'asc',
+          Page: 2,
+          PageSize: 10,
+        },
+      });
+      expect(result).toEqual(mockResult);
+    });
+  });
 });

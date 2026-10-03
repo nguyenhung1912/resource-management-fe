@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { dashboardService } from '@/services/dashboardService';
-import type { DashboardFunction } from '@/features/dashboard/types/dashboard-menu.types';
+import type { DashboardFunction } from '@/features/home/types/dashboard-menu.types';
 
 export function useDashboardFunctions() {
   const [functions, setFunctions] = useState<DashboardFunction[]>([]);

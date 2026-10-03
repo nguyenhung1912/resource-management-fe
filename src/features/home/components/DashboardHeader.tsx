@@ -4,7 +4,7 @@ import { Menu } from 'lucide-react';
 
 import logoQnu from '@/assets/logo-qnu.webp';
 import { APP_PATHS } from '@/constants/path';
-import type { DashboardHeaderUser } from '@/features/dashboard/types/dashboard-header.types';
+import type { DashboardHeaderUser } from '@/features/home/types/dashboard-header.types';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { NotificationDialog } from '@/features/notifications/components/NotificationDialog';
 import { UserDropdown } from '@/layouts/ui/UserDropdown';

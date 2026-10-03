@@ -13,11 +13,12 @@ import { ModerationQueueStatsCards } from '../components/ModerationQueueStatsCar
 import { ModerationQueueFilterBar } from '../components/ModerationQueueFilterBar';
 import { ModerationQueueTable } from '../components/ModerationQueueTable';
 import { usePlagiarismCheck } from '../hooks/usePlagiarismCheck';
-import type {
-  ModerationAiRiskFilter,
-  ModerationQueueLoaderData,
-  ModerationResourceItemResponse,
-  ModerationTargetDocument,
+import {
+  getModerationUploaderName,
+  type ModerationAiRiskFilter,
+  type ModerationQueueLoaderData,
+  type ModerationResourceItemResponse,
+  type ModerationTargetDocument,
 } from '../types/moderation.types';
 
 export function ModerationQueuePage() {
@@ -49,11 +50,11 @@ export function ModerationQueuePage() {
     fileName: item.fileName,
     fileTypeName: item.fileTypeName,
     subMajorName: item.subMajorName,
-    uploaderName: item.uploaderName,
-    uploaderEmail: item.uploaderEmail,
+    uploaderName: getModerationUploaderName(item),
+    uploaderEmail: item.uploader?.email || item.uploaderEmail,
     createdAt: item.createdAt,
     fileUrl: item.fileUrl,
-    latestPlagiarismScore: item.latestPlagiarismScore,
+    latestPlagiarismScore: item.latestPlagiarismScore ?? item.latestModeration?.plagiarismScore,
   });
 
   // Filter handlers
