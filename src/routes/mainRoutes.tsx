@@ -41,16 +41,6 @@ export const mainRoutes: RouteObject[] = [
         element: <ProtectedRoute />,
         children: [...notificationRoutes, ...appealRoutes, ...profileRoutes, ...changePasswordRoutes],
       },
-      // {
-      //   path: ROUTE_SEGMENTS.SEARCH,
-      //       element: <SearchHubPage />,
-      //       handle: {
-      //         meta: {
-      //           title: 'Tra cứu tài nguyên',
-      //           breadcrumb: 'Tra cứu',
-      //         },
-      //       },
-      // }
     ],
   },
 ];

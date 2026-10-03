@@ -8,7 +8,7 @@ import { searchResources } from '@/services/searchService';
 import { resourceService } from '@/services/resourceService';
 import type { SearchResultItem } from '@/features/resources/types/search.types';
 
-// 1. Đánh chặn trực tiếp tầng Dịch vụ (Services) thay vì Axios
+// 1. chặn trực tiếp tầng Dịch vụ (Services) thay vì Axios
 vi.mock('@/services/searchService', () => ({
   searchResources: vi.fn(),
 }));

@@ -10,7 +10,6 @@ export interface SearchResourceListTabProps {
   resources: SearchResourceItem[];
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
-  // Dung hợp cả 2 vũ khí
   pagination?: PaginationProps;
   onSelectResource?: (resourceId: string) => void;
 }
@@ -136,7 +135,6 @@ export function SearchResourceListTab({
         </div>
       )}
 
-      {/* Trạm phân trang được bảo toàn */}
       {pagination && resources.length > 0 && (
         <div className="mt-6">
           <Pagination {...pagination} />

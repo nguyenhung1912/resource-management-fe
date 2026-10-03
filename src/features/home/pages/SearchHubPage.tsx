@@ -114,7 +114,6 @@ export function SearchHubPage() {
           resources={mappedResources}
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
-          // Lắp đạn phân trang của chúng ta vào
           pagination={{
             currentPage: apiData?.currentPage || 1,
             totalPages: apiData?.totalPages || 1,
@@ -148,8 +147,6 @@ export function SearchHubPage() {
           onApply={() => setActiveTab('all')}
         />
       ) : null}
-
-      {/* Tạm thời bỏ trống danh sách tác giả nếu chưa có API hỗ trợ */}
       {activeTab === 'authors' ? <SearchAuthorsTab authors={extractedAuthors} /> : null}
     </div>
   );

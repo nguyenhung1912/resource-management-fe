@@ -46,12 +46,6 @@ export const resourceRoutes: RouteObject[] = [
           },
         },
       },
-      // Đã xóa bỏ block SEARCH gây nhiễu
-      // {
-      //   path: ROUTE_PARAMS.RESOURCE_ID,
-      //   element: <ResourceDetailPage />,
-      //   loader: resourceDetailLoader,
-      // },
       {
         path: ROUTE_SEGMENTS.TRASH,
         element: (
