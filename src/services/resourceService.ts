@@ -23,6 +23,9 @@ import type {
 } from '@/features/digital-resources/all-resources/types/all-resources.types';
 import type { GlobalSearchQuery, SearchPaginatedResult } from '@/features/home/types/home.types';
 
+// Upload waits for PDF conversion and synchronous duplicate checking in the worker (up to 10 minutes).
+const RESOURCE_UPLOAD_TIMEOUT_MS = 15 * 60 * 1000;
+
 export function buildUploadResourceFormData(values: UploadResourceRequest | UploadSourceCodeFormValues): FormData {
   const formData = new FormData();
   formData.append('File', values.file);
@@ -212,6 +215,7 @@ export const resourceService = {
     const formData = payload instanceof FormData ? payload : buildUploadResourceFormData(payload);
 
     const response = await axiosClient.post<UploadResourceSuccessResponse>('/api/Resources', formData, {
+      timeout: RESOURCE_UPLOAD_TIMEOUT_MS,
       headers: {
         'Content-Type': 'multipart/form-data',
       },

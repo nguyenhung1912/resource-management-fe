@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Files, Plus } from 'lucide-react';
-import { Link, Outlet, useLoaderData, useRevalidator, useSearchParams } from 'react-router-dom';
+import { Link, Outlet, useLoaderData, useLocation, useRevalidator, useSearchParams } from 'react-router-dom';
+import { AlertBanner } from '@/components/common/AlertBanner';
 import { buttonVariants } from '@/components/ui/Button';
 import { PageHeader } from '@/components/common/PageHeader';
 import { APP_PATHS } from '@/constants/path';
@@ -12,6 +13,11 @@ export function ResourcesManagerPage() {
   const loaderData = useLoaderData() as ResourcesManagerLoaderData | undefined;
   const [searchParams, setSearchParams] = useSearchParams();
   const revalidator = useRevalidator();
+  const location = useLocation();
+  const [dismissedUploadNoticeKey, setDismissedUploadNoticeKey] = useState<string | null>(null);
+  const showUploadSuccess =
+    (location.state as { resourceUploadSucceeded?: boolean } | null)?.resourceUploadSucceeded === true &&
+    dismissedUploadNoticeKey !== location.key;
 
   const activeStatusId = useMemo(() => {
     const statusParam = searchParams.get('status');
@@ -43,6 +49,15 @@ export function ResourcesManagerPage() {
           </Link>
         }
       />
+
+      {showUploadSuccess ? (
+        <AlertBanner
+          type="success"
+          title="Tải tài liệu thành công"
+          message="Tài liệu đã được chuyển sang PDF và lưu ở trạng thái Chờ duyệt. Kiểm tra trùng lặp sẽ tiếp tục ở chế độ nền."
+          onClose={() => setDismissedUploadNoticeKey(location.key)}
+        />
+      ) : null}
 
       {/* 2. Statistics KPI Cards */}
       <ResourceStats stats={loaderData?.stats} activeStatusId={activeStatusId} onSelectStatus={handleSelectStatus} />

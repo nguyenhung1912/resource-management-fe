@@ -68,6 +68,7 @@ describe('UploadResourcePage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
 
     expect(screen.getByRole('button', { name: 'Đang tải lên…' })).toBeDisabled();
+    expect(screen.getByRole('status')).toHaveTextContent('kiểm tra trùng lặp');
     expect(screen.getByLabelText(/tên tài nguyên/i)).toBeDisabled();
     expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCE_UPLOAD);
     const call = vi.mocked(axiosClient.post).mock.calls[0];
@@ -89,6 +90,7 @@ describe('UploadResourcePage', () => {
     });
 
     await waitFor(() => expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCES_MANAGER));
+    expect(router.state.location.state).toEqual({ resourceUploadSucceeded: true });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
@@ -115,6 +117,20 @@ describe('UploadResourcePage', () => {
     const retriedBody: unknown = vi.mocked(axiosClient.post).mock.calls[1]?.[1];
     if (!(retriedBody instanceof FormData)) throw new Error('Upload phải sử dụng FormData');
     expect(retriedBody.get('File')).toBe(file);
+  });
+
+  it.each([409, 503])('hiển thị đúng thông báo backend cho HTTP %i và không tự gửi lại', async (status) => {
+    vi.mocked(axiosClient.post).mockRejectedValueOnce({
+      isAxiosError: true,
+      response: { status, data: { message: 'Không thể nhận tài liệu.' } },
+    });
+    const router = renderUploadPage();
+    await fillRequiredFields();
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Không thể nhận tài liệu.');
+    expect(axiosClient.post).toHaveBeenCalledTimes(1);
+    expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCE_UPLOAD);
   });
 
   it('hiển thị đầy đủ danh mục học thuật (khoa, ngành, chuyên ngành, học phần) khi có dữ liệu loader', async () => {

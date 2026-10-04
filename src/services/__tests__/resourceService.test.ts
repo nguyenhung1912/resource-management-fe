@@ -427,6 +427,7 @@ describe('resourceService', () => {
       const result = await resourceService.uploadResource(formData);
 
       expect(axiosClient.post).toHaveBeenCalledWith('/api/Resources', formData, {
+        timeout: 15 * 60 * 1000,
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -453,6 +454,7 @@ describe('resourceService', () => {
       const result = await resourceService.uploadResource(values);
 
       expect(axiosClient.post).toHaveBeenCalledWith('/api/Resources', expect.any(FormData), {
+        timeout: 15 * 60 * 1000,
         headers: {
           'Content-Type': 'multipart/form-data',
         },
