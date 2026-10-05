@@ -2,7 +2,6 @@ import { Suspense, useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
 
-import { Breadcrumbs } from '@/components/common/Breadcrumbs';
 import { PageLoadingState } from '@/components/common/PageLoadingState';
 import { DASHBOARD_MENU_CONFIG } from '@/constants/dashboard-menu';
 import { DashboardHeader } from '@/features/home/components/DashboardHeader';
@@ -101,10 +100,6 @@ export function DashboardLayout() {
         </aside>
 
         <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">
-          <div className="px-4 pt-4 sm:px-6 lg:px-8">
-            <Breadcrumbs />
-          </div>
-
           <Suspense fallback={<PageLoadingState />}>
             <Outlet />
           </Suspense>
