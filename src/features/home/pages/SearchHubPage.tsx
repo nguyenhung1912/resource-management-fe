@@ -1,6 +1,5 @@
-import { useDeferredValue, useMemo, useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
-import { Link, useLoaderData, useSubmit, useSearchParams } from 'react-router-dom';
+import { Link, useLoaderData } from 'react-router-dom';
 import { buttonVariants } from '@/components/ui/Button';
 import { PageHeader } from '@/components/common/PageHeader';
 import { APP_PATHS } from '@/constants/path';
@@ -9,84 +8,18 @@ import { SearchAiTab } from '../components/search/SearchAiTab';
 import { SearchAuthorsTab } from '../components/search/SearchAuthorsTab';
 import { SearchOmnibox } from '../components/search/SearchOmnibox';
 import { SearchResourceListTab } from '../components/search/SearchResourceListTab';
-import type { SearchHubLoaderData, SearchResourceItem, SearchTab } from '../types/search.types';
-import type { SearchResultItem } from '@/features/home/types/search.types';
+import type { SearchHubLoaderData } from '../types/search.types';
+
+// Import 2 trạm điều khiển vừa tạo
+import { useSearchData } from '../hooks/useSearchHubData';
+import { useSearchFilters } from '../hooks/useSearchHubFilters';
 
 export function SearchHubPage() {
   const { apiData, submajors, fileTypes } = useLoaderData() as SearchHubLoaderData;
 
-  const submit = useSubmit();
-  const [searchParams] = useSearchParams();
-
-  // Cơ chế chuyển trang giữ nguyên bộ lọc
-  const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams);
-    params.set('page', newPage.toString());
-    submit(params, { replace: true });
-  };
-
-  // Ánh xạ dữ liệu chuẩn xác từ Backend
-  const mappedResources: SearchResourceItem[] = useMemo(() => {
-    if (!apiData?.items) return [];
-    return apiData.items.map((item: SearchResultItem) => ({
-      id: item.fileId,
-      title: item.fileName || 'Chưa cập nhật',
-      category: item.fileTypeName || 'Khác',
-      author: item.uploadBy || 'Ẩn danh',
-      faculty: item.subMajorCode || 'Chưa phân khoa',
-      year: item.yearCompleted ? item.yearCompleted.toString() : new Date(item.createdAt).getFullYear().toString(),
-      format: 'PDF',
-      downloads: 0,
-    }));
-  }, [apiData]);
-  const extractedAuthors = useMemo(() => {
-    const authorMap = new Map<string, number>();
-
-    mappedResources.forEach((res) => {
-      if (res.author && res.author !== 'Ẩn danh') {
-        authorMap.set(res.author, (authorMap.get(res.author) || 0) + 1);
-      }
-    });
-
-    return Array.from(authorMap.entries()).map(([name, count]) => ({
-      name,
-      role: 'Giảng viên', // Giá trị mặc định
-      dept: 'Chưa cập nhật',
-      count,
-    }));
-  }, [mappedResources]);
-
-  const [activeTab, setActiveTab] = useState<SearchTab>('all');
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [selectedFaculty, setSelectedFaculty] = useState(searchParams.get('subMajorCode') || 'all');
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('fileTypeId') || 'all');
-  const [selectedYear, setSelectedYear] = useState(searchParams.get('yearCompleted') || '');
-  const [selectedFormat, setSelectedFormat] = useState(searchParams.get('fileTypeId') || 'all');
-
-  const deferredQuery = useDeferredValue(searchQuery.trim());
-
-  // Đồng bộ hóa trạng thái bộ lọc lên thanh URL
-  useEffect(() => {
-    const params = new URLSearchParams();
-
-    if (deferredQuery) params.set('q', deferredQuery);
-    if (selectedFaculty !== 'all') params.set('subMajorCode', selectedFaculty);
-    if (selectedYear) params.set('yearCompleted', selectedYear);
-
-    const finalFileTypeId =
-      selectedFormat !== 'all' ? selectedFormat : selectedCategory !== 'all' ? selectedCategory : null;
-    if (finalFileTypeId) params.set('fileTypeId', finalFileTypeId);
-
-    submit(params, { replace: true });
-  }, [deferredQuery, selectedFaculty, selectedCategory, selectedFormat, selectedYear, submit]);
-
-  const handleResetFilters = () => {
-    setSelectedFaculty('all');
-    setSelectedCategory('all');
-    setSelectedFormat('all');
-    setSelectedYear('');
-    setSearchQuery('');
-  };
+  // Rút gọn toàn bộ logic phức tạp thông qua custom hooks
+  const { mappedResources, extractedAuthors } = useSearchData(apiData);
+  const filters = useSearchFilters();
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -102,52 +35,53 @@ export function SearchHubPage() {
       />
 
       <SearchOmnibox
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
+        searchQuery={filters.searchQuery}
+        onSearchChange={filters.setSearchQuery}
+        activeTab={filters.activeTab}
+        onTabChange={filters.setActiveTab}
         resourceCount={apiData?.totalCount || 0}
       />
 
-      {activeTab === 'all' ? (
+      {filters.activeTab === 'all' ? (
         <SearchResourceListTab
           resources={mappedResources}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
+          selectedCategory={filters.selectedCategory}
+          onCategoryChange={filters.setSelectedCategory}
           pagination={{
             currentPage: apiData?.currentPage || 1,
             totalPages: apiData?.totalPages || 1,
             totalCount: apiData?.totalCount || 0,
             pageSize: 10,
-            onPageChange: handlePageChange,
+            onPageChange: filters.handlePageChange,
           }}
         />
       ) : null}
 
-      {activeTab === 'ai' ? (
+      {filters.activeTab === 'ai' ? (
         <SearchAiTab
           onSelectSuggestion={(prompt) => {
-            setSearchQuery(prompt);
-            setActiveTab('all');
+            filters.setSearchQuery(prompt);
+            filters.setActiveTab('all');
           }}
         />
       ) : null}
 
-      {activeTab === 'advanced' ? (
+      {filters.activeTab === 'advanced' ? (
         <SearchAdvancedFilterTab
           submajors={submajors}
           fileTypes={fileTypes}
-          selectedFaculty={selectedFaculty}
-          onFacultyChange={setSelectedFaculty}
-          selectedYear={selectedYear}
-          onYearChange={setSelectedYear}
-          selectedFormat={selectedFormat}
-          onFormatChange={setSelectedFormat}
-          onReset={handleResetFilters}
-          onApply={() => setActiveTab('all')}
+          selectedFaculty={filters.selectedFaculty}
+          onFacultyChange={filters.setSelectedFaculty}
+          selectedYear={filters.selectedYear}
+          onYearChange={filters.setSelectedYear}
+          selectedFormat={filters.selectedFormat}
+          onFormatChange={filters.setSelectedFormat}
+          onReset={filters.handleResetFilters}
+          onApply={() => filters.setActiveTab('all')}
         />
       ) : null}
-      {activeTab === 'authors' ? <SearchAuthorsTab authors={extractedAuthors} /> : null}
+
+      {filters.activeTab === 'authors' ? <SearchAuthorsTab authors={extractedAuthors} /> : null}
     </div>
   );
 }
