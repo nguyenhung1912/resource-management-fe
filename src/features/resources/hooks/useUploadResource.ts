@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import axios from 'axios';
 import type { UploadResourceFormValues } from '@/features/resources/types/resource.types';
 import { resourceService } from '@/services/resourceService';
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage';
@@ -20,7 +21,16 @@ export function useUploadResource() {
       await resourceService.uploadResource({ ...resource, githubLink: sourceCodeUrl });
       return true;
     } catch (error: unknown) {
-      setApiError(getApiErrorMessage(error, 'Tải tài nguyên thất bại. Vui lòng thử lại.'));
+      let message = getApiErrorMessage(error, 'Tải tài nguyên thất bại.');
+
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
+          message =
+            'Hết thời gian chờ phản hồi. Máy chủ có thể vẫn đang xử lý tài liệu; hãy kiểm tra danh sách upload trước khi gửi lại.';
+        }
+      }
+
+      setApiError(message);
       return false;
     } finally {
       isUploadingRef.current = false;

@@ -15,11 +15,15 @@ export function UploadResourcePage() {
     void navigate(APP_PATHS.RESOURCES_MANAGER);
   };
 
+  const finishUpload = () => {
+    void navigate(APP_PATHS.RESOURCES_MANAGER, { state: { resourceUploadSucceeded: true } });
+  };
+
   const handleSubmit = async (values: UploadResourceFormValues) => {
     const isUploaded = await uploadResource(values);
     if (isUploaded) {
       revalidator.revalidate();
-      closeUpload();
+      finishUpload();
     }
   };
 

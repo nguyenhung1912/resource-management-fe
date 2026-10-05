@@ -438,6 +438,17 @@ export function UploadResourceModal({
       footer={footer}
     >
       <form id="upload-resource-form" noValidate aria-busy={isSubmitting} className="space-y-5" onSubmit={handleSubmit}>
+        {isSubmitting ? (
+          <div
+            role="status"
+            aria-live="polite"
+            className="rounded-lg border border-primary/20 bg-primary/5 p-3.5 text-sm leading-relaxed text-text-main"
+          >
+            Đang tải tệp lên và chuyển sang PDF. Sau khi lưu thành công, hệ thống sẽ tiếp tục kiểm tra trùng lặp ở chế
+            độ nền.
+          </div>
+        ) : null}
+
         {apiError ? (
           <div
             role="alert"
