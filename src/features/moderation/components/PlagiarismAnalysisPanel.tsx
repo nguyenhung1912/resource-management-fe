@@ -118,9 +118,9 @@ export function PlagiarismAnalysisPanel({
   onCheckPlagiarism,
   className,
 }: PlagiarismAnalysisPanelProps) {
-  const score = plagiarismCheck?.similarityScore;
+  const score = plagiarismCheck?.similarityRate ?? plagiarismCheck?.similarityScore;
   const hasScore = typeof score === 'number';
-  const chunkCount = plagiarismCheck?.matchedChunks?.length ?? 0;
+  const chunkCount = plagiarismCheck?.matchedChunksCount ?? plagiarismCheck?.matchedChunks?.length ?? 0;
   const classification = hasScore ? getScoreClassification(score) : null;
 
   return (
@@ -212,14 +212,31 @@ export function PlagiarismAnalysisPanel({
                   </Badge>
                 </div>
 
+                {typeof plagiarismCheck?.isPlagiarism === 'boolean' && (
+                  <p className="text-xs font-medium text-text-main">
+                    {plagiarismCheck.isPlagiarism
+                      ? 'Phát hiện nội dung trùng lặp'
+                      : 'Không phát hiện nội dung trùng lặp'}
+                    {typeof plagiarismCheck.totalChunksCount === 'number' &&
+                      ` · ${chunkCount}/${plagiarismCheck.totalChunksCount} đoạn khớp`}
+                  </p>
+                )}
+
                 {/* Chunk count stat — inline bên cạnh score */}
                 <ChunkCountStat count={chunkCount} />
               </div>
 
-              {plagiarismCheck?.checkedAt && (
-                <div className="flex items-center gap-1.5 text-xs text-text-muted shrink-0">
-                  <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>Quét lúc: {formatDateTime(plagiarismCheck.checkedAt)}</span>
+              {(plagiarismCheck?.checkedAt || typeof plagiarismCheck?.processingTimeMs === 'number') && (
+                <div className="space-y-1 text-xs text-text-muted shrink-0">
+                  {plagiarismCheck.checkedAt && (
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span>Quét lúc: {formatDateTime(plagiarismCheck.checkedAt)}</span>
+                    </div>
+                  )}
+                  {typeof plagiarismCheck.processingTimeMs === 'number' && (
+                    <span>Thời gian xử lý: {(plagiarismCheck.processingTimeMs / 1000).toFixed(2)} giây</span>
+                  )}
                 </div>
               )}
             </div>

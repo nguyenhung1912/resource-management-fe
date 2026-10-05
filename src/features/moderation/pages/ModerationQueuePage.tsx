@@ -19,6 +19,7 @@ import {
   type ModerationQueueLoaderData,
   type ModerationResourceItemResponse,
   type ModerationTargetDocument,
+  type PlagiarismCheckResponse,
 } from '../types/moderation.types';
 
 export function ModerationQueuePage() {
@@ -38,6 +39,7 @@ export function ModerationQueuePage() {
 
   // Plagiarism checking state for rows
   const [checkingPlagiarismFileIds, setCheckingPlagiarismFileIds] = useState<Set<string>>(new Set());
+  const [plagiarismResults, setPlagiarismResults] = useState<Record<string, PlagiarismCheckResponse>>({});
   const { check: runPlagiarismCheck } = usePlagiarismCheck();
 
   // Feedback banner & Refreshing
@@ -159,9 +161,10 @@ export function ModerationQueuePage() {
 
     await runPlagiarismCheck(fileId, {
       onSuccess: (result, message) => {
+        setPlagiarismResults((previous) => ({ ...previous, [fileId]: result }));
         setFeedback({
           type: 'success',
-          message: `${message || 'Kiểm tra trùng lặp AI hoàn tất'}. Tỷ lệ tương đồng: ${result.similarityScore ?? 0}%.`,
+          message: `${message || 'Kiểm tra trùng lặp AI hoàn tất'}. Tỷ lệ tương đồng: ${(result.similarityRate ?? result.similarityScore ?? 0).toFixed(2)}%.`,
         });
         revalidator.revalidate();
       },
@@ -269,6 +272,7 @@ export function ModerationQueuePage() {
       {/* Moderation Queue Table & Mobile Cards */}
       <ModerationQueueTable
         items={queue.items}
+        plagiarismResults={plagiarismResults}
         checkingPlagiarismFileIds={checkingPlagiarismFileIds}
         onCheckPlagiarism={handleCheckPlagiarism}
         onApprove={handleOpenApprove}
