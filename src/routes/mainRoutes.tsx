@@ -5,9 +5,6 @@ import { PageLoadingState } from '@/components/common/PageLoadingState';
 import { APP_PATHS } from '@/constants/path';
 import { homeLoader } from '@/features/home/pages/homeLoader';
 import { MainLayout } from '@/layouts/MainLayout';
-import { appealRoutes, notificationRoutes, profileRoutes, changePasswordRoutes } from './domains';
-import { ProtectedRoute } from './guards/ProtectedRoute';
-// import SearchHubPage from '@/features/dashboard/pages/SearchHubPage';
 
 const HomePage = lazy(() => import('@/features/home/pages/HomePage'));
 const ServerErrorPage = lazy(() =>
@@ -36,10 +33,6 @@ export const mainRoutes: RouteObject[] = [
             breadcrumb: 'Trang chủ',
           },
         },
-      },
-      {
-        element: <ProtectedRoute />,
-        children: [...notificationRoutes, ...appealRoutes, ...profileRoutes, ...changePasswordRoutes],
       },
     ],
   },

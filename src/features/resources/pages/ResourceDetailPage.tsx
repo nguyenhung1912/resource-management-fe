@@ -3,7 +3,7 @@ import { useLoaderData } from 'react-router-dom';
 import ResourceDetailHeader from '../components/ResourceDetailHeader';
 import ResourceTags from '../components/ResourceTags';
 import RelatedResources from '../components/RelatedResources';
-import { Button } from '@/components/ui/Button'; // Import vũ khí chuẩn từ kho
+import { Button } from '@/components/ui/Button';
 import type { ResourceDetailLoaderData } from '../types/resource.types';
 
 export default function ResourceDetailPage() {
@@ -49,7 +49,7 @@ export default function ResourceDetailPage() {
                 id: r.fileId,
                 title: r.fileName,
                 author: r.uploadUserName || 'Ẩn danh',
-                thumbnailUrl: r.fileUrl || undefined, // Sửa lỗi chính tả tại đây
+                thumbnailUrl: r.fileUrl || undefined,
               }))}
             />
           )}

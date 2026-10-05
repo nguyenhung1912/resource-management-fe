@@ -10,7 +10,7 @@ import { SearchAuthorsTab } from '../components/search/SearchAuthorsTab';
 import { SearchOmnibox } from '../components/search/SearchOmnibox';
 import { SearchResourceListTab } from '../components/search/SearchResourceListTab';
 import type { SearchHubLoaderData, SearchResourceItem, SearchTab } from '../types/search.types';
-import type { SearchResultItem } from '@/features/resources/types/search.types';
+import type { SearchResultItem } from '@/features/home/types/search.types';
 
 export function SearchHubPage() {
   const { apiData, submajors, fileTypes } = useLoaderData() as SearchHubLoaderData;

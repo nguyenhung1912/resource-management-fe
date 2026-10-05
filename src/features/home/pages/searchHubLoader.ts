@@ -1,9 +1,9 @@
 import type { LoaderFunctionArgs } from 'react-router-dom';
 import { searchResources } from '@/services/searchService';
 import { resourceService } from '@/services/resourceService';
-import type { SearchRequestParams } from '@/features/resources/types/search.types';
+import type { SearchRequestParams } from '@/features/home/types/search.types';
 
-export async function searchLoader({ request }: LoaderFunctionArgs) {
+export async function searchHubLoader({ request }: LoaderFunctionArgs) {
   try {
     const url = new URL(request.url);
     const sp = url.searchParams;
@@ -66,4 +66,4 @@ export async function searchLoader({ request }: LoaderFunctionArgs) {
   }
 }
 
-export default searchLoader;
+export default searchHubLoader;
