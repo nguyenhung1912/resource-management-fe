@@ -54,7 +54,7 @@ export function TableHead({ className, ...props }: ThHTMLAttributes<HTMLTableCel
   return (
     <th
       className={cn(
-        'h-11 px-4 py-3 sm:px-6 text-left align-middle font-semibold text-text-muted text-[11px] sm:text-xs has-[[role=checkbox]]:pr-0',
+        'h-11 px-4 py-3 sm:px-6 text-left align-middle font-semibold text-text-muted text-[11px] sm:text-xs whitespace-nowrap has-[[role=checkbox]]:pr-0',
         className,
       )}
       {...props}

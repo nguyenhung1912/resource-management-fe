@@ -9,6 +9,7 @@ import { adminAccountsLoader } from '@/features/admin/accounts/pages/adminAccoun
 import { adminRolesLoader } from '@/features/admin/roles/pages/adminRolesLoader';
 import { adminPermissionsLoader } from '@/features/admin/permissions/pages/adminPermissionsLoader';
 import { academicManagementLoader } from '@/features/admin/academic/pages/academicManagementLoader';
+import { auditLogsLoader } from '@/features/admin/audit-logs/pages/auditLogsLoader';
 
 import { RoleGuard } from '../guards/RoleGuard';
 
@@ -19,6 +20,8 @@ const AdminRolesPage = lazy(() => import('@/features/admin/roles/pages/AdminRole
 const AdminPermissionsPage = lazy(() => import('@/features/admin/permissions/pages/AdminPermissionsPage'));
 
 const AcademicManagementPage = lazy(() => import('@/features/admin/academic/pages/AcademicManagementPage'));
+
+const AuditLogsPage = lazy(() => import('@/features/admin/audit-logs/pages/AuditLogsPage'));
 
 const PlaceholderFeaturePage = lazy(() => import('@/features/home/pages/PlaceholderFeaturePage'));
 
@@ -110,12 +113,10 @@ export const adminRoutes: RouteObject[] = [
       // Nhật ký lưu vết
       {
         path: ROUTE_SEGMENTS.AUDIT_LOGS,
+        loader: auditLogsLoader,
         element: (
           <RoleGuard allowedRoles={['Admin']}>
-            <PlaceholderFeaturePage
-              title="Nhật ký Lưu vết (Audit Logs)"
-              description="Ghi nhận nhật ký truy vết đăng nhập, thao tác người dùng và kiểm toán an ninh."
-            />
+            <AuditLogsPage />
           </RoleGuard>
         ),
         handle: {
