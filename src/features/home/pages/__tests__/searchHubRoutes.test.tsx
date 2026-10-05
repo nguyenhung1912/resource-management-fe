@@ -6,7 +6,7 @@ import { appRoutes } from '@/routes';
 import { useAuthStore } from '@/store/authStore';
 import { searchResources } from '@/services/searchService';
 import { resourceService } from '@/services/resourceService';
-import type { SearchResultItem } from '@/features/resources/types/search.types';
+import type { SearchResultItem } from '@/features/home/types/search.types';
 
 // 1. chặn trực tiếp tầng Dịch vụ (Services) thay vì Axios
 vi.mock('@/services/searchService', () => ({

@@ -1,5 +1,5 @@
 import axiosClient from '@/services/axiosClient';
-import type { SearchRequestParams, SearchResponse } from '@/features/resources/types/search.types';
+import type { SearchRequestParams, SearchResponse } from '@/features/home/types/search.types';
 import type { RecommendedResource, ResourceDetail } from '@/features/resources/types/resource.types';
 
 function cleanParams(params: Partial<SearchRequestParams>): Record<string, unknown> {
