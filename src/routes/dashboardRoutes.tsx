@@ -17,6 +17,7 @@ import {
   searchRoutes,
 } from './domains';
 import { ProtectedRoute } from './guards/ProtectedRoute';
+import { processingRoutes } from './domains/processingRoutes';
 
 const ServerErrorPage = lazy(() =>
   import('@/features/errors/pages/ErrorPages').then((module) => ({ default: module.ServerErrorPage })),
@@ -43,6 +44,7 @@ export const dashboardRoutes: RouteObject[] = [
         element: <Navigate to={APP_PATHS.RESOURCES_MANAGER} replace />,
       },
       ...resourceRoutes,
+      ...processingRoutes,
       ...searchRoutes,
       ...moderationRoutes,
       ...reportRoutes,

@@ -5,6 +5,7 @@ import type {
   CheckSummary,
   ProcessingDiagnostics,
   ProcessingJob,
+  ResourceProcessingState,
 } from '@/features/processing/types/processing.types';
 
 const checksPath = (fileId: string) => `/api/resources/${encodeURIComponent(fileId)}/plagiarism-checks`;
@@ -18,6 +19,14 @@ function jobEnvelope(value: { data: ProcessingJob }): ProcessingJob {
 }
 
 export const processingService = {
+  async resourceState(fileId: string, signal?: AbortSignal): Promise<ResourceProcessingState> {
+    return (
+      await axiosClient.get<{ data: ResourceProcessingState }>(
+        `/api/resources/${encodeURIComponent(fileId)}/processing-state`,
+        { signal },
+      )
+    ).data.data;
+  },
   async getJob(jobId: string, signal?: AbortSignal): Promise<ProcessingJob> {
     return jobEnvelope(
       (await axiosClient.get<{ data: ProcessingJob }>(`/api/processing-jobs/${encodeURIComponent(jobId)}`, { signal }))

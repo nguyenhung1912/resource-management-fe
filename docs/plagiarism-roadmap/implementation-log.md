@@ -1,5 +1,20 @@
 # Frontend plagiarism implementation log
 
+## FE03 — Job tracking and resource rediscovery
+
+Added protected lazy job/resource-state routes and a My uploads processing entry point.
+Initial reads use loaders; a shared external-store tracker schedules bounded backoff,
+deduplicates consumers, aborts on last unsubscribe/session change, ignores late responses,
+pauses offline/hidden and stops terminal/manual-repair timers. Unknown stages remain
+neutral; no progress/ETA or technical-failure approval is invented. Session metadata
+cache is bounded and holds no report/PDF text. Resource discovery uses backend BFE02,
+implemented separately with SQL authorization tests; no mutation on resume.
+
+Verification: 41 focused route/adapter/polling tests pass, including deduplication,
+terminal stop, offline/manual repair and logout races; full lint and production build
+pass. Three new polling regressions are included. Cross-device discovery requires the
+new backend contract; live JWT/browser behavior remains FE18.
+
 ## FE02 — Public API contracts
 
 Added separate durable job/report/evidence/diagnostics types and processingService.

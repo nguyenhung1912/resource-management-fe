@@ -501,6 +501,9 @@ export function ResourcesManager({ items, loaderData, onRevalidate, onDeleteSucc
                                 {item.fileName}
                               </span>
                             </button>
+                            <Link className="text-xs text-primary underline" to={APP_PATHS.PROCESSING_RESOURCE(itemId)}>
+                              Xử lý / báo cáo
+                            </Link>
                             <p
                               className="mt-0.5 truncate text-xs text-text-muted"
                               title={item.courseName ?? item.subMajorName ?? item.majorName ?? undefined}

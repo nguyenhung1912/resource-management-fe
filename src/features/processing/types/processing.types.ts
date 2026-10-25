@@ -25,6 +25,17 @@ export interface CheckSummary {
   modelProfileId: string;
 }
 
+export interface ResourceProcessingState {
+  fileId: string;
+  businessStatus: string;
+  currentCheckId: string | null;
+  activeJob: ProcessingJob | null;
+  publicationReadiness: string | null;
+  supportsDurableProcessing: boolean;
+  canOwnerRecheck: boolean;
+  canReviewerCheck: boolean;
+}
+
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 export interface EvidenceWord {
   box?: number[];
