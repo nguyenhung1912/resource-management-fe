@@ -1,0 +1,26 @@
+import type { CheckReport } from '../../types/processing.types';
+export const reportFixture: CheckReport = {
+  summary: {
+    checkId: 'check',
+    completedAtUtc: '2026-10-25T00:00:00Z',
+    matchedChunkCount: 6,
+    totalChunkCount: 10,
+    displaySimilarityPercent: 60,
+    recommendation: 'Approved',
+    modelProfileId: 'model-v1',
+  },
+  originalCutoffUtc: '2026-10-01T00:00:00Z',
+  targetRevision: 'target-revision',
+  targetEvidenceHash: 'target-hash',
+  modelRevision: 'revision-one',
+  extractorVersion: 'extract-v1',
+  exclusionVersion: 'exclude-v1',
+  policy: { approval_max_similarity_percent: '60' },
+  targetAvailable: true,
+  targetPreviewUrl: null,
+  assessmentDetails: null,
+  detailsUnavailableReason: null,
+  sources: [],
+  decisions: [],
+  scopeExplanation: 'Internal sources only',
+};

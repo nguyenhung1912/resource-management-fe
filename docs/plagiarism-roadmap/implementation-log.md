@@ -1,5 +1,13 @@
 # Frontend plagiarism implementation log
 
+## FE04 — Historical model/policy metadata
+
+Added ReportMetadata for immutable report policy threshold, model profile/revision,
+extractor/exclusion versions and original reception cutoff, with explicit missing-data
+labels. Component regression switches snapshots without substituting current settings.
+Report workspace wiring belongs to FE13; no model selector or performance guarantee.
+Focused render regression and lint/build verify this component task.
+
 ## FE03 — Job tracking and resource rediscovery
 
 Added protected lazy job/resource-state routes and a My uploads processing entry point.
