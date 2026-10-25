@@ -4,7 +4,7 @@ Task scope and acceptance: `D:/filemanegerbe/docs/plagiarism-roadmap/frontend-ta
 This frontend checklist records delivery in the selected repository only.
 
 - [x] FE01 Inventory and baseline (see implementation-log.md)
-- [ ] FE02 Typed public API adapters and fixtures
+- [x] FE02 Typed public API adapters and fixtures
 - [ ] FE03 Polling/FIFO/resume
 - [ ] FE04 Model/policy snapshots
 - [ ] FE05 Async upload/reviewer migration

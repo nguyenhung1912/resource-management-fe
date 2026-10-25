@@ -1,5 +1,15 @@
 # Frontend plagiarism implementation log
 
+## FE02 — Public API contracts
+
+Added separate durable job/report/evidence/diagnostics types and processingService.
+Adapters preserve endpoint-specific envelopes, opaque idempotency keys and nested
+artifact naming. Preview requests stay on authenticated, report-scoped routes. The
+old synchronous score payload is rejected as a job rather than presented as 0%.
+Four focused adapter tests passed; scoped ESLint and TypeScript build passed. Full
+baseline (1016 tests, lint/build) was established in FE01. No UI or deployment is
+claimed by this task. Job-to-report/cross-device discovery remain backend dependencies.
+
 Repository: `D:/RecourceManagermentFE/resource-management-fe`. Owner selected this copy
 on 2026-10-25. Starting revision: `55c5ce6`; working tree was clean. The other frontend
 copy under `D:/resmanagerment-fe` contains unrelated changes and is not modified.
