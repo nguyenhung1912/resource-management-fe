@@ -1,13 +1,19 @@
 import { Clock, ExternalLink, FileText, User } from 'lucide-react';
 import { PlagiarismScoreGauge } from './PlagiarismScoreGauge';
+import { PlagiarismCheckResult } from './PlagiarismCheckResult';
 import { ModerationQueueRowActions } from './ModerationQueueRowActions';
-import { getModerationUploaderName, type ModerationResourceItemResponse } from '../types/moderation.types';
+import {
+  getModerationUploaderName,
+  type ModerationResourceItemResponse,
+  type PlagiarismCheckResponse,
+} from '../types/moderation.types';
 import { formatDateTime, formatRelativeTime } from '@/utils/date';
 
 import { cn } from '@/utils/cn';
 
 export interface ModerationQueueMobileCardProps {
   item: ModerationResourceItemResponse;
+  plagiarismResult?: PlagiarismCheckResponse;
   isCheckingPlagiarism?: boolean;
   onCheckPlagiarism: (fileId: string) => void;
   onApprove: (item: ModerationResourceItemResponse) => void;
@@ -18,6 +24,7 @@ export interface ModerationQueueMobileCardProps {
 
 export function ModerationQueueMobileCard({
   item,
+  plagiarismResult,
   isCheckingPlagiarism = false,
   onCheckPlagiarism,
   onApprove,
@@ -97,6 +104,8 @@ export function ModerationQueueMobileCard({
         <span className="text-xs text-text-muted font-medium">Tỷ lệ tương đồng AI:</span>
         <PlagiarismScoreGauge score={item.latestPlagiarismScore ?? item.latestModeration?.plagiarismScore} compact />
       </div>
+
+      {plagiarismResult && <PlagiarismCheckResult result={plagiarismResult} />}
 
       {/* Actions */}
       <div className="pt-2 border-t border-border-subtle flex items-center justify-end">

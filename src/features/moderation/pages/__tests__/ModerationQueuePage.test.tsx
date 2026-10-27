@@ -254,7 +254,7 @@ describe('ModerationQueuePage integration', () => {
 
     await waitFor(() => {
       expect(moderationService.checkPlagiarism).toHaveBeenCalledWith('FIL_PAGE_01');
-      expect(screen.getByText(/Tỷ lệ tương đồng: 16.5%/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Tỷ lệ tương đồng: 16\.50%/i).length).toBeGreaterThan(0);
       expect(mockRevalidate).toHaveBeenCalled();
     });
   });

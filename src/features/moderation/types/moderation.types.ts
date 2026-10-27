@@ -32,14 +32,16 @@ export type SimilarityRiskLevel = 'safe' | 'warning' | 'danger';
 
 export interface PlagiarismMatchedChunk {
   chunkIndex?: number;
+  snippet?: string;
+  matchedWithFileId?: string | null;
+  matchedWithFileName?: string | null;
+  cosineSimilarity?: number;
+  sourceChildId?: string | null;
+  targetChildId?: string | null;
   sourceFileId?: string;
   sourceFileName?: string;
   similarity?: number;
   contentSnippet?: string;
-  snippet?: string;
-  matchedWithFileId?: string;
-  matchedWithFileName?: string;
-  cosineSimilarity?: number;
 }
 
 export interface NormalizedMatchedChunk {
@@ -53,9 +55,16 @@ export interface NormalizedMatchedChunk {
 
 export interface PlagiarismCheckResponse {
   fileId: string;
+  fileName?: string;
+  similarityRate?: number;
   similarityScore?: number;
+  isPlagiarism?: boolean;
+  matchedChunksCount?: number;
+  totalChunksCount?: number;
+  processingTimeMs?: number;
   matchedChunks?: PlagiarismMatchedChunk[];
   checkedAt?: string;
+  candidateDocuments?: Array<{ fileId: string; fileName: string; similarityRate?: number }>;
 }
 
 export interface PlagiarismCheckEnvelopeResponse {

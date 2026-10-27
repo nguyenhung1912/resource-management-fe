@@ -45,7 +45,7 @@ export function DocumentModerationDetailPage() {
         setFeedbackBanner({
           type: 'success',
           title: 'Quét trùng lặp AI hoàn tất',
-          message: `${message} Tỷ lệ tương đồng ghi nhận: ${result.similarityScore}%.`,
+          message: `${message} Tỷ lệ tương đồng ghi nhận: ${(result.similarityRate ?? result.similarityScore ?? 0).toFixed(2)}%.`,
         });
       },
     });
@@ -82,7 +82,7 @@ export function DocumentModerationDetailPage() {
     uploaderEmail: detail.uploader?.email,
     createdAt: detail.createdAt,
     fileUrl: detail.fileUrl,
-    latestPlagiarismScore: plagiarismCheck?.similarityScore ?? null,
+    latestPlagiarismScore: plagiarismCheck?.similarityRate ?? plagiarismCheck?.similarityScore ?? null,
   };
 
   return (
