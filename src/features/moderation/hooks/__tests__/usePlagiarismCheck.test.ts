@@ -1,9 +1,10 @@
 import { act, renderHook } from '@testing-library/react';
 import axios, { type InternalAxiosRequestConfig } from 'axios';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { moderationService } from '@/services/moderationService';
 import { usePlagiarismCheck } from '../usePlagiarismCheck';
-import type { PlagiarismCheckEnvelopeResponse } from '@/features/moderation/types/moderation.types';
+import type { QueuedCheckEnvelope as PlagiarismCheckEnvelopeResponse } from '../../types/queued-check.types';
+import { jobFixture } from '@/features/processing/components/__tests__/fixtures';
 
 vi.mock('@/services/moderationService', () => ({
   moderationService: {
@@ -11,27 +12,17 @@ vi.mock('@/services/moderationService', () => ({
   },
 }));
 
+afterEach(() => vi.unstubAllEnvs());
+
 describe('usePlagiarismCheck hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv('VITE_AUTOMATIC_PROCESSING_ENABLED', 'true');
   });
 
   const mockPlagiarismResponse: PlagiarismCheckEnvelopeResponse = {
-    message: 'Kiểm tra trùng lặp thành công.',
-    data: {
-      fileId: 'FIL_SCAN_001',
-      similarityScore: 16.4,
-      matchedChunks: [
-        {
-          chunkIndex: 1,
-          sourceFileId: 'FIL_OLD_002',
-          sourceFileName: 'Khóa luận tốt nghiệp K18',
-          similarity: 78.5,
-          contentSnippet: 'Đoạn văn bản trích dẫn...',
-        },
-      ],
-      checkedAt: '2026-09-13T10:00:00Z',
-    },
+    message: 'Đã tiếp nhận yêu cầu.',
+    data: { ...jobFixture, fileId: 'FIL_SCAN_001' },
   };
 
   it('khởi tạo với trạng thái ban đầu isChecking = false và apiError = null', () => {
@@ -57,7 +48,7 @@ describe('usePlagiarismCheck hook', () => {
       });
     });
 
-    expect(moderationService.checkPlagiarism).toHaveBeenCalledWith('FIL_SCAN_001');
+    expect(moderationService.checkPlagiarism).toHaveBeenCalledWith('FIL_SCAN_001', expect.any(String));
     expect(handleSuccess).toHaveBeenCalledWith(mockPlagiarismResponse.data, mockPlagiarismResponse.message);
     expect(handleError).not.toHaveBeenCalled();
     expect(scanResult).toEqual(mockPlagiarismResponse);
@@ -143,5 +134,55 @@ describe('usePlagiarismCheck hook', () => {
     });
 
     expect(result.current.apiError).toBeNull();
+  });
+  it('does not submit while automatic processing is paused', async () => {
+    vi.stubEnv('VITE_AUTOMATIC_PROCESSING_ENABLED', 'false');
+    const { result } = renderHook(() => usePlagiarismCheck());
+    await act(async () => {
+      await result.current.check('FIL_SCAN_001');
+    });
+    expect(moderationService.checkPlagiarism).not.toHaveBeenCalled();
+    expect(result.current.apiError).toContain('tạm dừng');
+  });
+
+  it('deduplicates simultaneous clicks and reuses the intent key after an uncertain response', async () => {
+    let finish!: (value: PlagiarismCheckEnvelopeResponse) => void;
+    vi.mocked(moderationService.checkPlagiarism).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const { result } = renderHook(() => usePlagiarismCheck());
+    await act(async () => {
+      const first = result.current.check('FIL_SCAN_001');
+      expect(await result.current.check('FIL_SCAN_001')).toBeNull();
+      finish(mockPlagiarismResponse);
+      await first;
+    });
+    expect(moderationService.checkPlagiarism).toHaveBeenCalledTimes(1);
+    vi.mocked(moderationService.checkPlagiarism).mockRejectedValueOnce(new Error('connection lost'));
+    await act(async () => {
+      await result.current.check('FIL_SCAN_001');
+    });
+    const uncertainKey = vi.mocked(moderationService.checkPlagiarism).mock.calls[1][1];
+    vi.mocked(moderationService.checkPlagiarism).mockResolvedValueOnce(mockPlagiarismResponse);
+    await act(async () => {
+      await result.current.check('FIL_SCAN_001');
+    });
+    expect(vi.mocked(moderationService.checkPlagiarism).mock.calls[2][1]).toBe(uncertainKey);
+  });
+
+  it('lets independent clients converge on the server-provided active job', async () => {
+    vi.mocked(moderationService.checkPlagiarism).mockResolvedValue(mockPlagiarismResponse);
+    const first = renderHook(() => usePlagiarismCheck());
+    const second = renderHook(() => usePlagiarismCheck());
+    await act(async () => {
+      const results = await Promise.all([
+        first.result.current.check('FIL_SCAN_001'),
+        second.result.current.check('FIL_SCAN_001'),
+      ]);
+      expect(results.map((value) => value?.data.jobId)).toEqual([jobFixture.jobId, jobFixture.jobId]);
+    });
   });
 });

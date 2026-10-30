@@ -1,6 +1,8 @@
+import { processingService } from '@/services/processingService';
+import { jobFixture } from '@/features/processing/components/__tests__/fixtures';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ModerationQueuePage } from '../ModerationQueuePage';
 import { moderationService } from '@/services/moderationService';
 import type { ModerationQueueLoaderData } from '../../types/moderation.types';
@@ -23,6 +25,11 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+vi.mock('@/services/processingService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/processingService')>();
+  return { ...actual, processingService: { ...actual.processingService, resourceState: vi.fn() } };
+});
+
 vi.mock('@/services/moderationService', () => ({
   default: {
     checkPlagiarism: vi.fn(),
@@ -38,9 +45,23 @@ vi.mock('@/services/moderationService', () => ({
   },
 }));
 
+afterEach(() => vi.unstubAllEnvs());
+
 describe('ModerationQueuePage integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv('VITE_AUTOMATIC_PROCESSING_ENABLED', 'true');
+    vi.stubEnv('VITE_LEGACY_MANUAL_MODERATION_ENABLED', 'true');
+    vi.mocked(processingService.resourceState).mockImplementation(async (fileId) => ({
+      fileId,
+      businessStatus: 'Pending',
+      currentCheckId: null,
+      activeJob: null,
+      publicationReadiness: null,
+      supportsDurableProcessing: false,
+      canOwnerRecheck: false,
+      canReviewerCheck: false,
+    }));
     mockSearchParams = new URLSearchParams();
 
     mockLoaderData = {
@@ -179,7 +200,7 @@ describe('ModerationQueuePage integration', () => {
     fireEvent.click(approveButtons[0]);
 
     // Modal xuất hiện
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText(/Phê duyệt tài liệu/i)).toBeInTheDocument();
 
     // Submit modal
@@ -213,7 +234,7 @@ describe('ModerationQueuePage integration', () => {
     fireEvent.click(rejectButtons[0]);
 
     // Modal xuất hiện
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Từ chối tài liệu/i })).toBeInTheDocument();
 
     // Chọn lý do từ suggestion chip (đảm bảo >= 10 ký tự)
@@ -238,11 +259,7 @@ describe('ModerationQueuePage integration', () => {
   it('kích hoạt quét AI và cập nhật thông báo thành công', async () => {
     vi.mocked(moderationService.checkPlagiarism).mockResolvedValueOnce({
       message: 'Kiểm tra trùng lặp AI thành công.',
-      data: {
-        fileId: 'FIL_PAGE_01',
-        similarityScore: 16.5,
-        matchedChunks: [],
-      },
+      data: { ...jobFixture, fileId: 'FIL_PAGE_01' },
     });
 
     renderComponent();
@@ -253,9 +270,9 @@ describe('ModerationQueuePage integration', () => {
     fireEvent.click(scanButtons[0]);
 
     await waitFor(() => {
-      expect(moderationService.checkPlagiarism).toHaveBeenCalledWith('FIL_PAGE_01');
-      expect(screen.getAllByText(/Tỷ lệ tương đồng: 16\.50%/i).length).toBeGreaterThan(0);
-      expect(mockRevalidate).toHaveBeenCalled();
+      expect(moderationService.checkPlagiarism).toHaveBeenCalledWith('FIL_PAGE_01', expect.any(String));
+      expect(mockNavigate).toHaveBeenCalledWith(APP_PATHS.PROCESSING_JOB(jobFixture.jobId));
+      expect(mockRevalidate).not.toHaveBeenCalled();
     });
   });
 

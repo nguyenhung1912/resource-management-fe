@@ -1,3 +1,4 @@
+import { APP_PATHS } from '@/constants/path';
 import { useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import { Pagination } from '@/components/common/Pagination';
@@ -111,6 +112,7 @@ export function SourceCodePage() {
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         onSuccess={handleRefresh}
+        onAccepted={(job) => void navigate(APP_PATHS.PROCESSING_JOB(job.jobId))}
         fileTypeId={sourceCodeFileTypeId}
         fileTypes={fileTypes}
         subMajors={subMajors}

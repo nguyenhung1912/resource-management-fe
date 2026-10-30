@@ -19,6 +19,7 @@ export interface ModerationQueueMobileCardProps {
   onApprove: (item: ModerationResourceItemResponse) => void;
   onReject: (item: ModerationResourceItemResponse) => void;
   onViewDetail: (fileId: string) => void;
+  allowManualDecisions?: boolean;
   className?: string;
 }
 
@@ -30,6 +31,7 @@ export function ModerationQueueMobileCard({
   onApprove,
   onReject,
   onViewDetail,
+  allowManualDecisions = true,
   className,
 }: ModerationQueueMobileCardProps) {
   return (
@@ -113,6 +115,7 @@ export function ModerationQueueMobileCard({
           item={item}
           isCheckingPlagiarism={isCheckingPlagiarism}
           onCheckPlagiarism={onCheckPlagiarism}
+          allowManualDecisions={allowManualDecisions}
           onApprove={onApprove}
           onReject={onReject}
           onViewDetail={onViewDetail}

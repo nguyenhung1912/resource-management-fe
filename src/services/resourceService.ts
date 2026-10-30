@@ -1,3 +1,4 @@
+import { validateAcceptedJob, UncertainUploadError } from '@/features/processing/utils/acceptedJob';
 import axiosClient from '@/services/axiosClient';
 import type {
   AddKeywordsRequest,
@@ -23,7 +24,7 @@ import type {
 } from '@/features/digital-resources/all-resources/types/all-resources.types';
 import type { GlobalSearchQuery, SearchPaginatedResult } from '@/features/home/types/home.types';
 
-// Upload waits for PDF conversion and synchronous duplicate checking in the worker (up to 10 minutes).
+// Upload may wait for conversion/storage; accepted processing continues in a durable job.
 const RESOURCE_UPLOAD_TIMEOUT_MS = 15 * 60 * 1000;
 
 export function buildUploadResourceFormData(values: UploadResourceRequest | UploadSourceCodeFormValues): FormData {
@@ -221,6 +222,9 @@ export const resourceService = {
       },
     });
 
+    const job = response.data?.data?.processingJob;
+    if (response.status === 202 && !job) throw new UncertainUploadError('Accepted upload has no job');
+    if (job) validateAcceptedJob(job);
     return response.data;
   },
 

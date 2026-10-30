@@ -6,9 +6,10 @@ import type {
   ModerationHistoryEnvelopeResponse,
   ModerationQueuePaginatedResponse,
   ModerationQueueParams,
-  PlagiarismCheckEnvelopeResponse,
   RejectModerationRequest,
 } from '@/features/moderation/types/moderation.types';
+import { validateAcceptedJob } from '@/features/processing/utils/acceptedJob';
+import type { QueuedCheckEnvelope } from '@/features/moderation/types/queued-check.types';
 
 export const moderationService = {
   // POST /api/Moderation/{fileId}/approve
@@ -82,10 +83,13 @@ export const moderationService = {
   },
 
   // POST /api/Moderation/{fileId}/check-plagiarism
-  async checkPlagiarism(fileId: string): Promise<PlagiarismCheckEnvelopeResponse> {
-    const response = await axiosClient.post<PlagiarismCheckEnvelopeResponse>(
+  async checkPlagiarism(fileId: string, idempotencyKey?: string): Promise<QueuedCheckEnvelope> {
+    const response = await axiosClient.post<QueuedCheckEnvelope>(
       `/api/Moderation/${encodeURIComponent(fileId)}/check-plagiarism`,
+      null,
+      { headers: { 'Idempotency-Key': idempotencyKey ?? crypto.randomUUID() } },
     );
+    validateAcceptedJob(response.data.data);
     return response.data;
   },
 

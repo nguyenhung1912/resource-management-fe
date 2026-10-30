@@ -1,3 +1,4 @@
+import { jobFixture } from '@/features/processing/components/__tests__/fixtures';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { AxiosResponse } from 'axios';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
@@ -27,6 +28,7 @@ function renderUploadPage(loaderData = defaultCatalog) {
         loader: () => loaderData,
       },
       { path: APP_PATHS.RESOURCES_MANAGER, element: <h1>Quản lý tài nguyên</h1> },
+      { path: APP_PATHS.PROCESSING_JOB(jobFixture.jobId), element: <h1>Theo dõi job đã tiếp nhận</h1> },
     ],
     { initialEntries: [APP_PATHS.RESOURCE_UPLOAD] },
   );
@@ -128,7 +130,9 @@ describe('UploadResourcePage', () => {
     await fillRequiredFields();
     fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('Không thể nhận tài liệu.');
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      status === 503 ? 'hãy mở Tài liệu của tôi' : 'Không thể nhận tài liệu.',
+    );
     expect(axiosClient.post).toHaveBeenCalledTimes(1);
     expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCE_UPLOAD);
   });
@@ -150,6 +154,7 @@ describe('UploadResourcePage', () => {
           loader: () => mockLoaderData,
         },
         { path: APP_PATHS.RESOURCES_MANAGER, element: <h1>Quản lý tài nguyên</h1> },
+        { path: APP_PATHS.PROCESSING_JOB(jobFixture.jobId), element: <h1>Theo dõi job đã tiếp nhận</h1> },
       ],
       { initialEntries: [APP_PATHS.RESOURCE_UPLOAD] },
     );
@@ -162,4 +167,33 @@ describe('UploadResourcePage', () => {
     expect(screen.getByRole('option', { name: 'COURSE-001 - Lập trình C#' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Tài liệu thí nghiệm' })).toBeInTheDocument();
   });
+  it('follows the accepted job without claiming publication or replaying the upload', async () => {
+    vi.mocked(axiosClient.post).mockResolvedValueOnce({ status: 202, data: { data: { processingJob: jobFixture } } });
+    const router = renderUploadPage();
+    await fillRequiredFields();
+    fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe(APP_PATHS.PROCESSING_JOB(jobFixture.jobId)));
+    expect(router.state.location.state).toBeNull();
+    expect(axiosClient.post).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['foreign-url', 'missing-job', 'network-timeout'])(
+    'requires reconciliation after uncertain acceptance: %s',
+    async (kind) => {
+      if (kind === 'network-timeout') {
+        vi.mocked(axiosClient.post).mockRejectedValueOnce({ isAxiosError: true, code: 'ECONNABORTED' });
+      } else {
+        const job =
+          kind === 'foreign-url' ? { ...jobFixture, statusUrl: 'https://untrusted.example/status' } : undefined;
+        vi.mocked(axiosClient.post).mockResolvedValueOnce({ status: 202, data: { data: { processingJob: job } } });
+      }
+      const router = renderUploadPage();
+      await fillRequiredFields();
+      fireEvent.click(screen.getByRole('button', { name: 'Tải lên ngay' }));
+      expect(await screen.findByRole('alert')).toHaveTextContent('hãy mở Tài liệu của tôi');
+      expect(axiosClient.post).toHaveBeenCalledTimes(1);
+      expect(router.state.location.pathname).toBe(APP_PATHS.RESOURCE_UPLOAD);
+      expect(screen.getByText('report.pdf')).toBeInTheDocument();
+    },
+  );
 });

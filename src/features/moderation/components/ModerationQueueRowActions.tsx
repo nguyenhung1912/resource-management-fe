@@ -11,6 +11,7 @@ export interface ModerationQueueRowActionsProps {
   onReject: (item: ModerationResourceItemResponse) => void;
   onViewDetail: (fileId: string) => void;
   className?: string;
+  allowManualDecisions?: boolean;
 }
 
 export function ModerationQueueRowActions({
@@ -21,6 +22,7 @@ export function ModerationQueueRowActions({
   onReject,
   onViewDetail,
   className,
+  allowManualDecisions = true,
 }: ModerationQueueRowActionsProps) {
   return (
     <div className={cn('flex items-center justify-end gap-1.5 shrink-0', className)}>
@@ -41,32 +43,35 @@ export function ModerationQueueRowActions({
         <span className="hidden 2xl:inline text-[11px]">Quét AI</span>
       </Button>
 
-      {/* Duyệt - Soft button */}
-      <Button
-        type="button"
-        size="sm"
-        onClick={() => onApprove(item)}
-        aria-label={`Phê duyệt tài liệu ${item.fileName}`}
-        title="Phê duyệt tài liệu"
-        className="text-xs h-7 px-2.5 cursor-pointer bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border border-emerald-200/80 active:bg-emerald-200/60 font-medium"
-      >
-        <Check className="h-3.5 w-3.5 mr-1 shrink-0" aria-hidden="true" />
-        <span>Duyệt</span>
-      </Button>
+      {allowManualDecisions ? (
+        <>
+          {/* Duyệt - Soft button */}
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => onApprove(item)}
+            aria-label={`Phê duyệt tài liệu ${item.fileName}`}
+            title="Phê duyệt tài liệu"
+            className="text-xs h-7 px-2.5 cursor-pointer bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border border-emerald-200/80 active:bg-emerald-200/60 font-medium"
+          >
+            <Check className="h-3.5 w-3.5 mr-1 shrink-0" aria-hidden="true" />
+            <span>Duyệt</span>
+          </Button>
 
-      {/* Từ chối - Soft button */}
-      <Button
-        type="button"
-        size="sm"
-        onClick={() => onReject(item)}
-        aria-label={`Từ chối tài liệu ${item.fileName}`}
-        title="Từ chối tài liệu"
-        className="text-xs h-7 px-2.5 cursor-pointer bg-rose-50 text-rose-700 hover:bg-rose-100 hover:text-rose-800 border border-rose-200/80 active:bg-rose-200/60 font-medium"
-      >
-        <X className="h-3.5 w-3.5 mr-1 shrink-0" aria-hidden="true" />
-        <span>Từ chối</span>
-      </Button>
-
+          {/* Từ chối - Soft button */}
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => onReject(item)}
+            aria-label={`Từ chối tài liệu ${item.fileName}`}
+            title="Từ chối tài liệu"
+            className="text-xs h-7 px-2.5 cursor-pointer bg-rose-50 text-rose-700 hover:bg-rose-100 hover:text-rose-800 border border-rose-200/80 active:bg-rose-200/60 font-medium"
+          >
+            <X className="h-3.5 w-3.5 mr-1 shrink-0" aria-hidden="true" />
+            <span>Từ chối</span>
+          </Button>
+        </>
+      ) : null}
       {/* Chi tiết - Icon button */}
       <Button
         type="button"

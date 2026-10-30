@@ -1,4 +1,5 @@
 import type { ProcessingJob } from '../types/processing.types';
+import { processingDeployment, processingPausedMessage } from '../utils/processingDeployment';
 
 const labels: Record<string, string> = {
   QUEUED: 'Đang xếp hàng',
@@ -15,6 +16,9 @@ const labels: Record<string, string> = {
 export function ProcessingStatusPanel({ job }: { job: ProcessingJob }) {
   return (
     <section className="rounded-xl border border-border bg-surface p-6 space-y-3" aria-label="Trạng thái xử lý">
+      {!processingDeployment().enabled && !['COMPLETED', 'CANCELLED'].includes(job.status) ? (
+        <p className="text-text-muted">{processingPausedMessage}</p>
+      ) : null}
       <p role="status" className="font-semibold text-text-main">
         {labels[job.status] ?? 'Trạng thái xử lý mới'}
       </p>

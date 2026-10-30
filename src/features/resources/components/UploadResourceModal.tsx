@@ -444,8 +444,8 @@ export function UploadResourceModal({
             aria-live="polite"
             className="rounded-lg border border-primary/20 bg-primary/5 p-3.5 text-sm leading-relaxed text-text-main"
           >
-            Đang tải tệp lên và chuyển sang PDF. Sau khi lưu thành công, hệ thống sẽ tiếp tục kiểm tra trùng lặp ở chế
-            độ nền.
+            Đang tải tệp lên và chuyển sang PDF. Sau khi tiếp nhận, bạn có thể theo dõi job kiểm tra trùng lặp. Tiếp
+            nhận thành công chưa phải là kết quả kiểm tra hoặc xuất bản.
           </div>
         ) : null}
 

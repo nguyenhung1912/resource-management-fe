@@ -7,7 +7,7 @@ This frontend checklist records delivery in the selected repository only.
 - [x] FE02 Typed public API adapters and fixtures
 - [x] FE03 Polling/FIFO/resume (backend BFE01/BFE02 required)
 - [x] FE04 Model/policy snapshots (report workspace integration in FE13)
-- [ ] FE05 Async upload/reviewer migration
+- [x] FE05 Async upload/reviewer migration (acceptance and limits in implementation-log.md)
 - [ ] FE06 Authenticated PDF/OCR preview
 - [ ] FE07 Exclusions and assessment explanations
 - [ ] FE08 Historical source scope
@@ -22,5 +22,7 @@ This frontend checklist records delivery in the selected repository only.
 - [ ] FE17 Legacy/rollout/rollback
 - [ ] FE18 Live end-to-end acceptance
 
-Backend T16–T18 release gates and BFE01/BFE02/BFE03 integration dependencies remain
-separate work. No automatic feature flags are enabled by completing frontend tasks.
+Backend BFE01/BFE02 contracts are implemented. FE05 supplies the deployment-configuration
+option for BFE03 (see deployment.md); matching deployed backend/Worker readiness still
+requires release verification. Backend T16–T18 gates remain separate work. No automatic
+feature flags are enabled by completing frontend tasks.

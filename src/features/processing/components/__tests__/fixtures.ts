@@ -1,4 +1,17 @@
-import type { CheckReport } from '../../types/processing.types';
+import type { CheckReport, ProcessingJob } from '../../types/processing.types';
+export const jobFixture: ProcessingJob = {
+  jobId: 'job-accepted',
+  fileId: 'file',
+  receptionSequence: 10,
+  status: 'QUEUED',
+  stage: 'QUEUED',
+  attempt: 0,
+  nextRetryAtUtc: null,
+  errorCode: null,
+  statusUrl: '/api/processing-jobs/job-accepted',
+  requiresManualRepair: false,
+  waitingForEarlierJob: false,
+};
 export const reportFixture: CheckReport = {
   summary: {
     checkId: 'check',

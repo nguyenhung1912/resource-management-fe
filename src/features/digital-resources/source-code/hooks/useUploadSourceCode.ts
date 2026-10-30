@@ -1,8 +1,9 @@
-import { useCallback, useState, type SyntheticEvent } from 'react';
+import { useCallback, useRef, useState, type SyntheticEvent } from 'react';
 import type { UploadSourceCodeFormValues } from '@/features/digital-resources/source-code/types/source-code.types';
 import { isValidGithubUrl } from '@/features/digital-resources/source-code/utils/sourceCodeUtils';
 import { resourceService } from '@/services/resourceService';
-import { getApiErrorMessage } from '@/utils/getApiErrorMessage';
+import { uploadErrorMessage } from '@/features/resources/utils/uploadErrorMessage';
+import type { ProcessingJob } from '@/features/processing/types/processing.types';
 
 export const ALLOWED_SOURCE_CODE_EXTENSIONS = new Set(['zip', 'rar', '7z', 'tar', 'gz', 'pdf', 'docx']);
 
@@ -24,6 +25,7 @@ export interface UploadSourceCodeValidationErrors {
 export interface UseUploadSourceCodeOptions {
   fileTypeId?: number | null;
   onSuccess?: () => void;
+  onAccepted?: (job: ProcessingJob) => void;
 }
 
 export function getFileExtension(filename: string): string {
@@ -62,7 +64,7 @@ export function validateBannerFile(file: File | null): string | undefined {
   return undefined;
 }
 
-export function useUploadSourceCode({ fileTypeId, onSuccess }: UseUploadSourceCodeOptions) {
+export function useUploadSourceCode({ fileTypeId, onSuccess, onAccepted }: UseUploadSourceCodeOptions) {
   const [file, setFileState] = useState<File | null>(null);
   const [fileName, setFileName] = useState('');
   const [fileDescription, setFileDescription] = useState('');
@@ -75,6 +77,7 @@ export function useUploadSourceCode({ fileTypeId, onSuccess }: UseUploadSourceCo
 
   const [errors, setErrors] = useState<UploadSourceCodeValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const uploading = useRef(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -197,6 +200,7 @@ export function useUploadSourceCode({ fileTypeId, onSuccess }: UseUploadSourceCo
         e.preventDefault();
       }
 
+      if (uploading.current) return false;
       setApiError(null);
       setIsSuccess(false);
 
@@ -205,6 +209,7 @@ export function useUploadSourceCode({ fileTypeId, onSuccess }: UseUploadSourceCo
         return false;
       }
 
+      uploading.current = true;
       setIsSubmitting(true);
 
       const validAuthors = authorIds.filter((id) => id.trim().length > 0);
@@ -223,15 +228,20 @@ export function useUploadSourceCode({ fileTypeId, onSuccess }: UseUploadSourceCo
       };
 
       try {
-        await resourceService.uploadResource(payload);
-        setIsSuccess(true);
-        onSuccess?.();
+        const response = await resourceService.uploadResource(payload);
+        if (response?.data?.processingJob) {
+          onAccepted?.(response.data.processingJob);
+        } else {
+          setIsSuccess(true);
+          onSuccess?.();
+        }
         return true;
       } catch (err: unknown) {
-        const errorMsg = getApiErrorMessage(err, 'Đăng tải mã nguồn thất bại. Vui lòng thử lại.');
+        const errorMsg = uploadErrorMessage(err);
         setApiError(errorMsg);
         return false;
       } finally {
+        uploading.current = false;
         setIsSubmitting(false);
       }
     },
@@ -245,6 +255,7 @@ export function useUploadSourceCode({ fileTypeId, onSuccess }: UseUploadSourceCo
       fileTypeId,
       githubLink,
       onSuccess,
+      onAccepted,
       subMajorCode,
       validateForm,
       yearCompleted,
