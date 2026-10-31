@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Link, useLoaderData, useRevalidator } from 'react-router-dom';
+import { Link, useLoaderData, useNavigate, useRevalidator } from 'react-router-dom';
 import { BarChart2 } from 'lucide-react';
+import { processingDeployment, processingPausedMessage } from '@/features/processing/utils/processingDeployment';
+import { useLegacyDecisionGuard } from '../hooks/useLegacyDecisionGuard';
 import { APP_PATHS } from '@/constants/path';
 import { AlertBanner } from '@/components/common/AlertBanner';
 import { DocumentModerationHeader } from '../components/DocumentModerationHeader';
@@ -27,10 +29,11 @@ interface FeedbackBannerState {
 export function DocumentModerationDetailPage() {
   const { detail, history } = useLoaderData() as ModerationDetailLoaderData;
   const revalidator = useRevalidator();
+  const navigate = useNavigate();
+  const legacyDecision = useLegacyDecisionGuard();
+  const deployment = processingDeployment();
 
-  const [plagiarismCheck, setPlagiarismCheck] = useState<PlagiarismCheckResponse | null>(
-    detail.latestPlagiarismCheck ?? null,
-  );
+  const plagiarismCheck: PlagiarismCheckResponse | null = detail.latestPlagiarismCheck ?? null;
   const [isApproveOpen, setIsApproveOpen] = useState<boolean>(false);
   const [isRejectOpen, setIsRejectOpen] = useState<boolean>(false);
   const [feedbackBanner, setFeedbackBanner] = useState<FeedbackBannerState | null>(null);
@@ -40,13 +43,13 @@ export function DocumentModerationDetailPage() {
   const handleCheckPlagiarism = async () => {
     clearScanError();
     await check(detail.fileId, {
-      onSuccess: (result, message) => {
-        setPlagiarismCheck(result);
+      onSuccess: (result) => {
         setFeedbackBanner({
           type: 'success',
-          title: 'Quét trùng lặp AI hoàn tất',
-          message: `${message} Tỷ lệ tương đồng ghi nhận: ${(result.similarityRate ?? result.similarityScore ?? 0).toFixed(2)}%.`,
+          title: 'Đã tiếp nhận yêu cầu kiểm tra',
+          message: 'Yêu cầu đang chờ xử lý; chưa có kết quả mới.',
         });
+        void navigate(APP_PATHS.PROCESSING_JOB(result.jobId));
       },
     });
   };
@@ -92,8 +95,16 @@ export function DocumentModerationDetailPage() {
         document={detail}
         isCheckingPlagiarism={isChecking}
         onCheckPlagiarism={handleCheckPlagiarism}
-        onOpenApprove={() => setIsApproveOpen(true)}
-        onOpenReject={() => setIsRejectOpen(true)}
+        onOpenApprove={
+          deployment.legacyManualDecisions
+            ? () => void legacyDecision.run(detail.fileId, () => setIsApproveOpen(true))
+            : undefined
+        }
+        onOpenReject={
+          deployment.legacyManualDecisions
+            ? () => void legacyDecision.run(detail.fileId, () => setIsRejectOpen(true))
+            : undefined
+        }
       />
 
       {/* Quick link to Plagiarism Report overview */}
@@ -108,6 +119,16 @@ export function DocumentModerationDetailPage() {
         </Link>
       </div>
 
+      {!deployment.enabled ? (
+        <p role="status" className="text-text-muted">
+          {processingPausedMessage}
+        </p>
+      ) : null}
+      {legacyDecision.error ? (
+        <p role="alert" className="text-danger">
+          {legacyDecision.error}
+        </p>
+      ) : null}
       {/* API scan error notification */}
       {scanError ? (
         <AlertBanner type="danger" title="Lỗi phân tích AI:" message={scanError} onClose={clearScanError} />

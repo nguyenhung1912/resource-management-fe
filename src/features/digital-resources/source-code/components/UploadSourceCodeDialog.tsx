@@ -5,6 +5,7 @@ import { BaseModal } from '@/components/common/BaseModal';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { useUploadSourceCode } from '../hooks/useUploadSourceCode';
+import type { ProcessingJob } from '@/features/processing/types/processing.types';
 import type { LookupItem } from '../types/source-code.types';
 import {
   SourceCodeAcademicSection,
@@ -19,6 +20,7 @@ export interface UploadSourceCodeDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  onAccepted?: (job: ProcessingJob) => void;
   fileTypeId?: number | null;
   fileTypes?: LookupItem[];
   subMajors: LookupItem[];
@@ -29,6 +31,7 @@ export function UploadSourceCodeDialog({
   isOpen,
   onClose,
   onSuccess,
+  onAccepted,
   fileTypeId,
   fileTypes,
   subMajors,
@@ -77,6 +80,10 @@ export function UploadSourceCodeDialog({
   } = useUploadSourceCode({
     fileTypeId: resolvedFileTypeId,
     onSuccess: handleUploadSuccess,
+    onAccepted: (job) => {
+      onClose();
+      onAccepted?.(job);
+    },
   });
 
   const handleClose = () => {

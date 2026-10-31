@@ -20,8 +20,13 @@ export function UploadResourcePage() {
   };
 
   const handleSubmit = async (values: UploadResourceFormValues) => {
-    const isUploaded = await uploadResource(values);
+    let queued = false;
+    const isUploaded = await uploadResource(values, (job) => {
+      queued = true;
+      void navigate(APP_PATHS.PROCESSING_JOB(job.jobId));
+    });
     if (isUploaded) {
+      if (queued) return;
       revalidator.revalidate();
       finishUpload();
     }

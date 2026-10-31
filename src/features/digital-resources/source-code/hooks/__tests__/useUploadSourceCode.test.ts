@@ -1,3 +1,4 @@
+import { jobFixture } from '@/features/processing/components/__tests__/fixtures';
 import { act, renderHook } from '@testing-library/react';
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -293,5 +294,43 @@ describe('useUploadSourceCode hook', () => {
       expect(result.current.authorIds).toEqual([]);
       expect(result.current.errors).toEqual({});
     });
+  });
+  it('retains an accepted document job and deduplicates simultaneous submissions', async () => {
+    let complete!: (value: Awaited<ReturnType<typeof resourceService.uploadResource>>) => void;
+    vi.mocked(resourceService.uploadResource).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          complete = resolve;
+        }),
+    );
+    const onAccepted = vi.fn();
+    const onSuccess = vi.fn();
+    const { result } = renderHook(() => useUploadSourceCode({ fileTypeId: 5, onAccepted, onSuccess }));
+    act(() => {
+      result.current.setFile(new File(['pdf'], 'report.pdf', { type: 'application/pdf' }));
+      result.current.setFileName('Report');
+      result.current.setSubMajorCode('SE');
+      result.current.setAuthorIds(['Author']);
+    });
+    await act(async () => {
+      const pending = result.current.handleSubmit();
+      expect(await result.current.handleSubmit()).toBe(false);
+      complete({
+        message: 'Accepted',
+        data: {
+          id: 'file',
+          fileName: 'Report',
+          fileTypeName: 'Document',
+          fileSizeBytes: 3,
+          uploadedAt: '2026-10-30T00:00:00Z',
+          processingJob: jobFixture,
+        },
+      });
+      expect(await pending).toBe(true);
+    });
+    expect(resourceService.uploadResource).toHaveBeenCalledTimes(1);
+    expect(onAccepted).toHaveBeenCalledWith(jobFixture);
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(result.current.isSuccess).toBe(false);
   });
 });

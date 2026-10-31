@@ -118,6 +118,7 @@ export interface UploadSourceCodeFormValues {
 export interface UploadResourceSuccessResponse {
   message: string;
   data?: {
+    processingJob?: import('@/features/processing/types/processing.types').ProcessingJob;
     id: string;
     fileName: string;
     fileTypeName: string;

@@ -1,3 +1,5 @@
+import type { QueuedCheckEnvelope as PlagiarismCheckEnvelopeResponse } from '@/features/moderation/types/queued-check.types';
+import { jobFixture } from '@/features/processing/components/__tests__/fixtures';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import axiosClient from '../axiosClient';
 import { moderationService } from '../moderationService';
@@ -7,7 +9,6 @@ import type {
   ModerationDetailEnvelopeResponse,
   ModerationHistoryEnvelopeResponse,
   ModerationQueuePaginatedResponse,
-  PlagiarismCheckEnvelopeResponse,
   RejectModerationRequest,
 } from '@/features/moderation/types/moderation.types';
 
@@ -198,18 +199,16 @@ describe('moderationService', () => {
       const fileId = 'FIL_check_01';
       const mockResponse: PlagiarismCheckEnvelopeResponse = {
         message: 'Kết quả phân tích trùng lặp',
-        data: {
-          fileId: 'FIL_check_01',
-          similarityScore: 18.5,
-          matchedChunks: [],
-        },
+        data: { ...jobFixture, fileId: 'FIL_check_01' },
       };
 
       vi.mocked(axiosClient.post).mockResolvedValueOnce({ data: mockResponse });
 
       const result = await moderationService.checkPlagiarism(fileId);
 
-      expect(axiosClient.post).toHaveBeenCalledWith('/api/Moderation/FIL_check_01/check-plagiarism');
+      expect(axiosClient.post).toHaveBeenCalledWith('/api/Moderation/FIL_check_01/check-plagiarism', null, {
+        headers: { 'Idempotency-Key': expect.any(String) },
+      });
       expect(result).toEqual(mockResponse);
     });
   });

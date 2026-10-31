@@ -23,6 +23,7 @@ export interface ModerationQueueTableProps {
   onViewDetail: (fileId: string) => void;
   hasActiveFilters?: boolean;
   onResetFilters?: () => void;
+  allowManualDecisions?: boolean;
   className?: string;
 }
 
@@ -36,6 +37,7 @@ export function ModerationQueueTable({
   onViewDetail,
   hasActiveFilters = false,
   onResetFilters,
+  allowManualDecisions = true,
   className,
 }: ModerationQueueTableProps) {
   if (items.length === 0) {
@@ -59,6 +61,7 @@ export function ModerationQueueTable({
             plagiarismResult={plagiarismResults[item.fileId]}
             isCheckingPlagiarism={checkingPlagiarismFileIds?.has(item.fileId)}
             onCheckPlagiarism={onCheckPlagiarism}
+            allowManualDecisions={allowManualDecisions}
             onApprove={onApprove}
             onReject={onReject}
             onViewDetail={onViewDetail}

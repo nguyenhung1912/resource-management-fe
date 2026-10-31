@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Pagination } from '@/components/common/Pagination';
+import { processingDeployment, processingPausedMessage } from '@/features/processing/utils/processingDeployment';
+import { useLegacyDecisionGuard } from '../hooks/useLegacyDecisionGuard';
 import { APP_PATHS } from '@/constants/path';
 import { ApproveDocumentDialog } from '../components/ApproveDocumentDialog';
 import { RejectDocumentDialog } from '../components/RejectDocumentDialog';
@@ -26,6 +28,8 @@ export function ModerationQueuePage() {
   const loaderData = useLoaderData() as ModerationQueueLoaderData;
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const legacyDecision = useLegacyDecisionGuard();
+  const deployment = processingDeployment();
   const revalidator = useRevalidator();
 
   const { queue, stats, departments, subMajors, fileTypes, currentFilters } = loaderData;
@@ -39,7 +43,7 @@ export function ModerationQueuePage() {
 
   // Plagiarism checking state for rows
   const [checkingPlagiarismFileIds, setCheckingPlagiarismFileIds] = useState<Set<string>>(new Set());
-  const [plagiarismResults, setPlagiarismResults] = useState<Record<string, PlagiarismCheckResponse>>({});
+  const [plagiarismResults] = useState<Record<string, PlagiarismCheckResponse>>({});
   const { check: runPlagiarismCheck } = usePlagiarismCheck();
 
   // Feedback banner & Refreshing
@@ -142,13 +146,17 @@ export function ModerationQueuePage() {
 
   // Actions
   const handleOpenApprove = (item: ModerationResourceItemResponse) => {
-    setDocumentToApprove(mapItemToTargetDocument(item));
-    setIsApproveOpen(true);
+    void legacyDecision.run(item.fileId, () => {
+      setDocumentToApprove(mapItemToTargetDocument(item));
+      setIsApproveOpen(true);
+    });
   };
 
   const handleOpenReject = (item: ModerationResourceItemResponse) => {
-    setDocumentToReject(mapItemToTargetDocument(item));
-    setIsRejectOpen(true);
+    void legacyDecision.run(item.fileId, () => {
+      setDocumentToReject(mapItemToTargetDocument(item));
+      setIsRejectOpen(true);
+    });
   };
 
   const handleViewDetail = (fileId: string) => {
@@ -160,13 +168,12 @@ export function ModerationQueuePage() {
     setFeedback(null);
 
     await runPlagiarismCheck(fileId, {
-      onSuccess: (result, message) => {
-        setPlagiarismResults((previous) => ({ ...previous, [fileId]: result }));
+      onSuccess: (result) => {
         setFeedback({
           type: 'success',
-          message: `${message || 'Kiểm tra trùng lặp AI hoàn tất'}. Tỷ lệ tương đồng: ${(result.similarityRate ?? result.similarityScore ?? 0).toFixed(2)}%.`,
+          message: 'Đã tiếp nhận yêu cầu. Chưa có kết quả kiểm tra mới.',
         });
-        revalidator.revalidate();
+        void navigate(APP_PATHS.PROCESSING_JOB(result.jobId));
       },
       onError: (errMsg) => {
         setFeedback({
@@ -270,11 +277,22 @@ export function ModerationQueuePage() {
       />
 
       {/* Moderation Queue Table & Mobile Cards */}
+      {!deployment.enabled ? (
+        <p role="status" className="text-text-muted">
+          {processingPausedMessage}
+        </p>
+      ) : null}
+      {legacyDecision.error ? (
+        <p role="alert" className="text-danger">
+          {legacyDecision.error}
+        </p>
+      ) : null}
       <ModerationQueueTable
         items={queue.items}
         plagiarismResults={plagiarismResults}
         checkingPlagiarismFileIds={checkingPlagiarismFileIds}
         onCheckPlagiarism={handleCheckPlagiarism}
+        allowManualDecisions={deployment.legacyManualDecisions}
         onApprove={handleOpenApprove}
         onReject={handleOpenReject}
         onViewDetail={handleViewDetail}

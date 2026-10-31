@@ -1,14 +1,15 @@
+import { APP_PATHS } from '@/constants/path';
+import { processingService } from '@/services/processingService';
+import type { QueuedCheckEnvelope as PlagiarismCheckEnvelopeResponse } from '../../types/queued-check.types';
+import { jobFixture } from '@/features/processing/components/__tests__/fixtures';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DocumentModerationDetailPage } from '../DocumentModerationDetailPage';
 import { moderationService } from '@/services/moderationService';
-import type {
-  ModerationDecisionEnvelopeResponse,
-  ModerationDetailLoaderData,
-  PlagiarismCheckEnvelopeResponse,
-} from '../../types/moderation.types';
+import type { ModerationDecisionEnvelopeResponse, ModerationDetailLoaderData } from '../../types/moderation.types';
 
+const mockNavigate = vi.fn();
 const mockRevalidate = vi.fn();
 let mockLoaderData: ModerationDetailLoaderData;
 
@@ -16,9 +17,15 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
+    useNavigate: () => mockNavigate,
     useLoaderData: () => mockLoaderData,
     useRevalidator: () => ({ revalidate: mockRevalidate, state: 'idle' }),
   };
+});
+
+vi.mock('@/services/processingService', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/processingService')>();
+  return { ...actual, processingService: { ...actual.processingService, resourceState: vi.fn() } };
 });
 
 vi.mock('@/services/moderationService', () => ({
@@ -29,9 +36,23 @@ vi.mock('@/services/moderationService', () => ({
   },
 }));
 
+afterEach(() => vi.unstubAllEnvs());
+
 describe('DocumentModerationDetailPage integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv('VITE_AUTOMATIC_PROCESSING_ENABLED', 'true');
+    vi.stubEnv('VITE_LEGACY_MANUAL_MODERATION_ENABLED', 'true');
+    vi.mocked(processingService.resourceState).mockImplementation(async (fileId) => ({
+      fileId,
+      businessStatus: 'Pending',
+      currentCheckId: null,
+      activeJob: null,
+      publicationReadiness: null,
+      supportsDurableProcessing: false,
+      canOwnerRecheck: false,
+      canReviewerCheck: false,
+    }));
 
     mockLoaderData = {
       detail: {
@@ -129,13 +150,8 @@ describe('DocumentModerationDetailPage integration', () => {
 
   it('kích hoạt quét AI và cập nhật kết quả cùng thông báo thành công', async () => {
     const mockScanResponse: PlagiarismCheckEnvelopeResponse = {
-      message: 'Kiểm tra trùng lặp hoàn tất.',
-      data: {
-        fileId: 'FIL_INTEGRATION_001',
-        similarityScore: 11.2,
-        checkedAt: '2026-09-13T10:00:00Z',
-        matchedChunks: [],
-      },
+      message: 'Đã tiếp nhận yêu cầu.',
+      data: { ...jobFixture, fileId: 'FIL_INTEGRATION_001' },
     };
 
     vi.mocked(moderationService.checkPlagiarism).mockResolvedValueOnce(mockScanResponse);
@@ -150,11 +166,12 @@ describe('DocumentModerationDetailPage integration', () => {
     fireEvent.click(scanButton);
 
     await waitFor(() => {
-      expect(moderationService.checkPlagiarism).toHaveBeenCalledWith('FIL_INTEGRATION_001');
+      expect(moderationService.checkPlagiarism).toHaveBeenCalledWith('FIL_INTEGRATION_001', expect.any(String));
     });
 
-    expect(await screen.findByText('Quét trùng lặp AI hoàn tất')).toBeInTheDocument();
-    expect(screen.getByText('11.2%')).toBeInTheDocument();
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith(APP_PATHS.PROCESSING_JOB(jobFixture.jobId)));
+    expect(screen.queryByText('Quét trùng lặp AI hoàn tất')).not.toBeInTheDocument();
+    expect(screen.queryByText('11.2%')).not.toBeInTheDocument();
   });
 
   it('mở modal Phê duyệt và xử lý sau khi xác nhận phê duyệt thành công', async () => {
@@ -183,7 +200,7 @@ describe('DocumentModerationDetailPage integration', () => {
     fireEvent.click(approveHeaderBtn);
 
     // Modal hiển thị
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Phê duyệt tài liệu' })).toBeInTheDocument();
 
     // Nhập ghi chú và submit
@@ -234,7 +251,7 @@ describe('DocumentModerationDetailPage integration', () => {
     fireEvent.click(rejectHeaderBtn);
 
     // Modal hiển thị
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Từ chối tài liệu nghiên cứu' })).toBeInTheDocument();
 
     // Điền lý do từ chối (>= 10 ký tự)
@@ -260,5 +277,48 @@ describe('DocumentModerationDetailPage integration', () => {
 
     expect(screen.getByText('Đã từ chối tài liệu')).toBeInTheDocument();
     expect(mockRevalidate).toHaveBeenCalledTimes(1);
+  });
+  it('blocks legacy decisions on a durable document without calling a decision endpoint', async () => {
+    vi.mocked(processingService.resourceState).mockResolvedValueOnce({
+      fileId: 'FIL_INTEGRATION_001',
+      businessStatus: 'Pending',
+      currentCheckId: null,
+      activeJob: jobFixture,
+      publicationReadiness: null,
+      supportsDurableProcessing: true,
+      canOwnerRecheck: false,
+      canReviewerCheck: false,
+    });
+    render(
+      <MemoryRouter>
+        <DocumentModerationDetailPage />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^Phê duyệt$/i }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Không thể duyệt hoặc từ chối thủ công');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(moderationService.approveDocument).not.toHaveBeenCalled();
+  });
+
+  it('hides legacy decisions by default and fails closed when metadata cannot be loaded', async () => {
+    vi.stubEnv('VITE_LEGACY_MANUAL_MODERATION_ENABLED', 'false');
+    const view = render(
+      <MemoryRouter>
+        <DocumentModerationDetailPage />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByRole('button', { name: /^Phê duyệt$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Từ chối$/i })).not.toBeInTheDocument();
+    vi.stubEnv('VITE_LEGACY_MANUAL_MODERATION_ENABLED', 'true');
+    vi.mocked(processingService.resourceState).mockRejectedValueOnce(new Error('offline'));
+    view.rerender(
+      <MemoryRouter>
+        <DocumentModerationDetailPage />
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /^Từ chối$/i }));
+    await screen.findByRole('alert');
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(moderationService.rejectDocument).not.toHaveBeenCalled();
   });
 });

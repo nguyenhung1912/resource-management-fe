@@ -1,4 +1,6 @@
 export const ROUTE_SEGMENTS = {
+  PROCESSING_JOBS: 'processing-jobs',
+  PROCESSING_RESOURCES: 'processing-resources',
   LOGIN: 'login',
   GOOGLE_CALLBACK: 'google-callback',
   PROFILE: 'profile',
@@ -50,6 +52,7 @@ export const ROUTE_SEGMENTS = {
 } as const;
 
 export const ROUTE_PARAMS = {
+  JOB_ID: ':jobId',
   RESOURCE_ID: ':resourceId',
   APPEAL_ID: ':appealId',
   FILE_ID: ':fileId',
@@ -57,6 +60,10 @@ export const ROUTE_PARAMS = {
 } as const;
 
 export const APP_PATHS = {
+  PROCESSING_RESOURCE: (fileId: string) =>
+    `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.PROCESSING_RESOURCES}/${encodeURIComponent(fileId)}`,
+  PROCESSING_JOB: (jobId: string) =>
+    `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.PROCESSING_JOBS}/${encodeURIComponent(jobId)}`,
   HOME: '/',
 
   LOGIN: `/${ROUTE_SEGMENTS.LOGIN}`,
