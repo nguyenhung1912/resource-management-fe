@@ -33,6 +33,7 @@ import type { ResourceDetailResponse } from '@/features/resources/types/resource
 import { resourceService } from '@/services/resourceService';
 import { cn } from '@/utils/cn';
 import { formatDateTime } from '@/utils/date';
+import { isValidGithubUrl } from '@/utils/urlValidation';
 import { formatFileSize, getFileTypeBadgeClass } from '../utils/allResourcesUtils';
 
 export interface LibraryResourceDetailModalProps {
@@ -83,7 +84,7 @@ export function LibraryResourceDetailModal({
 
       const viewBlob = new Blob([blob], { type: mimeType });
       const fileUrl = window.URL.createObjectURL(viewBlob);
-      window.open(fileUrl, '_blank');
+      window.open(fileUrl, '_blank', 'noopener,noreferrer');
     } catch (err: unknown) {
       console.error('View file error:', err);
     } finally {
@@ -384,12 +385,12 @@ export function LibraryResourceDetailModal({
             )}
 
             {/* GitHub Repository Link */}
-            {detail.githubLink && (
+            {isValidGithubUrl(detail.githubLink) && (
               <div className="pt-1">
                 <a
                   href={detail.githubLink}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center justify-between w-full sm:w-auto gap-3 px-4 py-2.5 rounded-xl bg-surface border border-border-subtle hover:border-primary/40 hover:bg-primary/5 text-text-main hover:text-primary transition-all shadow-2xs group cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5">

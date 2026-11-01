@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Download, ExternalLink, FileQuestion, FileText, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
+import { isSafeEmbedUrl } from '@/utils/urlValidation';
 
 export interface DocumentFileViewerProps {
   fileUrl?: string;
@@ -12,7 +13,9 @@ export interface DocumentFileViewerProps {
 
 export function DocumentFileViewer({ fileUrl, fileName, fileId, className }: DocumentFileViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const downloadUrl = fileUrl || `/api/Resources/${encodeURIComponent(fileId)}/download`;
+  const isSafeUrl = isSafeEmbedUrl(fileUrl);
+  const safeFileUrl = isSafeUrl ? fileUrl : undefined;
+  const downloadUrl = safeFileUrl || `/api/Resources/${encodeURIComponent(fileId)}/download`;
 
   const toggleFullscreen = () => {
     setIsFullscreen((prev) => !prev);
@@ -41,9 +44,9 @@ export function DocumentFileViewer({ fileUrl, fileName, fileId, className }: Doc
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          {fileUrl && (
+          {safeFileUrl && (
             <a
-              href={fileUrl}
+              href={safeFileUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 h-8 px-2.5 rounded-md text-xs font-medium text-text-muted hover:text-text-main hover:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 select-none"
@@ -86,11 +89,12 @@ export function DocumentFileViewer({ fileUrl, fileName, fileId, className }: Doc
 
       {/* Viewer Canvas */}
       <div className={cn('relative w-full bg-gray-100 flex-1', isFullscreen ? 'h-full' : 'h-145')}>
-        {fileUrl ? (
+        {safeFileUrl ? (
           <iframe
-            src={fileUrl}
+            src={safeFileUrl}
             title={`Trình xem tài liệu: ${fileName}`}
             className="w-full h-full border-0 bg-surface"
+            sandbox="allow-scripts allow-forms"
             loading="lazy"
           />
         ) : (

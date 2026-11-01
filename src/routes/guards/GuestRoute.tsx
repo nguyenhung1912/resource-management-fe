@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Navigate, Outlet, useSearchParams } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
 import { useAuthStore } from '@/store/authStore';
+import { getSafeRedirectPath } from '@/utils/safeRedirect';
 
 export interface GuestRouteProps {
   children?: ReactNode;
@@ -12,7 +13,8 @@ export function GuestRoute({ children }: GuestRouteProps) {
   const [searchParams] = useSearchParams();
 
   if (isAuthenticated) {
-    const target = searchParams.get('redirect') || APP_PATHS.DASHBOARD;
+    const rawRedirect = searchParams.get('redirect');
+    const target = getSafeRedirectPath(rawRedirect, APP_PATHS.DASHBOARD);
     return <Navigate to={target} replace />;
   }
 
