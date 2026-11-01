@@ -5,7 +5,7 @@ export type {
   SearchTab,
   SearchTabConfig,
   AuthorItem,
-  SearchResultItem as SearchHubResultItem,
+  SearchResourceItem as SearchHubResultItem,
 } from './types/search.types';
 export * from './components/DashboardHeader';
 export * from './components/DashboardMenu';
@@ -13,5 +13,4 @@ export * from './hooks/useDashboardFunctions';
 export * from './utils/buildDashboardMenu';
 export * from './pages/homeLoader';
 export * from './pages/HomePage';
-export * from './pages/searchHubLoader';
 export * from './pages/SearchHubPage';

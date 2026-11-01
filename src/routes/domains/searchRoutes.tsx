@@ -1,26 +1,35 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy } from 'react';
 import { Navigate, type RouteObject } from 'react-router-dom';
-import { APP_PATHS, ROUTE_SEGMENTS } from '@/constants/path';
+import { APP_PATHS, ROUTE_PARAMS, ROUTE_SEGMENTS } from '@/constants/path';
+
 import { searchHubLoader } from '@/features/home/pages/searchHubLoader';
+import resourceDetailLoader from '@/features/resources/pages/resourceDetailLoader';
 import { allResourcesLoader } from '@/features/digital-resources/all-resources/pages/allResourcesLoader';
 import { sourceCodeLoader } from '@/features/digital-resources/source-code/pages/sourceCodeLoader';
 
 const SearchHubPage = lazy(() => import('@/features/home/pages/SearchHubPage'));
+const ResourceDetailPage = lazy(() => import('@/features/resources/pages/ResourceDetailPage'));
 const AllResourcesPage = lazy(() => import('@/features/digital-resources/all-resources/pages/AllResourcesPage'));
 const SourceCodePage = lazy(() => import('@/features/digital-resources/source-code/pages/SourceCodePage'));
 
 export const searchRoutes: RouteObject[] = [
   {
     path: ROUTE_SEGMENTS.SEARCH,
-    loader: searchHubLoader,
     element: <SearchHubPage />,
+    loader: searchHubLoader,
     handle: {
       meta: {
         title: 'Trung tâm Tra cứu Tài nguyên Số',
         breadcrumb: 'Tra cứu tài nguyên',
       },
     },
+  },
+  // định tuyến Resource detail
+  {
+    path: `${ROUTE_SEGMENTS.RESOURCE_DETAIL}/${ROUTE_PARAMS.RESOURCE_ID}`,
+    element: <ResourceDetailPage />,
+    loader: resourceDetailLoader,
   },
   {
     path: ROUTE_SEGMENTS.RESOURCES,

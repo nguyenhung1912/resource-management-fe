@@ -21,6 +21,7 @@ export const ROUTE_SEGMENTS = {
   RESOURCE_UPLOAD: 'upload',
   RESOURCE_EDIT: 'edit',
   TRASH: 'trash',
+  RESOURCE_DETAIL: 'resource',
 
   // Digital resources catalog
   RESOURCES: 'resources',
@@ -32,6 +33,7 @@ export const ROUTE_SEGMENTS = {
 
   // Moderation & Reports
   MODERATION: 'moderation',
+
   PLAGIARISM_REPORTS: 'plagiarism-reports',
   REPORTS: 'reports',
   MY_REPORTS: 'my-reports',
@@ -122,6 +124,9 @@ export const APP_PATHS = {
   SEARCH_ADVANCED: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.SEARCH}/advanced`,
   SEARCH_AI: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.SEARCH}/ai`,
   SEARCH_USERS: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.SEARCH}/users`,
+  SEARCH_RESOURCES: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.SEARCH}`,
+  RESOURCE_DETAIL_PUBLIC: (resourceId: string | number) =>
+    `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.RESOURCE_DETAIL}/${resourceId}`,
 
   // Admin & System
   ADMIN_USERS: `/${ROUTE_SEGMENTS.DASHBOARD}/${ROUTE_SEGMENTS.ADMIN}/${ROUTE_SEGMENTS.USERS}`,

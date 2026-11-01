@@ -1,87 +1,69 @@
 import type { LoaderFunctionArgs } from 'react-router-dom';
-import type {
-  LibraryResourceItem,
-  LibraryResourcePaginatedResult,
-} from '@/features/digital-resources/all-resources/types/all-resources.types';
+import { searchResources } from '@/services/searchService';
 import { resourceService } from '@/services/resourceService';
-import type { AuthorItem, SearchResultItem } from '../types/search.types';
+import type { SearchRequestParams } from '@/features/home/types/search.types';
 
-export interface SearchHubLoaderData {
-  resources: SearchResultItem[];
-  authors: AuthorItem[];
-  searchParam?: string;
-}
-
-function mapLibraryResourceToSearchResult(item: LibraryResourceItem): SearchResultItem {
-  const extMatch = item.fileName.match(/\.([a-zA-Z0-9]+)$/);
-  const format = extMatch ? extMatch[1].toUpperCase() : (item.fileTypeName ?? 'DOC');
-
-  const year = item.yearCompleted
-    ? String(item.yearCompleted)
-    : item.createdAt
-      ? new Date(item.createdAt).getFullYear().toString()
-      : '2026';
-
-  return {
-    id: item.fileId,
-    title: item.fileName,
-    category: item.fileTypeName || 'Tài liệu khác',
-    author: item.uploadBy || 'Giảng viên / Sinh viên',
-    faculty: item.subMajorCode || 'Khoa CNTT',
-    year,
-    format,
-    downloads: 0,
-  };
-}
-
-function extractAuthorsFromResources(items: LibraryResourceItem[]): AuthorItem[] {
-  const authorMap = new Map<string, { count: number; dept: string }>();
-
-  items.forEach((item) => {
-    const authorName = item.uploadBy?.trim();
-    if (authorName) {
-      const existing = authorMap.get(authorName);
-      if (existing) {
-        existing.count += 1;
-      } else {
-        authorMap.set(authorName, {
-          count: 1,
-          dept: item.subMajorCode || 'Khoa CNTT',
-        });
-      }
-    }
-  });
-
-  return Array.from(authorMap.entries()).map(([name, data]) => ({
-    name,
-    role: 'Tác giả',
-    dept: data.dept,
-    count: data.count,
-  }));
-}
-
-export async function searchHubLoader({ request }: LoaderFunctionArgs): Promise<SearchHubLoaderData> {
-  const url = new URL(request.url);
-  const searchParam = url.searchParams.get('search')?.trim() || url.searchParams.get('q')?.trim() || undefined;
-
+export async function searchHubLoader({ request }: LoaderFunctionArgs) {
   try {
-    const result = await resourceService.searchResources<LibraryResourcePaginatedResult>({
-      search: searchParam,
-      pageNumber: 1,
-      pageSize: 50,
-    });
+    const url = new URL(request.url);
+    const sp = url.searchParams;
+    const params: SearchRequestParams = {};
 
-    const items = result?.items ?? [];
-    return {
-      resources: items.map(mapLibraryResourceToSearchResult),
-      authors: extractAuthorsFromResources(items),
-      searchParam,
-    };
+    const q = sp.get('q');
+    if (q) params.search = q;
+
+    const fileTypeId = sp.get('fileTypeId');
+    if (fileTypeId) params.fileTypeId = fileTypeId;
+
+    const subMajorCode = sp.get('subMajorCode');
+    if (subMajorCode) params.subMajorId = subMajorCode;
+
+    const courseCode = sp.get('courseCode');
+    if (courseCode) params.courseCode = courseCode;
+
+    const uploadUserId = sp.get('uploadUserId');
+    if (uploadUserId) params.uploadUserId = uploadUserId;
+
+    const yearCompleted = sp.get('yearCompleted');
+    if (yearCompleted) {
+      const n = Number(yearCompleted);
+      if (!Number.isNaN(n)) params.yearCompleted = n;
+    }
+
+    const sortBy = sp.get('sortBy');
+    if (sortBy) params.sortBy = sortBy;
+
+    const sortDirection = sp.get('sortDirection');
+    if (sortDirection === 'asc' || sortDirection === 'desc') params.sortDirection = sortDirection;
+
+    params.page = Number(sp.get('page')) || 1;
+    params.pageSize = Number(sp.get('pageSize')) || 10;
+
+    const isSearching = !!(
+      params.search ||
+      params.fileTypeId ||
+      params.subMajorId ||
+      params.yearCompleted ||
+      params.courseCode ||
+      params.uploadUserId
+    );
+
+    const [apiData, submajors, fileTypes] = await Promise.all([
+      isSearching
+        ? searchResources(params)
+        : Promise.resolve({ items: [], totalCount: 0, totalPages: 0, currentPage: 1 }),
+      resourceService.getSubMajors().catch(() => []),
+      resourceService.getFileTypes().catch(() => []),
+    ]);
+
+    return { apiData, submajors, fileTypes };
   } catch {
     return {
-      resources: [],
-      authors: [],
-      searchParam,
+      apiData: { items: [], totalCount: 0, totalPages: 0, currentPage: 1 },
+      submajors: [],
+      fileTypes: [],
     };
   }
 }
+
+export default searchHubLoader;

@@ -2,13 +2,15 @@ import { Calendar, Eye, FileText, Search, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { APP_PATHS } from '@/constants/path';
 import { CATEGORY_ICONS, SEARCH_CATEGORIES } from '../../constants/search.constants';
-import type { SearchResultItem } from '../../types/search.types';
+import type { SearchResourceItem } from '../../types/search.types';
 import { cn } from '@/utils/cn';
+import { Pagination, type PaginationProps } from '@/components/common/Pagination';
 
 export interface SearchResourceListTabProps {
-  resources: SearchResultItem[];
+  resources: SearchResourceItem[];
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
+  pagination?: PaginationProps;
   onSelectResource?: (resourceId: string) => void;
 }
 
@@ -16,6 +18,7 @@ export function SearchResourceListTab({
   resources,
   selectedCategory,
   onCategoryChange,
+  pagination,
   onSelectResource,
 }: SearchResourceListTabProps) {
   return (
@@ -75,6 +78,7 @@ export function SearchResourceListTab({
                     </span>
                   </div>
 
+                  {/* Cho phép click vào Tiêu đề nếu có truyền hàm onSelectResource */}
                   {onSelectResource ? (
                     <button
                       type="button"
@@ -98,12 +102,14 @@ export function SearchResourceListTab({
                       <Calendar className="size-3.5" aria-hidden="true" />
                       {res.year}
                     </span>
-                    <span>{res.faculty}</span>
+                    <span className="truncate max-w-30">{res.faculty}</span>
                   </div>
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-border-subtle/60 flex items-center justify-between">
                   <span className="text-xs text-text-muted">{res.downloads} lượt tải</span>
+
+                  {/* Chốt chặn: Nút bấm click hoặc Link chuẩn xác */}
                   {onSelectResource ? (
                     <button
                       type="button"
@@ -115,7 +121,7 @@ export function SearchResourceListTab({
                     </button>
                   ) : (
                     <Link
-                      to={APP_PATHS.ALL_RESOURCES}
+                      to={APP_PATHS.RESOURCE_DETAIL_PUBLIC(res.id)}
                       className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
                     >
                       <Eye className="size-3.5" aria-hidden="true" />
@@ -126,6 +132,12 @@ export function SearchResourceListTab({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {pagination && resources.length > 0 && (
+        <div className="mt-6">
+          <Pagination {...pagination} />
         </div>
       )}
     </div>
