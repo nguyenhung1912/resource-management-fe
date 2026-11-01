@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { APP_PATHS } from '@/constants/path';
 import { useAuthStore } from '@/store/authStore';
-import { googleCallbackLoader } from '../googleCallbackLoader';
+import { googleCallbackLoader, sanitizeHistoryUrl } from '../googleCallbackLoader';
 
 describe('googleCallbackLoader', () => {
   it('redirects to login with error when token is missing', async () => {
@@ -52,5 +52,15 @@ describe('googleCallbackLoader', () => {
 
     expect(response.status).toBe(302);
     expect(response.headers.get('Location')).toBe(`${APP_PATHS.LOGIN}?error=google_login_failed`);
+  });
+
+  it('sanitizeHistoryUrl strips token and expiration query parameters from browser history', () => {
+    const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
+    window.history.pushState({}, '', '/google-callback?token=secret123&expiration=2099&extra=1');
+
+    sanitizeHistoryUrl();
+
+    expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/google-callback?extra=1');
+    replaceStateSpy.mockRestore();
   });
 });

@@ -2,6 +2,7 @@ import { matchRoutes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import { APP_PATHS, ROUTE_PARAMS } from '@/constants/path';
 import {
+  adminRoutes,
   appealRoutes,
   moderationRoutes,
   notificationRoutes,
@@ -80,6 +81,16 @@ describe('domain routes and dynamic path builders', () => {
       expect(matchRoutes(searchRoutes, '/theses')).not.toBeNull();
       expect(matchRoutes(searchRoutes, '/course-reports')).not.toBeNull();
       expect(matchRoutes(searchRoutes, '/other-resources')).not.toBeNull();
+    });
+
+    it('adminRoutes matches admin subroutes with protected guards', () => {
+      expect(matchRoutes(adminRoutes, '/admin/users')).not.toBeNull();
+      expect(matchRoutes(adminRoutes, '/admin/roles')).not.toBeNull();
+      expect(matchRoutes(adminRoutes, '/admin/functions')).not.toBeNull();
+      expect(matchRoutes(adminRoutes, '/admin/audit-logs')).not.toBeNull();
+      expect(matchRoutes(adminRoutes, '/admin/academic')).not.toBeNull();
+      expect(matchRoutes(adminRoutes, '/admin/statistics')).not.toBeNull();
+      expect(matchRoutes(adminRoutes, '/admin/system-functions')).not.toBeNull();
     });
   });
 });

@@ -22,6 +22,7 @@ import { BaseModal } from '@/components/common/BaseModal';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { APP_PATHS } from '@/constants/path';
+import { isValidGithubUrl } from '@/utils/urlValidation';
 import type { MyUploadItemResponse } from '@/features/resources/types/resource.types';
 import { FILE_STATUS, STATUS_VARIANTS, formatResourceStatusName } from '../constants/resourceConstants';
 
@@ -307,7 +308,7 @@ export function ResourceDetailModal({
         )}
 
         {/* GitHub link if available */}
-        {item.githubLink && (
+        {isValidGithubUrl(item.githubLink) && (
           <div className="rounded-xl border border-border-subtle bg-surface p-3.5 flex items-center justify-between gap-3 shadow-2xs">
             <div className="flex items-center gap-2 min-w-0">
               <GitBranch className="size-4 text-text-muted shrink-0" aria-hidden="true" />
@@ -315,7 +316,7 @@ export function ResourceDetailModal({
               <a
                 href={item.githubLink}
                 target="_blank"
-                rel="noreferrer noopener"
+                rel="noopener noreferrer"
                 className="text-xs text-primary font-medium hover:underline truncate inline-flex items-center gap-1"
               >
                 <span className="truncate">{item.githubLink}</span>

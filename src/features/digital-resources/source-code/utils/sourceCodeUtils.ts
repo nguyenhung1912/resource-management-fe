@@ -1,5 +1,8 @@
 import type { BadgeProps } from '@/components/ui/Badge';
 import type { SourceCodeItem, SourceCodeStats } from '@/features/digital-resources/source-code/types/source-code.types';
+import { isValidGithubUrl } from '@/utils/urlValidation';
+
+export { isValidGithubUrl };
 
 export interface StatusBadgeConfig {
   variant: NonNullable<BadgeProps['variant']>;
@@ -37,18 +40,6 @@ export function getSourceCodeStatusBadge(statusId: number, statusName?: string |
     label: statusName?.trim() || 'Không xác định',
     dotClassName: 'bg-text-muted',
   };
-}
-
-export function isValidGithubUrl(url?: string | null): boolean {
-  if (!url) return false;
-  const trimmed = url.trim();
-  if (!trimmed) return false;
-  try {
-    const parsed = new URL(trimmed);
-    return (parsed.hostname === 'github.com' || parsed.hostname === 'www.github.com') && parsed.pathname.length > 1;
-  } catch {
-    return false;
-  }
 }
 
 export function calculateSourceCodeStats(items: SourceCodeItem[], totalCount: number): SourceCodeStats {

@@ -39,7 +39,11 @@ export const adminRoutes: RouteObject[] = [
       {
         path: ROUTE_SEGMENTS.USERS,
         loader: adminAccountsLoader,
-        element: <AdminAccountsPage />,
+        element: (
+          <RoleGuard allowedRoles={['Admin']}>
+            <AdminAccountsPage />
+          </RoleGuard>
+        ),
         handle: {
           meta: {
             title: 'Quản lý người dùng',
@@ -52,7 +56,11 @@ export const adminRoutes: RouteObject[] = [
       {
         path: ROUTE_SEGMENTS.ROLES,
         loader: adminRolesLoader,
-        element: <AdminRolesPage />,
+        element: (
+          <RoleGuard allowedRoles={['Admin']}>
+            <AdminRolesPage />
+          </RoleGuard>
+        ),
         handle: {
           meta: {
             title: 'Quản lý Role',
@@ -65,7 +73,11 @@ export const adminRoutes: RouteObject[] = [
       {
         path: ROUTE_SEGMENTS.FUNCTIONS,
         loader: adminPermissionsLoader,
-        element: <AdminPermissionsPage />,
+        element: (
+          <RoleGuard allowedRoles={['Admin']}>
+            <AdminPermissionsPage />
+          </RoleGuard>
+        ),
         handle: {
           meta: {
             title: 'Phân quyền chức năng',

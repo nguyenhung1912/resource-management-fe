@@ -285,7 +285,7 @@ export function ResourcesManager({ items, loaderData, onRevalidate, onDeleteSucc
 
       const viewBlob = new Blob([blob], { type: mimeType });
       const fileUrl = window.URL.createObjectURL(viewBlob);
-      window.open(fileUrl, '_blank');
+      window.open(fileUrl, '_blank', 'noopener,noreferrer');
     } catch (err: unknown) {
       console.error('View file error:', err);
     } finally {

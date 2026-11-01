@@ -4,3 +4,4 @@ export { RoleGuard } from './RoleGuard';
 export type { RoleGuardProps } from './RoleGuard';
 export { GuestRoute } from './GuestRoute';
 export type { GuestRouteProps } from './GuestRoute';
+export { getSafeRedirectPath } from '@/utils/safeRedirect';

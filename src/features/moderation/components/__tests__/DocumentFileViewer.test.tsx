@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { DocumentFileViewer } from '../DocumentFileViewer';
 
 describe('DocumentFileViewer', () => {
-  it('render iframe xem trước khi có fileUrl', () => {
+  it('render iframe xem trước khi có fileUrl hợp lệ với thuộc tính sandbox an toàn', () => {
     render(
       <DocumentFileViewer
         fileId="FIL_001"
@@ -16,6 +16,7 @@ describe('DocumentFileViewer', () => {
     const iframe = screen.getByTitle('Trình xem tài liệu: Báo cáo NCKH.pdf');
     expect(iframe).toBeInTheDocument();
     expect(iframe).toHaveAttribute('src', 'https://example.com/files/report.pdf');
+    expect(iframe).toHaveAttribute('sandbox', 'allow-scripts allow-forms');
 
     const openTabLink = screen.getByRole('link', { name: /Mở tab mới/i });
     expect(openTabLink).toHaveAttribute('href', 'https://example.com/files/report.pdf');
@@ -52,5 +53,13 @@ describe('DocumentFileViewer', () => {
 
     const apiDownloadLink = screen.getByRole('link', { name: /Tải tài liệu gốc về máy/i });
     expect(apiDownloadLink).toHaveAttribute('href', '/api/Resources/FIL_EMPTY/download');
+  });
+
+  it('chặn iframe khi fileUrl chứa scheme nguy hiểm (javascript:, data:)', () => {
+    render(<DocumentFileViewer fileId="FIL_XSS" fileName="exploit.html" fileUrl="javascript:alert(document.cookie)" />);
+
+    expect(screen.queryByTitle(/Trình xem tài liệu/i)).not.toBeInTheDocument();
+    expect(screen.getByText('Không thể hiển thị xem trước trực tiếp')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Mở tab mới/i })).not.toBeInTheDocument();
   });
 });
